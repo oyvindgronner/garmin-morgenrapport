@@ -3,7 +3,7 @@
 garmin_morgen.py
 ================
 Henter helsedata fra Garmin Connect og genererer et ferdig
-dagsform-prompt til trener for å vurdere dagsform og om dagens trening bør endres eller om det bør gjøres andre tilpasninger.
+dagsform-prompt til AI-trener (Claude).
 
 Avhengigheter:
     pip install garminconnect garth
@@ -30,21 +30,11 @@ TOKENSTI = os.path.expanduser("~/.garth")
 DATO     = date.today()
 DATO_STR = DATO.isoformat()
 
-BASELINE_HRV     = None
-BASELINE_RHR     = None
-BASELINE_BB_MORN = None
-
 # ──────────────────────────────────────────────
 # INNLOGGING
 # ──────────────────────────────────────────────
 
 def logg_inn():
-    """
-    Logger inn med:
-    1. Miljøvariabler (GARMIN_EMAIL + GARMIN_PASSWORD) — brukes av GitHub Actions
-    2. Lagret token (~/.garth) — brukes lokalt på Mac etter første innlogging
-    3. Manuell innlogging — første gang lokalt
-    """
     epost   = os.environ.get("GARMIN_EMAIL")
     passord = os.environ.get("GARMIN_PASSWORD")
 
@@ -98,12 +88,13 @@ def hent_hrv(api):
     try:
         data = api.get_hrv_data(DATO_STR)
         summary = data.get("hrvSummary", {})
+        nattlig = summary.get("lastNight") or summary.get("hrvValue") or summary.get("lastNight5MinHigh")
         return {
-            "nattlig_snitt":           summary.get("lastNight"),
-            "status":                  summary.get("status"),
-            "5min_hoy":                summary.get("lastNight5MinHigh"),
-            "baseline_balansert_lav":  summary.get("baselineBalancedLow"),
-            "baseline_balansert_hoy":  summary.get("baselineBalancedUpper"),
+            "nattlig_snitt":          nattlig,
+            "status":                 summary.get("status"),
+            "5min_hoy":               summary.get("lastNight5MinHigh"),
+            "baseline_balansert_lav": summary.get("baselineBalancedLow"),
+            "baseline_balansert_hoy": summary.get("baselineBalancedUpper"),
         }
     except Exception as e:
         print(f"⚠️  HRV-data ikke tilgjengelig: {e}")
@@ -127,14 +118,35 @@ def hent_dagsstatus(api):
 def hent_treningsbelastning(api):
     try:
         data = api.get_training_status(DATO_STR)
-        return {
-            "status":       data.get("trainingLoadFeedback"),
-            "aerob_load":   data.get("aerobicTrainingLoad"),
-            "anaerob_load": data.get("anaerobicTrainingLoad"),
-            "vo2max":       data.get("vo2MaxValue"),
-        }
+        # Støtter både gammel og ny API-struktur
+        if isinstance(data, dict):
+            inner = data.get("trainingStatusDTO") or data
+            return {
+                "status":       inner.get("trainingLoadFeedback") or inner.get("trainingStatus"),
+                "aerob_load":   inner.get("aerobicTrainingLoad") or inner.get("aerobicLoad"),
+                "anaerob_load": inner.get("anaerobicTrainingLoad") or inner.get("anaerobicLoad"),
+                "vo2max":       inner.get("vo2MaxValue") or inner.get("vo2Max"),
+            }
+        return {}
     except Exception as e:
         print(f"⚠️  Treningsbelastning ikke tilgjengelig: {e}")
+        return {}
+
+def hent_body_battery(api):
+    """Henter Body Battery separat som backup."""
+    try:
+        data = api.get_body_battery(DATO_STR)
+        if isinstance(data, list) and len(data) > 0:
+            verdier = [v.get("value") for v in data if v.get("value") is not None]
+            if verdier:
+                return {
+                    "maks": max(verdier),
+                    "min":  min(verdier),
+                    "siste": verdier[-1],
+                }
+        return {}
+    except Exception as e:
+        print(f"⚠️  Body Battery ikke tilgjengelig: {e}")
         return {}
 
 def hent_siste_aktiviteter(api, antall=5):
@@ -179,10 +191,10 @@ def hrv_vurdering(hrv_data):
     bal_hoy = hrv_data.get("baseline_balansert_hoy")
     if status == "BALANCED":
         return "Normal (innenfor balansert sone)"
-    elif status == "UNBALANCED":
+    elif status == "UNBALANCED" or status == "LOW":
         if nattlig and bal_lav and nattlig < bal_lav:
             return f"Lav – under baseline ({nattlig} ms vs. balansert sone {bal_lav}–{bal_hoy})"
-        return "Ubalansert"
+        return f"Lav/Ubalansert [{nattlig} ms]"
     elif status == "POOR":
         return "Svak – utenfor normal sone"
     return "Ikke tilgjengelig"
@@ -217,7 +229,7 @@ def sovn_vurdering(sovn):
 # PROMPT-GENERATOR
 # ──────────────────────────────────────────────
 
-def lag_prompt(sovn, hrv, dag, load, aktiviteter):
+def lag_prompt(sovn, hrv, dag, load, bb, aktiviteter):
     siste = aktiviteter[0] if aktiviteter else {}
     aktivitet_tekst = ""
     if siste:
@@ -237,6 +249,9 @@ def lag_prompt(sovn, hrv, dag, load, aktiviteter):
             f"{a.get('dist_km')} km | {a.get('varighet_min')} min | "
             f"load {a.get('load')} | puls snitt {a.get('snitt_puls')}"
         )
+
+    bb_maks = dag.get("body_battery_maks") or bb.get("maks")
+    bb_min  = dag.get("body_battery_min") or bb.get("min")
 
     prompt = f"""## DAGLIG DAGSFORM-ANALYSE – {DATO_STR}
 
@@ -260,8 +275,8 @@ anbefaling for dagens trening.
 - Gjennomsnittlig stressnivå: {dag.get('stress_snitt', 'ikke tilgjengelig')}/100
 
 **Body Battery**
-- Morgenverdi (maks i dag): {bb_vurdering(dag.get('body_battery_maks'))}
-- Minimumverdi: {dag.get('body_battery_min', 'ikke tilgjengelig')}
+- Morgenverdi (maks): {bb_vurdering(bb_maks)}
+- Minimumverdi: {bb_min if bb_min is not None else 'ikke tilgjengelig'}
 
 **Søvn**
 - Total søvn: {sovn_vurdering(sovn)}
@@ -346,12 +361,15 @@ def main():
     hrv         = hent_hrv(api)
     dag         = hent_dagsstatus(api)
     load        = hent_treningsbelastning(api)
+    bb          = hent_body_battery(api)
     aktiviteter = hent_siste_aktiviteter(api, antall=5)
+
+    bb_maks = dag.get("body_battery_maks") or bb.get("maks")
 
     print("\n── RÅ HELSEDATA ──────────────────────────")
     print(f"  HRV nattlig snitt : {hrv.get('nattlig_snitt', '?')} ms  [{hrv.get('status', '?')}]")
     print(f"  Hvilepuls         : {dag.get('hvilepuls', '?')} bpm")
-    print(f"  Body Battery morn : {dag.get('body_battery_maks', '?')} / 100")
+    print(f"  Body Battery morn : {bb_maks} / 100")
     print(f"  Søvn total        : {min_til_tid(sovn.get('total_min'))}  (score: {sovn.get('score', '?')})")
     print(f"  Dyp søvn          : {min_til_tid(sovn.get('dyp_min'))}")
     print(f"  REM               : {min_til_tid(sovn.get('rem_min'))}")
@@ -363,9 +381,10 @@ def main():
         print(f"  {aktiviteter[0].get('dist_km')} km | {aktiviteter[0].get('varighet_min')} min | "
               f"puls {aktiviteter[0].get('snitt_puls')} bpm | load {aktiviteter[0].get('load')}")
 
-    prompt = lag_prompt(sovn, hrv, dag, load, aktiviteter)
+    prompt = lag_prompt(sovn, hrv, dag, load, bb, aktiviteter)
 
-    prompt_fil = os.path.expanduser(f"~/garmin_prompt_{DATO_STR}.txt")
+    # Relativ sti – fungerer både lokalt og i GitHub Actions
+    prompt_fil = f"garmin_prompt_{DATO_STR}.txt"
     with open(prompt_fil, "w", encoding="utf-8") as f:
         f.write(prompt)
 
@@ -377,15 +396,16 @@ def main():
     print(prompt)
     print("\n───────────────────────────────────────────")
 
-    json_fil = os.path.expanduser(f"~/garmin_data_{DATO_STR}.json")
+    json_fil = f"garmin_data_{DATO_STR}.json"
     with open(json_fil, "w", encoding="utf-8") as f:
         json.dump({
-            "dato": DATO_STR,
-            "sovn": sovn,
-            "hrv": hrv,
-            "dag": dag,
+            "dato":               DATO_STR,
+            "sovn":               sovn,
+            "hrv":                hrv,
+            "dag":                dag,
+            "body_battery":       bb,
             "treningsbelastning": load,
-            "siste_aktiviteter": aktiviteter,
+            "siste_aktiviteter":  aktiviteter,
         }, f, ensure_ascii=False, indent=2)
     print(f"💾 Rådata lagret: {json_fil}\n")
 
