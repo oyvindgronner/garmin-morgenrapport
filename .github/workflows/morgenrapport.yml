@@ -2,7 +2,7 @@ name: Garmin morgenrapport
 
 on:
   schedule:
-    - cron: '0 7 * * *'   # 08:00 norsk tid
+    - cron: '0 7 * * *'
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Installer avhengigheter
-        run: pip install garminconnect garth anthropic requests
+        run: pip install garminconnect garth requests
 
       - name: Hent Garmin-data
         run: python garmin_morgen.py
@@ -27,22 +27,17 @@ jobs:
           GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
           GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
 
-      - name: Analyser med Claude
-        run: python claude_analyse.py
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
       - name: Send til Signal
         run: python signal_send.py
         env:
           SIGNAL_PHONE: ${{ secrets.SIGNAL_PHONE }}
           SIGNAL_API_KEY: ${{ secrets.SIGNAL_API_KEY }}
 
-      - name: Last opp rådata som artifact
+      - name: Last opp som artifact
         uses: actions/upload-artifact@v4
         with:
-          name: garmin-data-${{ github.run_id }}
+          name: garmin-${{ github.run_id }}
           path: |
-            claude_analyse.txt
+            garmin_prompt_*.txt
             garmin_data_*.json
-          retention-days: 30
+          retention-days: 7
