@@ -65,13 +65,13 @@ def formater_melding(data: dict, dato: str) -> str:
 
 
 def send_signal(tekst: str):
-    telefon = os.environ["SIGNAL_PHONE"]
+    signal_id = os.environ["SIGNAL_ID"]
     api_key = os.environ["SIGNAL_API_KEY"]
 
     melding = urllib.parse.quote(tekst)
     url = (
-        f"https://api.callmebot.com/signal/send.php"
-        f"?phone={telefon}&apikey={api_key}&text={melding}"
+        f"https://signal.callmebot.com/signal/send.php"
+        f"?phone={signal_id}&apikey={api_key}&text={melding}"
     )
 
     response = requests.get(url, timeout=30)
