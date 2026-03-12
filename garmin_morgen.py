@@ -87,15 +87,16 @@ def hent_sovn(api):
 def hent_hrv(api):
     try:
         data = api.get_hrv_data(DATO_STR)
-        print(f"DEBUG HRV rådata: {json.dumps(data, indent=2)}")
         summary = data.get("hrvSummary", {})
-        nattlig = summary.get("lastNight") or summary.get("hrvValue")
+        baseline = summary.get("baseline", {})
         return {
-            "nattlig_snitt":          nattlig,
+            "nattlig_snitt":          summary.get("lastNightAvg"),
             "status":                 summary.get("status"),
             "5min_hoy":               summary.get("lastNight5MinHigh"),
-            "baseline_balansert_lav": summary.get("baselineBalancedLow"),
-            "baseline_balansert_hoy": summary.get("baselineBalancedUpper"),
+            "ukentlig_snitt":         summary.get("weeklyAvg"),
+            "baseline_balansert_lav": baseline.get("balancedLow"),
+            "baseline_balansert_hoy": baseline.get("balancedUpper"),
+            "baseline_lav_ovre":      baseline.get("lowUpper"),
         }
     except Exception as e:
         print(f"⚠️  HRV-data ikke tilgjengelig: {e}")
@@ -119,16 +120,33 @@ def hent_dagsstatus(api):
 def hent_treningsbelastning(api):
     try:
         data = api.get_training_status(DATO_STR)
-        print(f"DEBUG treningsstatus: {json.dumps(data, indent=2)}")
-        if isinstance(data, dict):
-            inner = data.get("trainingStatusDTO") or data
-            return {
-                "status":       inner.get("trainingLoadFeedback") or inner.get("trainingStatus"),
-                "aerob_load":   inner.get("aerobicTrainingLoad") or inner.get("aerobicLoad"),
-                "anaerob_load": inner.get("anaerobicTrainingLoad") or inner.get("anaerobicLoad"),
-                "vo2max":       inner.get("vo2MaxValue") or inner.get("vo2Max"),
-            }
-        return {}
+
+        # VO2max
+        vo2max = (data.get("mostRecentVO2Max", {})
+                      .get("generic", {})
+                      .get("vo2MaxValue"))
+
+        # Treningsstatus
+        enheter = (data.get("mostRecentTrainingStatus", {})
+                       .get("latestTrainingStatusData", {}))
+        enhet = next(iter(enheter.values()), {}) if enheter else {}
+        acwr_dto = enhet.get("acuteTrainingLoadDTO", {})
+
+        # Treningsbelastningsbalanse
+        balance = (data.get("mostRecentTrainingLoadBalance", {})
+                       .get("metricsTrainingLoadBalanceDTOMap", {}))
+        bal = next(iter(balance.values()), {}) if balance else {}
+
+        return {
+            "status":       enhet.get("trainingStatusFeedbackPhrase"),
+            "aerob_lav":    round(bal.get("monthlyLoadAerobicLow", 0), 0),
+            "aerob_hoy":    round(bal.get("monthlyLoadAerobicHigh", 0), 0),
+            "anaerob":      round(bal.get("monthlyLoadAnaerobic", 0), 0),
+            "vo2max":       vo2max,
+            "acwr":         acwr_dto.get("dailyAcuteChronicWorkloadRatio"),
+            "acwr_status":  acwr_dto.get("acwrStatus"),
+            "load_feedback": bal.get("trainingBalanceFeedbackPhrase"),
+        }
     except Exception as e:
         print(f"⚠️  Treningsbelastning ikke tilgjengelig: {e}")
         return {}
@@ -136,14 +154,15 @@ def hent_treningsbelastning(api):
 def hent_body_battery(api):
     try:
         data = api.get_body_battery(DATO_STR)
-        print(f"DEBUG body battery: {json.dumps(data, indent=2)}")
         if isinstance(data, list) and len(data) > 0:
-            verdier = [v.get("value") for v in data if v.get("value") is not None]
+            dag = data[0]
+            verdier = dag.get("bodyBatteryValuesArray", [])
             if verdier:
+                nivåer = [v[1] for v in verdier if len(v) > 1]
                 return {
-                    "maks": max(verdier),
-                    "min":  min(verdier),
-                    "siste": verdier[-1],
+                    "maks":  max(nivåer),
+                    "min":   min(nivåer),
+                    "ladet": dag.get("charged"),
                 }
         return {}
     except Exception as e:
@@ -194,7 +213,7 @@ def hrv_vurdering(hrv_data):
         return "Normal (innenfor balansert sone)"
     elif status in ("UNBALANCED", "LOW"):
         if nattlig and bal_lav and nattlig < bal_lav:
-            return f"Lav – under baseline ({nattlig} ms vs. balansert sone {bal_lav}–{bal_hoy})"
+            return f"Lav – under balansert sone ({nattlig} ms, sone {bal_lav}–{bal_hoy})"
         return f"Lav/Ubalansert [{nattlig} ms]"
     elif status == "POOR":
         return "Svak – utenfor normal sone"
@@ -226,13 +245,26 @@ def sovn_vurdering(sovn):
     else:
         return f"{tid}{score_txt} – For lite"
 
+def treningsstatus_norsk(kode):
+    oversetting = {
+        "OVERREACHING_1":        "Overbelastning – reduser trening",
+        "OVERREACHING_2":        "Overbelastning – reduser trening",
+        "MAINTAINING":           "Vedlikeholder form",
+        "PRODUCTIVE":            "Produktiv treningsperiode",
+        "PEAKING":               "Toppform",
+        "RECOVERY":              "Restitusjonsfase",
+        "UNPRODUCTIVE":          "Uproduktiv – sjekk søvn og belastning",
+        "DETRAINING":            "Detrening – øk belastning gradvis",
+        "AEROBIC_HIGH_SHORTAGE": "For lite høyintensiv aerob trening",
+    }
+    return oversetting.get(kode, kode or "ikke tilgjengelig")
+
 # ──────────────────────────────────────────────
 # PROMPT-GENERATOR
 # ──────────────────────────────────────────────
 
 def lag_prompt(sovn, hrv, dag, load, bb, aktiviteter):
     siste = aktiviteter[0] if aktiviteter else {}
-    aktivitet_tekst = ""
     if siste:
         aktivitet_tekst = (
             f"  - {siste.get('navn', 'ukjent')} ({siste.get('dato')}): "
@@ -266,8 +298,9 @@ anbefaling for dagens trening.
 ### HELSEDATA FRA NATTEN OG MORGENEN
 
 **HRV (Heart Rate Variability)**
-- Nattlig snitt (lastNight): {hrv.get('nattlig_snitt', 'ikke tilgjengelig')} ms
-- 5-min maks (lastNight5MinHigh): {hrv.get('5min_hoy', 'ikke tilgjengelig')} ms
+- Nattlig snitt: {hrv.get('nattlig_snitt', 'ikke tilgjengelig')} ms
+- Ukentlig snitt: {hrv.get('ukentlig_snitt', 'ikke tilgjengelig')} ms
+- 5-min maks: {hrv.get('5min_hoy', 'ikke tilgjengelig')} ms
 - Status: {hrv_vurdering(hrv)}
 - Balansert sone: {hrv.get('baseline_balansert_lav', '?')}–{hrv.get('baseline_balansert_hoy', '?')} ms
 
@@ -278,6 +311,7 @@ anbefaling for dagens trening.
 **Body Battery**
 - Morgenverdi (maks): {bb_vurdering(bb_maks)}
 - Minimumverdi: {bb_min if bb_min is not None else 'ikke tilgjengelig'}
+- Ladet under søvn: {bb.get('ladet', 'ikke tilgjengelig')}
 
 **Søvn**
 - Total søvn: {sovn_vurdering(sovn)}
@@ -289,11 +323,13 @@ anbefaling for dagens trening.
 - Nattlig stressnivå: {sovn.get('stress_natt', 'ikke tilgjengelig')}
 
 **Treningsstatus**
-- Treningsevne (Training Readiness): {dag.get('treningsevne', 'ikke tilgjengelig')} / 100
 - VO2max: {load.get('vo2max', 'ikke tilgjengelig')}
-- Treningsbelastning status: {load.get('status', 'ikke tilgjengelig')}
-- Aerob belastning: {load.get('aerob_load', 'ikke tilgjengelig')}
-- Anaerob belastning: {load.get('anaerob_load', 'ikke tilgjengelig')}
+- Treningsstatus: {treningsstatus_norsk(load.get('status'))}
+- Belastningsbalanse: {treningsstatus_norsk(load.get('load_feedback'))}
+- ACWR (akutt/kronisk ratio): {load.get('acwr', 'ikke tilgjengelig')} [{load.get('acwr_status', '')}]
+- Aerob lav intensitet (månedlig): {load.get('aerob_lav', 'ikke tilgjengelig')}
+- Aerob høy intensitet (månedlig): {load.get('aerob_hoy', 'ikke tilgjengelig')}
+- Anaerob (månedlig): {load.get('anaerob', 'ikke tilgjengelig')}
 
 ---
 
@@ -315,7 +351,7 @@ anbefaling for dagens trening.
 2. Identifiser avvik fra det som er normalt (HRV, RHR, BB, søvn)
 3. Gi en DAGSFORM-SCORE fra 1–10
 4. Gi én klar anbefaling: Gjennomfør som planlagt / Modifiser / Hvil
-5. Hvis modifiser: beskriv konkret hva som skal endres
+5. Hvis modifiser: beskriv konkret hva som endres
 6. Flagg mønstre som krever oppmerksomhet over tid
 7. Gi 1–2 råd for restitusjon, søvn eller ernæring hvis relevant
 
@@ -330,7 +366,7 @@ anbefaling for dagens trening.
 - Hvilepuls: [Lav/Normal/Høy] → [kort tolkning]
 - Body Battery: [verdi] → [kort tolkning]
 - Søvn: [kort tolkning]
-- Treningsevne: [verdi] → [kort tolkning]
+- Treningsstatus: [kort tolkning]
 
 **ANBEFALING:** [Gjennomfør som planlagt / Modifiser / Hvil]
 
@@ -369,15 +405,17 @@ def main():
 
     print("\n── RÅ HELSEDATA ──────────────────────────")
     print(f"  HRV nattlig snitt : {hrv.get('nattlig_snitt', '?')} ms  [{hrv.get('status', '?')}]")
+    print(f"  HRV ukentlig snitt: {hrv.get('ukentlig_snitt', '?')} ms")
     print(f"  HRV 5-min maks    : {hrv.get('5min_hoy', '?')} ms")
+    print(f"  Balansert sone    : {hrv.get('baseline_balansert_lav', '?')}–{hrv.get('baseline_balansert_hoy', '?')} ms")
     print(f"  Hvilepuls         : {dag.get('hvilepuls', '?')} bpm")
     print(f"  Body Battery morn : {bb_maks} / 100")
     print(f"  Søvn total        : {min_til_tid(sovn.get('total_min'))}  (score: {sovn.get('score', '?')})")
     print(f"  Dyp søvn          : {min_til_tid(sovn.get('dyp_min'))}")
     print(f"  REM               : {min_til_tid(sovn.get('rem_min'))}")
-    print(f"  Treningsevne      : {dag.get('treningsevne', '?')} / 100")
     print(f"  VO2max            : {load.get('vo2max', '?')}")
-    print(f"  Treningsstatus    : {load.get('status', '?')}")
+    print(f"  Treningsstatus    : {treningsstatus_norsk(load.get('status'))}")
+    print(f"  ACWR              : {load.get('acwr', '?')} [{load.get('acwr_status', '?')}]")
     if aktiviteter:
         print(f"\n  Siste økt: {aktiviteter[0].get('navn')} ({aktiviteter[0].get('dato')})")
         print(f"  {aktiviteter[0].get('dist_km')} km | {aktiviteter[0].get('varighet_min')} min | "
