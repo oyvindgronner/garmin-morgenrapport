@@ -8,52 +8,58 @@ from datetime import date
 def formater_melding(data: dict, dato: str) -> str:
     hrv = data.get("hrv", {})
     sovn = data.get("sovn", {})
-    status = data.get("dagsstatus", {})
+    dagsstatus = data.get("dagsstatus", {})
     bb = data.get("body_battery", {})
     belastning = data.get("treningsbelastning", {})
+    aktiviteter = data.get("siste_aktiviteter", [])
 
-    hrv_snitt = hrv.get("lastNightAvg", "–")
+    # HRV
+    hrv_snitt = hrv.get("lastNightAvg") or hrv.get("hrv_natt") or "–"
+    hrv_uke = hrv.get("weeklyAvg") or hrv.get("hrv_uke") or "–"
     hrv_status = hrv.get("status", "–")
-    hrv_ukesnitt = hrv.get("weeklyAvg", "–")
 
-    sovn_timer = round(sovn.get("totalSleepSeconds", 0) / 3600, 1)
-    sovn_score = sovn.get("sleepScore", "–")
-    dyp_min = round(sovn.get("deepSleepSeconds", 0) / 60)
-    rem_min = round(sovn.get("remSleepSeconds", 0) / 60)
+    # Søvn
+    total_sek = sovn.get("totalSleepSeconds") or sovn.get("total_sekunder") or 0
+    dyp_sek = sovn.get("deepSleepSeconds") or sovn.get("dyp_sekunder") or 0
+    rem_sek = sovn.get("remSleepSeconds") or sovn.get("rem_sekunder") or 0
+    sovn_score = sovn.get("sleepScore") or sovn.get("score") or "–"
+    sovn_timer = round(total_sek / 3600, 1) if total_sek else "–"
+    dyp_min = round(dyp_sek / 60) if dyp_sek else "–"
+    rem_min = round(rem_sek / 60) if rem_sek else "–"
 
-    hvile_puls = status.get("restingHeartRate", "–")
-    stress = status.get("averageStressLevel", "–")
+    # Puls og stress
+    hvile_puls = dagsstatus.get("restingHeartRate") or dagsstatus.get("hvilepuls") or "–"
+    stress = dagsstatus.get("averageStressLevel") or dagsstatus.get("stress") or "–"
 
-    bb_morgen = bb.get("max", "–")
-    bb_ladet = bb.get("charged", "–")
+    # Body Battery
+    bb_morgen = bb.get("max") or bb.get("morgen") or "–"
+    bb_ladet = bb.get("charged") or bb.get("ladet") or "–"
 
-    vo2max = belastning.get("vo2max", "–")
-    acwr = belastning.get("acwr", "–")
-    acwr_status = belastning.get("acwrStatus", "–")
-    trening_status = belastning.get("trainingStatus", "–")
+    # Treningsbelastning
+    vo2 = belastning.get("vo2max") or belastning.get("mostRecentVO2Max") or "–"
+    acwr = belastning.get("acwr") or "–"
+    acwr_status = belastning.get("acwrStatus") or "–"
+    tr_status = belastning.get("trainingStatus") or belastning.get("treningsstatus") or "–"
 
-    melding = f"""🏃 Garmin morgenrapport {dato}
-{'─' * 28}
-❤️ HRV
-  Natt: {hrv_snitt} ms | Uke: {hrv_ukesnitt} ms
-  Status: {hrv_status}
+    # Siste økt
+    siste = aktiviteter[0] if aktiviteter else {}
+    siste_navn = siste.get("navn") or siste.get("name") or "–"
+    siste_km = round(siste.get("distanse") or siste.get("distance", 0) / 1000, 2) if siste else "–"
+    siste_puls = siste.get("snitt_puls") or siste.get("averageHR") or "–"
 
-😴 Søvn
-  {sovn_timer}t | Score: {sovn_score}/100
-  Dyp: {dyp_min}min | REM: {rem_min}min
-
-⚡ Body Battery
-  Morgen: {bb_morgen}/100 | Ladet: {bb_ladet}
-
-💓 Hvilepuls
-  {hvile_puls} bpm | Stress: {stress}
-
-📊 Treningsbelastning
-  VO2max: {vo2max}
-  ACWR: {acwr} [{acwr_status}]
-  Status: {trening_status}
-{'─' * 28}
-Lim inn prompt i Claude for analyse."""
+    melding = f"""🏃 Garmin {dato}
+{'─' * 26}
+❤️ HRV: {hrv_snitt} ms (uke: {hrv_uke}) [{hrv_status}]
+💓 Hvilepuls: {hvile_puls} bpm | Stress: {stress}
+⚡ Body Battery: {bb_morgen}/100 (+{bb_ladet})
+😴 Søvn: {sovn_timer}t | Score: {sovn_score}
+   Dyp: {dyp_min}min | REM: {rem_min}min
+📊 ACWR: {acwr} [{acwr_status}]
+   Status: {tr_status}
+   VO2max: {vo2}
+🏅 Siste: {siste_navn} {siste_km}km | {siste_puls}bpm
+{'─' * 26}
+→ Lim prompt i Claude for analyse"""
 
     return melding
 
