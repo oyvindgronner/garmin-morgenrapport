@@ -8,44 +8,42 @@ from datetime import date
 def formater_melding(data: dict, dato: str) -> str:
     hrv = data.get("hrv", {})
     sovn = data.get("sovn", {})
-    dagsstatus = data.get("dagsstatus", {})
+    dag = data.get("dag", {})
     bb = data.get("body_battery", {})
     belastning = data.get("treningsbelastning", {})
     aktiviteter = data.get("siste_aktiviteter", [])
 
     # HRV
-    hrv_snitt = hrv.get("lastNightAvg") or hrv.get("hrv_natt") or "–"
-    hrv_uke = hrv.get("weeklyAvg") or hrv.get("hrv_uke") or "–"
+    hrv_snitt = hrv.get("nattlig_snitt", "–")
+    hrv_uke = hrv.get("ukentlig_snitt", "–")
     hrv_status = hrv.get("status", "–")
 
     # Søvn
-    total_sek = sovn.get("totalSleepSeconds") or sovn.get("total_sekunder") or 0
-    dyp_sek = sovn.get("deepSleepSeconds") or sovn.get("dyp_sekunder") or 0
-    rem_sek = sovn.get("remSleepSeconds") or sovn.get("rem_sekunder") or 0
-    sovn_score = sovn.get("sleepScore") or sovn.get("score") or "–"
-    sovn_timer = round(total_sek / 3600, 1) if total_sek else "–"
-    dyp_min = round(dyp_sek / 60) if dyp_sek else "–"
-    rem_min = round(rem_sek / 60) if rem_sek else "–"
+    sovn_timer = round(sovn.get("total_min", 0) / 60, 1)
+    sovn_score = sovn.get("score", "–")
+    dyp_min = sovn.get("dyp_min", "–")
+    rem_min = sovn.get("rem_min", "–")
 
     # Puls og stress
-    hvile_puls = dagsstatus.get("restingHeartRate") or dagsstatus.get("hvilepuls") or "–"
-    stress = dagsstatus.get("averageStressLevel") or dagsstatus.get("stress") or "–"
+    hvile_puls = dag.get("hvilepuls", "–")
+    stress = dag.get("stress_snitt", "–")
 
     # Body Battery
-    bb_morgen = bb.get("max") or bb.get("morgen") or "–"
-    bb_ladet = bb.get("charged") or bb.get("ladet") or "–"
+    bb_morgen = bb.get("maks", "–")
+    bb_ladet = bb.get("ladet", "–")
 
     # Treningsbelastning
-    vo2 = belastning.get("vo2max") or belastning.get("mostRecentVO2Max") or "–"
-    acwr = belastning.get("acwr") or "–"
-    acwr_status = belastning.get("acwrStatus") or "–"
-    tr_status = belastning.get("trainingStatus") or belastning.get("treningsstatus") or "–"
+    vo2 = belastning.get("vo2max", "–")
+    acwr = belastning.get("acwr", "–")
+    acwr_status = belastning.get("acwr_status", "–")
+    tr_status = belastning.get("status", "–")
 
     # Siste økt
     siste = aktiviteter[0] if aktiviteter else {}
-    siste_navn = siste.get("navn") or siste.get("name") or "–"
-    siste_km = round(siste.get("distanse") or siste.get("distance", 0) / 1000, 2) if siste else "–"
-    siste_puls = siste.get("snitt_puls") or siste.get("averageHR") or "–"
+    siste_navn = siste.get("navn", "–")
+    siste_km = siste.get("dist_km", "–")
+    siste_puls = siste.get("snitt_puls", "–")
+    siste_load = siste.get("load", "–")
 
     melding = f"""🏃 Garmin {dato}
 {'─' * 26}
@@ -57,7 +55,7 @@ def formater_melding(data: dict, dato: str) -> str:
 📊 ACWR: {acwr} [{acwr_status}]
    Status: {tr_status}
    VO2max: {vo2}
-🏅 Siste: {siste_navn} {siste_km}km | {siste_puls}bpm
+🏅 Siste: {siste_navn} {siste_km}km | {siste_puls}bpm | load {siste_load}
 {'─' * 26}
 → Lim prompt i Claude for analyse"""
 
