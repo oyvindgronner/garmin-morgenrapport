@@ -87,8 +87,9 @@ def hent_sovn(api):
 def hent_hrv(api):
     try:
         data = api.get_hrv_data(DATO_STR)
+        print(f"DEBUG HRV rådata: {json.dumps(data, indent=2)}")
         summary = data.get("hrvSummary", {})
-        nattlig = summary.get("lastNight") or summary.get("hrvValue") or summary.get("lastNight5MinHigh")
+        nattlig = summary.get("lastNight") or summary.get("hrvValue")
         return {
             "nattlig_snitt":          nattlig,
             "status":                 summary.get("status"),
@@ -118,7 +119,7 @@ def hent_dagsstatus(api):
 def hent_treningsbelastning(api):
     try:
         data = api.get_training_status(DATO_STR)
-        # Støtter både gammel og ny API-struktur
+        print(f"DEBUG treningsstatus: {json.dumps(data, indent=2)}")
         if isinstance(data, dict):
             inner = data.get("trainingStatusDTO") or data
             return {
@@ -133,9 +134,9 @@ def hent_treningsbelastning(api):
         return {}
 
 def hent_body_battery(api):
-    """Henter Body Battery separat som backup."""
     try:
         data = api.get_body_battery(DATO_STR)
+        print(f"DEBUG body battery: {json.dumps(data, indent=2)}")
         if isinstance(data, list) and len(data) > 0:
             verdier = [v.get("value") for v in data if v.get("value") is not None]
             if verdier:
@@ -191,7 +192,7 @@ def hrv_vurdering(hrv_data):
     bal_hoy = hrv_data.get("baseline_balansert_hoy")
     if status == "BALANCED":
         return "Normal (innenfor balansert sone)"
-    elif status == "UNBALANCED" or status == "LOW":
+    elif status in ("UNBALANCED", "LOW"):
         if nattlig and bal_lav and nattlig < bal_lav:
             return f"Lav – under baseline ({nattlig} ms vs. balansert sone {bal_lav}–{bal_hoy})"
         return f"Lav/Ubalansert [{nattlig} ms]"
@@ -265,8 +266,8 @@ anbefaling for dagens trening.
 ### HELSEDATA FRA NATTEN OG MORGENEN
 
 **HRV (Heart Rate Variability)**
-- Nattlig snitt: {hrv.get('nattlig_snitt', 'ikke tilgjengelig')} ms
-- 5-min maks: {hrv.get('5min_hoy', 'ikke tilgjengelig')} ms
+- Nattlig snitt (lastNight): {hrv.get('nattlig_snitt', 'ikke tilgjengelig')} ms
+- 5-min maks (lastNight5MinHigh): {hrv.get('5min_hoy', 'ikke tilgjengelig')} ms
 - Status: {hrv_vurdering(hrv)}
 - Balansert sone: {hrv.get('baseline_balansert_lav', '?')}–{hrv.get('baseline_balansert_hoy', '?')} ms
 
@@ -368,6 +369,7 @@ def main():
 
     print("\n── RÅ HELSEDATA ──────────────────────────")
     print(f"  HRV nattlig snitt : {hrv.get('nattlig_snitt', '?')} ms  [{hrv.get('status', '?')}]")
+    print(f"  HRV 5-min maks    : {hrv.get('5min_hoy', '?')} ms")
     print(f"  Hvilepuls         : {dag.get('hvilepuls', '?')} bpm")
     print(f"  Body Battery morn : {bb_maks} / 100")
     print(f"  Søvn total        : {min_til_tid(sovn.get('total_min'))}  (score: {sovn.get('score', '?')})")
@@ -383,7 +385,6 @@ def main():
 
     prompt = lag_prompt(sovn, hrv, dag, load, bb, aktiviteter)
 
-    # Relativ sti – fungerer både lokalt og i GitHub Actions
     prompt_fil = f"garmin_prompt_{DATO_STR}.txt"
     with open(prompt_fil, "w", encoding="utf-8") as f:
         f.write(prompt)
