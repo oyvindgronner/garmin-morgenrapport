@@ -30,7 +30,7 @@ jobs:
       - name: Send til Signal
         run: python signal_send.py
         env:
-          SIGNAL_PHONE: ${{ secrets.SIGNAL_PHONE }}
+          SIGNAL_ID: ${{ secrets.SIGNAL_ID }}
           SIGNAL_API_KEY: ${{ secrets.SIGNAL_API_KEY }}
 
       - name: Last opp som artifact
