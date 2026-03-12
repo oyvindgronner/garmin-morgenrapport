@@ -1,0 +1,35 @@
+name: Garmin Morgenrapport
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  hent-garmin-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sjekk ut kode
+        uses: actions/checkout@v3
+
+      - name: Sett opp Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Installer avhengigheter
+        run: pip install garminconnect garth
+
+      - name: Kjør morgenscript
+        env:
+          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
+          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+        run: python3 garmin_morgen.py
+
+      - name: Last opp prompt
+        uses: actions/upload-artifact@v3
+        with:
+          name: garmin-prompt
+          path: garmin_prompt_*.txt
+          retention-days: 3
