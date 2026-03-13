@@ -6,7 +6,6 @@ fra TrainingPeaks og merger inn i garmin_data_DATO.json
 
 import os
 import json
-import base64
 import requests
 from datetime import date, timedelta
 from pathlib import Path
@@ -20,6 +19,7 @@ JSON_FIL = f"garmin_data_{DATO}.json"
 
 
 def hent_token_og_id():
+    # Steg 1: Hent access token
     url = f"{TPAPI_URL}/users/v3/token"
     headers = {
         "Cookie": f"Production_tpAuth={TP_AUTH_COOKIE}",
@@ -31,81 +31,32 @@ def hent_token_og_id():
     r = requests.get(url, headers=headers, timeout=15)
     r.raise_for_status()
     data = r.json()
-
     token_dict = data.get("token", {})
     access_token = token_dict.get("access_token", "")
-    scope = token_dict.get("scope", "")
-    auth_provider = token_dict.get("auth_provider", "")
-    print(f"  scope: {scope}")
-    print(f"  auth_provider: {auth_provider}")
-    print(f"  expires_in: {token_dict.get('expires_in')}")
 
-    # Prøv å dekode access_token som base64 — det starter med gAAAA (Google-style token)
-    athlete_id = None
-    try:
-        # Fjern eventuell URL-safe base64-encoding
-        padded = access_token + "=" * (4 - len(access_token) % 4)
-        decoded = base64.urlsafe_b64decode(padded)
-        decoded_str = decoded.decode("utf-8", errors="ignore")
-        print(f"  Decoded token (første 200 tegn): {decoded_str[:200]}")
-        # Let etter tall som kan være athlete ID
-        import re
-        tall = re.findall(r'"(?:athleteId|athlete_id|userId|user_id|nameid|unique_name|sub)"\s*:\s*"?(\d+)"?', decoded_str)
-        if tall:
-            athlete_id = tall[0]
-            print(f"  Fant athlete ID i decoded token: {athlete_id}")
-    except Exception as e:
-        print(f"  Base64-dekoding feilet: {e}")
+    # Steg 2: Hent userId fra /users/v3/user — ligger nestet under "user"
+    r2 = requests.get(
+        f"{TPAPI_URL}/users/v3/user",
+        headers={
+            "Cookie": f"Production_tpAuth={TP_AUTH_COOKIE}",
+            "Accept": "application/json",
+            "Origin": "https://app.trainingpeaks.com",
+            "Referer": "https://app.trainingpeaks.com/",
+        },
+        timeout=15
+    )
+    r2.raise_for_status()
+    user_data = r2.json()
 
-    # Fallback: prøv /users/v3/user med cookien direkte
-    if not athlete_id:
-        try:
-            print("  Prøver /users/v3/user med cookie...")
-            r2 = requests.get(
-                f"{TPAPI_URL}/users/v3/user",
-                headers={
-                    "Cookie": f"Production_tpAuth={TP_AUTH_COOKIE}",
-                    "Accept": "application/json",
-                    "Origin": "https://app.trainingpeaks.com",
-                },
-                timeout=15
-            )
-            print(f"  /users/v3/user status: {r2.status_code}")
-            if r2.ok:
-                user_data = r2.json()
-                print(f"  /users/v3/user respons: {json.dumps(user_data)[:300]}")
-                athlete_id = (
-                    user_data.get("athleteId") or user_data.get("AthleteId")
-                    or user_data.get("userId") or user_data.get("UserId")
-                    or user_data.get("Id") or user_data.get("id")
-                )
-        except Exception as e:
-            print(f"  /users/v3/user feilet: {e}")
-
-    # Fallback 2: prøv /users/v3/athletes/me
-    if not athlete_id:
-        try:
-            print("  Prøver /users/v3/athletes/me med bearer token...")
-            r3 = requests.get(
-                f"{TPAPI_URL}/users/v3/athletes/me",
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Accept": "application/json",
-                    "Origin": "https://app.trainingpeaks.com",
-                },
-                timeout=15
-            )
-            print(f"  /athletes/me status: {r3.status_code}")
-            if r3.ok:
-                me_data = r3.json()
-                print(f"  /athletes/me respons: {json.dumps(me_data)[:300]}")
-                athlete_id = (
-                    me_data.get("athleteId") or me_data.get("AthleteId")
-                    or me_data.get("Id") or me_data.get("id")
-                )
-        except Exception as e:
-            print(f"  /athletes/me feilet: {e}")
-
+    # userId ligger under "user"-nøkkelen
+    user_obj = user_data.get("user", user_data)
+    athlete_id = (
+        user_obj.get("userId")
+        or user_obj.get("athleteId")
+        or user_obj.get("Id")
+        or user_obj.get("id")
+    )
+    print(f"  userId hentet: {athlete_id}")
     return access_token, athlete_id
 
 
