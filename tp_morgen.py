@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-tp_morgen.py — Henter CTL/ATL/TSB og planlagt økt fra TrainingPeaks
-og merger dataene inn i garmin_data_DATO.json
+tp_morgen.py — Henter CTL/ATL/TSB, trender, planlagt økt og Stryd-wattdata
+fra TrainingPeaks og merger inn i garmin_data_DATO.json
 """
 
 import os
@@ -12,79 +12,93 @@ from pathlib import Path
 
 
 TP_AUTH_COOKIE = os.environ.get("TP_AUTH_COOKIE", "")
-BASE_URL = "https://tpapi.trainingpeaks.com"
+TPAPI_URL = "https://tpapi.trainingpeaks.com"
+API_URL = "https://api.trainingpeaks.com"
 
 DATO = date.today().isoformat()
 JSON_FIL = f"garmin_data_{DATO}.json"
 
 
-def lag_headers(token=None):
+def hent_token():
+    url = f"{TPAPI_URL}/users/v3/token"
     headers = {
+        "Cookie": f"Production_tpAuth={TP_AUTH_COOKIE}",
         "Content-Type": "application/json",
         "Accept": "application/json",
         "Origin": "https://app.trainingpeaks.com",
         "Referer": "https://app.trainingpeaks.com/",
     }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    else:
-        headers["Cookie"] = f"Production_tpAuth={TP_AUTH_COOKIE}"
-    return headers
-
-
-def hent_token_og_athlete_id():
-    """
-    Bruker /users/v3/token for å veksle cookie mot access token + athlete ID.
-    Dette er samme teknikk som tp2intervals.
-    """
-    url = f"{BASE_URL}/users/v3/token"
-    r = requests.get(url, headers=lag_headers(), timeout=15)
+    r = requests.get(url, headers=headers, timeout=15)
     r.raise_for_status()
     data = r.json()
-    print(f"  Token-respons nøkler: {list(data.keys())}")
-
-    # Prøv ulike felt-navn
-    athlete_id = (
-        data.get("athleteId")
-        or data.get("AthleteId")
-        or data.get("userId")
-        or data.get("UserId")
-        or data.get("Id")
-        or data.get("id")
-    )
-    token = (
-        data.get("token")
-        or data.get("access_token")
-        or data.get("Token")
-        or data.get("AccessToken")
-    )
-    return token, athlete_id
+    return data.get("token") or data.get("access_token") or data.get("Token")
 
 
-def hent_fitness(athlete_id, token, dager=3):
+def hent_athlete_id(token):
+    url = f"{API_URL}/v1/athlete/profile"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    r = requests.get(url, headers=headers, timeout=15)
+    r.raise_for_status()
+    data = r.json()
+    print(f"  Profil-nøkler: {list(data.keys()) if isinstance(data, dict) else type(data)}")
+    return data.get("Id") or data.get("id") or data.get("athleteId")
+
+
+def lag_headers(token):
+    return {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+
+
+def hent_fitness_trend(athlete_id, token, dager=42):
+    """Henter daglig CTL/ATL/TSB for siste N dager — gir trenddata"""
     slutt = date.today()
     start = slutt - timedelta(days=dager)
     url = (
-        f"{BASE_URL}/fitness/v3/athletes/{athlete_id}/metrics"
+        f"{TPAPI_URL}/fitness/v3/athletes/{athlete_id}/metrics"
         f"?startDate={start.isoformat()}&endDate={slutt.isoformat()}"
     )
     r = requests.get(url, headers=lag_headers(token), timeout=15)
     r.raise_for_status()
     data = r.json()
 
-    if isinstance(data, list) and data:
-        siste = data[-1]
+    if not isinstance(data, list) or not data:
+        return {"dagens": {"ctl": None, "atl": None, "tsb": None}, "trend_7d": [], "trend_42d": []}
+
+    def parse_dag(d):
         return {
-            "ctl": round(float(siste.get("ctl") or siste.get("Ctl") or 0), 1),
-            "atl": round(float(siste.get("atl") or siste.get("Atl") or 0), 1),
-            "tsb": round(float(siste.get("tsb") or siste.get("Tsb") or 0), 1),
+            "dato": d.get("date") or d.get("Date") or "",
+            "ctl": round(float(d.get("ctl") or d.get("Ctl") or 0), 1),
+            "atl": round(float(d.get("atl") or d.get("Atl") or 0), 1),
+            "tsb": round(float(d.get("tsb") or d.get("Tsb") or 0), 1),
         }
-    return {"ctl": None, "atl": None, "tsb": None}
+
+    alle = [parse_dag(d) for d in data]
+    siste = alle[-1]
+
+    # Returfelt: dagens verdier + komprimert trend
+    return {
+        "dagens": {
+            "ctl": siste["ctl"],
+            "atl": siste["atl"],
+            "tsb": siste["tsb"],
+        },
+        # Siste 7 dager — daglig granularitet for kortidsanalyse
+        "trend_7d": alle[-7:],
+        # Siste 42 dager — ukentlig snapshot (hver 7. dag) for langtidstrend
+        "trend_42d": alle[::6][-7:],
+    }
 
 
 def hent_planlagt_okt(athlete_id, token):
     url = (
-        f"{BASE_URL}/workouts/v1/athletes/{athlete_id}/workouts"
+        f"{TPAPI_URL}/workouts/v1/athletes/{athlete_id}/workouts"
         f"?startDate={DATO}&endDate={DATO}"
     )
     r = requests.get(url, headers=lag_headers(token), timeout=15)
@@ -107,6 +121,54 @@ def hent_planlagt_okt(athlete_id, token):
     }
 
 
+def hent_stryd_okter(athlete_id, token, dager=14):
+    """
+    Henter gjennomførte løpeøkter siste N dager med TSS og watt-data.
+    TSS i TP for løp beregnes fra Stryd når effektmåler er koblet til.
+    """
+    slutt = date.today()
+    start = slutt - timedelta(days=dager)
+    url = (
+        f"{TPAPI_URL}/workouts/v1/athletes/{athlete_id}/workouts"
+        f"?startDate={start.isoformat()}&endDate={slutt.isoformat()}"
+    )
+    r = requests.get(url, headers=lag_headers(token), timeout=15)
+    r.raise_for_status()
+    data = r.json()
+
+    okter = data if isinstance(data, list) else data.get("workouts", [])
+
+    # Filtrer kun gjennomførte løpeøkter
+    lopeokt = [
+        o for o in okter
+        if (o.get("Completed") or o.get("completed"))
+        and (
+            "run" in str(o.get("WorkoutTypeValueId") or o.get("workoutType") or "").lower()
+            or o.get("WorkoutTypeValueId") in [1, 3, 25]  # running type IDs i TP
+        )
+    ]
+
+    resultat = []
+    for o in lopeokt[:5]:  # maks 5 siste
+        np_watt = o.get("NormalizedPower") or o.get("normalizedPower")
+        avg_watt = o.get("Power") or o.get("power") or o.get("AvgPower") or o.get("avgPower")
+        tss = o.get("Tss") or o.get("tss")
+        if_val = o.get("IntensityFactor") or o.get("intensityFactor")
+
+        resultat.append({
+            "dato": o.get("WorkoutDay") or o.get("workoutDay") or o.get("date") or "",
+            "navn": o.get("Title") or o.get("title") or "Løpeøkt",
+            "dist_km": round((o.get("Distance") or o.get("distance") or 0) / 1000, 2),
+            "varighet_min": round((o.get("TotalTime") or o.get("totalTime") or 0) / 60, 1),
+            "tss": round(float(tss), 1) if tss else None,
+            "np_watt": round(float(np_watt), 0) if np_watt else None,
+            "avg_watt": round(float(avg_watt), 0) if avg_watt else None,
+            "if": round(float(if_val), 3) if if_val else None,
+        })
+
+    return resultat
+
+
 def main():
     if not TP_AUTH_COOKIE:
         print("TP_AUTH_COOKIE ikke satt — hopper over TrainingPeaks")
@@ -115,11 +177,17 @@ def main():
     print("Henter TrainingPeaks-data...")
 
     try:
-        token, athlete_id = hent_token_og_athlete_id()
-        print(f"  Athlete ID: {athlete_id}")
+        token = hent_token()
         print(f"  Token hentet: {'ja' if token else 'nei'}")
     except Exception as e:
-        print(f"  FEIL: Kunne ikke hente token/athlete ID: {e}")
+        print(f"  FEIL token: {e}")
+        return
+
+    try:
+        athlete_id = hent_athlete_id(token)
+        print(f"  Athlete ID: {athlete_id}")
+    except Exception as e:
+        print(f"  FEIL athlete ID: {e}")
         return
 
     if not athlete_id:
@@ -129,23 +197,40 @@ def main():
     tp_data = {}
 
     try:
-        fitness = hent_fitness(athlete_id, token)
+        fitness = hent_fitness_trend(athlete_id, token, dager=42)
         tp_data["fitness"] = fitness
-        print(f"  CTL: {fitness['ctl']} | ATL: {fitness['atl']} | TSB: {fitness['tsb']}")
+        d = fitness["dagens"]
+        print(f"  CTL: {d['ctl']} | ATL: {d['atl']} | TSB: {d['tsb']}")
+        print(f"  Trend 7d hentet: {len(fitness['trend_7d'])} dager")
+        print(f"  Trend 42d hentet: {len(fitness['trend_42d'])} snapshots")
     except Exception as e:
         print(f"  FEIL fitness: {e}")
-        tp_data["fitness"] = {"ctl": None, "atl": None, "tsb": None}
+        tp_data["fitness"] = {
+            "dagens": {"ctl": None, "atl": None, "tsb": None},
+            "trend_7d": [],
+            "trend_42d": [],
+        }
 
     try:
         planlagt = hent_planlagt_okt(athlete_id, token)
         tp_data["planlagt_okt"] = planlagt
         if planlagt:
-            print(f"  Planlagt: {planlagt['navn']} ({planlagt['varighet_min']} min)")
+            print(f"  Planlagt: {planlagt['navn']} ({planlagt['varighet_min']} min, TSS: {planlagt['tss_planlagt']})")
         else:
             print("  Ingen planlagt økt i dag")
     except Exception as e:
         print(f"  FEIL planlagt økt: {e}")
         tp_data["planlagt_okt"] = None
+
+    try:
+        stryd = hent_stryd_okter(athlete_id, token, dager=14)
+        tp_data["stryd_okter"] = stryd
+        print(f"  Stryd-økter hentet: {len(stryd)} stk")
+        for o in stryd:
+            print(f"    {o['dato']} — TSS: {o['tss']} | NP: {o['np_watt']}W | IF: {o['if']}")
+    except Exception as e:
+        print(f"  FEIL Stryd-økter: {e}")
+        tp_data["stryd_okter"] = []
 
     # Merge inn i eksisterende Garmin-JSON
     json_path = Path(JSON_FIL)
