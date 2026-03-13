@@ -121,30 +121,27 @@ def hent_treningsbelastning(api):
     try:
         data = api.get_training_status(DATO_STR)
 
-        # VO2max
         vo2max = (data.get("mostRecentVO2Max", {})
                       .get("generic", {})
                       .get("vo2MaxValue"))
 
-        # Treningsstatus
         enheter = (data.get("mostRecentTrainingStatus", {})
                        .get("latestTrainingStatusData", {}))
         enhet = next(iter(enheter.values()), {}) if enheter else {}
         acwr_dto = enhet.get("acuteTrainingLoadDTO", {})
 
-        # Treningsbelastningsbalanse
         balance = (data.get("mostRecentTrainingLoadBalance", {})
                        .get("metricsTrainingLoadBalanceDTOMap", {}))
         bal = next(iter(balance.values()), {}) if balance else {}
 
         return {
-            "status":       enhet.get("trainingStatusFeedbackPhrase"),
-            "aerob_lav":    round(bal.get("monthlyLoadAerobicLow", 0), 0),
-            "aerob_hoy":    round(bal.get("monthlyLoadAerobicHigh", 0), 0),
-            "anaerob":      round(bal.get("monthlyLoadAnaerobic", 0), 0),
-            "vo2max":       vo2max,
-            "acwr":         acwr_dto.get("dailyAcuteChronicWorkloadRatio"),
-            "acwr_status":  acwr_dto.get("acwrStatus"),
+            "status":        enhet.get("trainingStatusFeedbackPhrase"),
+            "aerob_lav":     round(bal.get("monthlyLoadAerobicLow", 0), 0),
+            "aerob_hoy":     round(bal.get("monthlyLoadAerobicHigh", 0), 0),
+            "anaerob":       round(bal.get("monthlyLoadAnaerobic", 0), 0),
+            "vo2max":        vo2max,
+            "acwr":          acwr_dto.get("dailyAcuteChronicWorkloadRatio"),
+            "acwr_status":   acwr_dto.get("acwrStatus"),
             "load_feedback": bal.get("trainingBalanceFeedbackPhrase"),
         }
     except Exception as e:
@@ -174,7 +171,30 @@ def hent_siste_aktiviteter(api, antall=5):
         aktiviteter = api.get_activities(0, antall)
         resultat = []
         for a in aktiviteter:
-            if a.get("activityType", {}).get("typeKey") in ("running", "cycling", "swimming", "trail_running"):
+            if a.get("activityType", {}).get("typeKey") in (
+                "running", "cycling", "swimming", "trail_running"
+            ):
+                # Effekt (fra Stryd via Garmin)
+                snitt_watt = a.get("avgPower") or a.get("averagePower")
+                maks_watt  = a.get("maxPower")
+                norm_watt  = a.get("normPower") or a.get("normalizedPower")
+
+                # Løpsøkonomi
+                bakketid   = a.get("avgGroundContactTime")
+                steglengde = a.get("avgStrideLength")
+                vert_osc   = a.get("avgVerticalOscillation")
+                vert_ratio = a.get("avgVerticalRatio")
+                avg_speed  = a.get("averageSpeed")
+
+                # Tempo per km (m/s → min/km)
+                if avg_speed and avg_speed > 0:
+                    tempo_sek = 1000 / avg_speed
+                    tempo_min = int(tempo_sek // 60)
+                    tempo_sek_rest = int(tempo_sek % 60)
+                    snitt_tempo = f"{tempo_min}:{tempo_sek_rest:02d} /km"
+                else:
+                    snitt_tempo = None
+
                 resultat.append({
                     "navn":           a.get("activityName"),
                     "dato":           a.get("startTimeLocal", "")[:10],
@@ -183,10 +203,20 @@ def hent_siste_aktiviteter(api, antall=5):
                     "varighet_min":   round(a.get("duration", 0) / 60, 1),
                     "snitt_puls":     a.get("averageHR"),
                     "maks_puls":      a.get("maxHR"),
+                    "snitt_tempo":    snitt_tempo,
                     "load":           round(a.get("activityTrainingLoad", 0), 1),
                     "treningseffekt": a.get("trainingEffectLabel"),
                     "vo2max":         a.get("vO2MaxValue"),
                     "bb_tap":         a.get("differenceBodyBattery"),
+                    # Effekt
+                    "snitt_watt":     snitt_watt,
+                    "maks_watt":      maks_watt,
+                    "norm_watt":      norm_watt,
+                    # Løpsøkonomi
+                    "bakketid_ms":    bakketid,
+                    "steglengde_m":   round(steglengde, 2) if steglengde else None,
+                    "vert_osc_cm":    vert_osc,
+                    "vert_ratio_pst": vert_ratio,
                 })
         return resultat
     except Exception as e:
@@ -259,6 +289,28 @@ def treningsstatus_norsk(kode):
     }
     return oversetting.get(kode, kode or "ikke tilgjengelig")
 
+def watt_linje(a):
+    watt_deler = []
+    if a.get("snitt_watt"):
+        watt_deler.append(f"snitt {a['snitt_watt']}W")
+    if a.get("norm_watt"):
+        watt_deler.append(f"NP {a['norm_watt']}W")
+    if a.get("maks_watt"):
+        watt_deler.append(f"maks {a['maks_watt']}W")
+    return " | ".join(watt_deler) if watt_deler else "ikke tilgjengelig"
+
+def okonomi_linje(a):
+    deler = []
+    if a.get("bakketid_ms"):
+        deler.append(f"bakketid {a['bakketid_ms']}ms")
+    if a.get("vert_ratio_pst"):
+        deler.append(f"vert.ratio {a['vert_ratio_pst']}%")
+    if a.get("vert_osc_cm"):
+        deler.append(f"osc {a['vert_osc_cm']}cm")
+    if a.get("steglengde_m"):
+        deler.append(f"steglengde {a['steglengde_m']}m")
+    return " | ".join(deler) if deler else "ikke tilgjengelig"
+
 # ──────────────────────────────────────────────
 # PROMPT-GENERATOR
 # ──────────────────────────────────────────────
@@ -270,7 +322,9 @@ def lag_prompt(sovn, hrv, dag, load, bb, aktiviteter):
             f"  - {siste.get('navn', 'ukjent')} ({siste.get('dato')}): "
             f"{siste.get('dist_km')} km, {siste.get('varighet_min')} min, "
             f"snittspuls {siste.get('snitt_puls')} bpm, "
-            f"load {siste.get('load')}, effekt: {siste.get('treningseffekt', 'ukjent')}"
+            f"load {siste.get('load')}, effekt: {siste.get('treningseffekt', 'ukjent')}\n"
+            f"    Effekt: {watt_linje(siste)}\n"
+            f"    Løpsøkonomi: {okonomi_linje(siste)}"
         )
     else:
         aktivitet_tekst = "  - Ingen nylig aktivitet"
@@ -280,7 +334,10 @@ def lag_prompt(sovn, hrv, dag, load, bb, aktiviteter):
         historikk += (
             f"\n  - {a.get('dato')}: {a.get('navn')} | "
             f"{a.get('dist_km')} km | {a.get('varighet_min')} min | "
-            f"load {a.get('load')} | puls snitt {a.get('snitt_puls')}"
+            f"tempo {a.get('snitt_tempo', '?')} | "
+            f"puls {a.get('snitt_puls')} bpm | "
+            f"load {a.get('load')} | "
+            f"effekt: {watt_linje(a)}"
         )
 
     bb_maks = dag.get("body_battery_maks") or bb.get("maks")
@@ -416,10 +473,14 @@ def main():
     print(f"  VO2max            : {load.get('vo2max', '?')}")
     print(f"  Treningsstatus    : {treningsstatus_norsk(load.get('status'))}")
     print(f"  ACWR              : {load.get('acwr', '?')} [{load.get('acwr_status', '?')}]")
+
     if aktiviteter:
-        print(f"\n  Siste økt: {aktiviteter[0].get('navn')} ({aktiviteter[0].get('dato')})")
-        print(f"  {aktiviteter[0].get('dist_km')} km | {aktiviteter[0].get('varighet_min')} min | "
-              f"puls {aktiviteter[0].get('snitt_puls')} bpm | load {aktiviteter[0].get('load')}")
+        s = aktiviteter[0]
+        print(f"\n  Siste økt: {s.get('navn')} ({s.get('dato')})")
+        print(f"  {s.get('dist_km')} km | {s.get('varighet_min')} min | "
+              f"tempo {s.get('snitt_tempo', '?')} | puls {s.get('snitt_puls')} bpm | load {s.get('load')}")
+        print(f"  Effekt: {watt_linje(s)}")
+        print(f"  Løpsøkonomi: {okonomi_linje(s)}")
 
     prompt = lag_prompt(sovn, hrv, dag, load, bb, aktiviteter)
 
