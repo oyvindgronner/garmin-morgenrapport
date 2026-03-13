@@ -2,8 +2,7 @@
 """
 garmin_morgen.py
 ================
-Henter helsedata fra Garmin Connect og genererer et ferdig
-dagsform-prompt til AI-trener (Claude).
+Henter helsedata fra Garmin Connect og lagrer som JSON.
 
 Avhengigheter:
     pip install garminconnect garth
@@ -18,28 +17,18 @@ from getpass import getpass
 try:
     from garminconnect import Garmin
 except ImportError:
-    print("Mangler garminconnect. Installer med:")
-    print("  pip install garminconnect garth")
+    print("Mangler garminconnect. Installer med: pip install garminconnect garth")
     sys.exit(1)
 
-# ──────────────────────────────────────────────
-# KONFIGURASJON
-# ──────────────────────────────────────────────
-
 TOKENSTI = os.path.expanduser("~/.garth")
-DATO     = date.today()
-DATO_STR = DATO.isoformat()
+DATO_STR = date.today().isoformat()
 
-# ──────────────────────────────────────────────
-# INNLOGGING
-# ──────────────────────────────────────────────
 
 def logg_inn():
-    epost   = os.environ.get("GARMIN_EMAIL")
+    epost  = os.environ.get("GARMIN_EMAIL")
     passord = os.environ.get("GARMIN_PASSWORD")
 
     if epost and passord:
-        print("🔑 Logger inn med miljøvariabler (GitHub Actions-modus)...")
         api = Garmin(epost, passord)
         api.login()
         print("✅ Innlogget via miljøvariabler")
@@ -48,27 +37,23 @@ def logg_inn():
     api = Garmin()
     try:
         api.login(TOKENSTI)
-        print(f"✅ Innlogget med lagret token ({TOKENSTI})")
+        print(f"✅ Innlogget med lagret token")
         return api
     except Exception:
         pass
 
-    print("Ingen lagret innlogging funnet. Logg inn:")
-    epost   = input("Garmin e-post: ").strip()
+    epost  = input("Garmin e-post: ").strip()
     passord = getpass("Garmin passord: ")
     api = Garmin(epost, passord)
     api.login()
     api.garth.dump(TOKENSTI)
-    print(f"✅ Innlogget og token lagret i {TOKENSTI}")
+    print("✅ Innlogget og token lagret")
     return api
 
-# ──────────────────────────────────────────────
-# DATAHENTING
-# ──────────────────────────────────────────────
 
 def hent_sovn(api):
     try:
-        data = api.get_sleep_data(DATO_STR)
+        data   = api.get_sleep_data(DATO_STR)
         daglig = data.get("dailySleepDTO", {})
         return {
             "total_min":   daglig.get("sleepTimeSeconds", 0) // 60,
@@ -81,13 +66,14 @@ def hent_sovn(api):
             "stress_natt": daglig.get("avgSleepStress"),
         }
     except Exception as e:
-        print(f"⚠️  Søvndata ikke tilgjengelig: {e}")
+        print(f"⚠️  Søvn: {e}")
         return {}
+
 
 def hent_hrv(api):
     try:
-        data = api.get_hrv_data(DATO_STR)
-        summary = data.get("hrvSummary", {})
+        data     = api.get_hrv_data(DATO_STR)
+        summary  = data.get("hrvSummary", {})
         baseline = summary.get("baseline", {})
         return {
             "nattlig_snitt":          summary.get("lastNightAvg"),
@@ -96,63 +82,30 @@ def hent_hrv(api):
             "ukentlig_snitt":         summary.get("weeklyAvg"),
             "baseline_balansert_lav": baseline.get("balancedLow"),
             "baseline_balansert_hoy": baseline.get("balancedUpper"),
-            "baseline_lav_ovre":      baseline.get("lowUpper"),
         }
     except Exception as e:
-        print(f"⚠️  HRV-data ikke tilgjengelig: {e}")
+        print(f"⚠️  HRV: {e}")
         return {}
+
 
 def hent_dagsstatus(api):
     try:
         data = api.get_user_summary(DATO_STR)
         return {
-            "hvilepuls":         data.get("restingHeartRate"),
-            "stress_snitt":      data.get("averageStressLevel"),
-            "body_battery_maks": data.get("maxBodyBattery"),
-            "body_battery_min":  data.get("minBodyBattery"),
-            "skritt":            data.get("totalSteps"),
-            "treningsevne":      data.get("trainingReadinessScore"),
+            "hvilepuls":    data.get("restingHeartRate"),
+            "stress_snitt": data.get("averageStressLevel"),
+            "skritt":       data.get("totalSteps"),
         }
     except Exception as e:
-        print(f"⚠️  Dagsstatus ikke tilgjengelig: {e}")
+        print(f"⚠️  Dagsstatus: {e}")
         return {}
 
-def hent_treningsbelastning(api):
-    try:
-        data = api.get_training_status(DATO_STR)
-
-        vo2max = (data.get("mostRecentVO2Max", {})
-                      .get("generic", {})
-                      .get("vo2MaxValue"))
-
-        enheter = (data.get("mostRecentTrainingStatus", {})
-                       .get("latestTrainingStatusData", {}))
-        enhet = next(iter(enheter.values()), {}) if enheter else {}
-        acwr_dto = enhet.get("acuteTrainingLoadDTO", {})
-
-        balance = (data.get("mostRecentTrainingLoadBalance", {})
-                       .get("metricsTrainingLoadBalanceDTOMap", {}))
-        bal = next(iter(balance.values()), {}) if balance else {}
-
-        return {
-            "status":        enhet.get("trainingStatusFeedbackPhrase"),
-            "aerob_lav":     round(bal.get("monthlyLoadAerobicLow", 0), 0),
-            "aerob_hoy":     round(bal.get("monthlyLoadAerobicHigh", 0), 0),
-            "anaerob":       round(bal.get("monthlyLoadAnaerobic", 0), 0),
-            "vo2max":        vo2max,
-            "acwr":          acwr_dto.get("dailyAcuteChronicWorkloadRatio"),
-            "acwr_status":   acwr_dto.get("acwrStatus"),
-            "load_feedback": bal.get("trainingBalanceFeedbackPhrase"),
-        }
-    except Exception as e:
-        print(f"⚠️  Treningsbelastning ikke tilgjengelig: {e}")
-        return {}
 
 def hent_body_battery(api):
     try:
         data = api.get_body_battery(DATO_STR)
-        if isinstance(data, list) and len(data) > 0:
-            dag = data[0]
+        if isinstance(data, list) and data:
+            dag    = data[0]
             verdier = dag.get("bodyBatteryValuesArray", [])
             if verdier:
                 nivåer = [v[1] for v in verdier if len(v) > 1]
@@ -163,351 +116,136 @@ def hent_body_battery(api):
                 }
         return {}
     except Exception as e:
-        print(f"⚠️  Body Battery ikke tilgjengelig: {e}")
+        print(f"⚠️  Body Battery: {e}")
         return {}
 
-def hent_siste_aktiviteter(api, antall=5):
+
+def hent_treningsbelastning(api):
+    try:
+        data = api.get_training_status(DATO_STR)
+
+        vo2max = (data.get("mostRecentVO2Max", {})
+                      .get("generic", {})
+                      .get("vo2MaxValue"))
+
+        enheter  = (data.get("mostRecentTrainingStatus", {})
+                        .get("latestTrainingStatusData", {}))
+        enhet    = next(iter(enheter.values()), {}) if enheter else {}
+        acwr_dto = enhet.get("acuteTrainingLoadDTO", {})
+
+        balance = (data.get("mostRecentTrainingLoadBalance", {})
+                       .get("metricsTrainingLoadBalanceDTOMap", {}))
+        bal = next(iter(balance.values()), {}) if balance else {}
+
+        return {
+            "status":        enhet.get("trainingStatusFeedbackPhrase"),
+            "vo2max":        vo2max,
+            "acwr":          acwr_dto.get("dailyAcuteChronicWorkloadRatio"),
+            "acwr_status":   acwr_dto.get("acwrStatus"),
+            "aerob_lav":     round(bal.get("monthlyLoadAerobicLow", 0), 0),
+            "aerob_hoy":     round(bal.get("monthlyLoadAerobicHigh", 0), 0),
+            "anaerob":       round(bal.get("monthlyLoadAnaerobic", 0), 0),
+            "load_feedback": bal.get("trainingBalanceFeedbackPhrase"),
+        }
+    except Exception as e:
+        print(f"⚠️  Treningsbelastning: {e}")
+        return {}
+
+
+def hent_aktiviteter(api, antall=5):
     try:
         aktiviteter = api.get_activities(0, antall)
-        resultat = []
+        resultat    = []
+        debug_skrevet = False
+
         for a in aktiviteter:
-            if a.get("activityType", {}).get("typeKey") in (
+            if a.get("activityType", {}).get("typeKey") not in (
                 "running", "cycling", "swimming", "trail_running"
             ):
-                # Effekt (fra Stryd via Garmin)
-                snitt_watt = a.get("avgPower") or a.get("averagePower")
-                maks_watt  = a.get("maxPower")
-                norm_watt  = a.get("normPower") or a.get("normalizedPower")
+                continue
 
+            # Debug — finn watt-feltnavn
+            if not debug_skrevet:
+                print("\n🔍 FELT I FØRSTE AKTIVITET:")
+                for k, v in sorted(a.items()):
+                    print(f"  {k}: {v}")
+                debug_skrevet = True
+
+            avg_speed = a.get("averageSpeed")
+            if avg_speed and avg_speed > 0:
+                sek        = 1000 / avg_speed
+                snitt_tempo = f"{int(sek // 60)}:{int(sek % 60):02d} /km"
+            else:
+                snitt_tempo = None
+
+            resultat.append({
+                "navn":           a.get("activityName"),
+                "dato":           a.get("startTimeLocal", "")[:10],
+                "type":           a.get("activityType", {}).get("typeKey"),
+                "dist_km":        round(a.get("distance", 0) / 1000, 2),
+                "varighet_min":   round(a.get("duration", 0) / 60, 1),
+                "snitt_tempo":    snitt_tempo,
+                "snitt_puls":     a.get("averageHR"),
+                "maks_puls":      a.get("maxHR"),
+                "load":           round(a.get("activityTrainingLoad", 0), 1),
+                "treningseffekt": a.get("trainingEffectLabel"),
+                "vo2max":         a.get("vO2MaxValue"),
+                "bb_tap":         a.get("differenceBodyBattery"),
+                # Effekt — feltnavn avklares etter debug
+                "snitt_watt":     a.get("avgPower") or a.get("averagePower"),
+                "maks_watt":      a.get("maxPower"),
+                "norm_watt":      a.get("normPower") or a.get("normalizedPower"),
                 # Løpsøkonomi
-                bakketid   = a.get("avgGroundContactTime")
-                steglengde = a.get("avgStrideLength")
-                vert_osc   = a.get("avgVerticalOscillation")
-                vert_ratio = a.get("avgVerticalRatio")
-                avg_speed  = a.get("averageSpeed")
+                "bakketid_ms":    round(a["avgGroundContactTime"]) if a.get("avgGroundContactTime") else None,
+                "vert_osc_cm":    round(a["avgVerticalOscillation"], 1) if a.get("avgVerticalOscillation") else None,
+                "vert_ratio_pst": round(a["avgVerticalRatio"], 1) if a.get("avgVerticalRatio") else None,
+                "steglengde_m":   round(a["avgStrideLength"] / 100, 2) if a.get("avgStrideLength") else None,
+            })
 
-                # Tempo per km (m/s → min/km)
-                if avg_speed and avg_speed > 0:
-                    tempo_sek = 1000 / avg_speed
-                    tempo_min = int(tempo_sek // 60)
-                    tempo_sek_rest = int(tempo_sek % 60)
-                    snitt_tempo = f"{tempo_min}:{tempo_sek_rest:02d} /km"
-                else:
-                    snitt_tempo = None
-
-                resultat.append({
-                    "navn":           a.get("activityName"),
-                    "dato":           a.get("startTimeLocal", "")[:10],
-                    "type":           a.get("activityType", {}).get("typeKey"),
-                    "dist_km":        round(a.get("distance", 0) / 1000, 2),
-                    "varighet_min":   round(a.get("duration", 0) / 60, 1),
-                    "snitt_puls":     a.get("averageHR"),
-                    "maks_puls":      a.get("maxHR"),
-                    "snitt_tempo":    snitt_tempo,
-                    "load":           round(a.get("activityTrainingLoad", 0), 1),
-                    "treningseffekt": a.get("trainingEffectLabel"),
-                    "vo2max":         a.get("vO2MaxValue"),
-                    "bb_tap":         a.get("differenceBodyBattery"),
-                    # Effekt
-                    "snitt_watt":     snitt_watt,
-                    "maks_watt":      maks_watt,
-                    "norm_watt":      norm_watt,
-                    # Løpsøkonomi
-                    "bakketid_ms":    bakketid,
-                    "steglengde_m":   round(steglengde, 2) if steglengde else None,
-                    "vert_osc_cm":    vert_osc,
-                    "vert_ratio_pst": vert_ratio,
-                })
         return resultat
     except Exception as e:
-        print(f"⚠️  Aktiviteter ikke tilgjengelig: {e}")
+        print(f"⚠️  Aktiviteter: {e}")
         return []
 
-# ──────────────────────────────────────────────
-# HJELPEFUNKSJONER
-# ──────────────────────────────────────────────
-
-def min_til_tid(minutter):
-    if not minutter:
-        return "ukjent"
-    t = minutter // 60
-    m = minutter % 60
-    return f"{t}t {m:02d}min"
-
-def hrv_vurdering(hrv_data):
-    status  = hrv_data.get("status", "")
-    nattlig = hrv_data.get("nattlig_snitt")
-    bal_lav = hrv_data.get("baseline_balansert_lav")
-    bal_hoy = hrv_data.get("baseline_balansert_hoy")
-    if status == "BALANCED":
-        return "Normal (innenfor balansert sone)"
-    elif status in ("UNBALANCED", "LOW"):
-        if nattlig and bal_lav and nattlig < bal_lav:
-            return f"Lav – under balansert sone ({nattlig} ms, sone {bal_lav}–{bal_hoy})"
-        return f"Lav/Ubalansert [{nattlig} ms]"
-    elif status == "POOR":
-        return "Svak – utenfor normal sone"
-    return "Ikke tilgjengelig"
-
-def bb_vurdering(verdi):
-    if verdi is None:
-        return "ikke tilgjengelig"
-    if verdi >= 75:
-        return f"{verdi} – God (klar for belastning)"
-    elif verdi >= 50:
-        return f"{verdi} – Middels (moderat økt)"
-    elif verdi >= 25:
-        return f"{verdi} – Lav (rolig økt)"
-    else:
-        return f"{verdi} – Svært lav (vurder hvil)"
-
-def sovn_vurdering(sovn):
-    total = sovn.get("total_min", 0)
-    score = sovn.get("score")
-    if not total:
-        return "ikke tilgjengelig"
-    tid = min_til_tid(total)
-    score_txt = f", score {score}/100" if score else ""
-    if total >= 420:
-        return f"{tid}{score_txt} – Tilstrekkelig"
-    elif total >= 360:
-        return f"{tid}{score_txt} – Under anbefalt"
-    else:
-        return f"{tid}{score_txt} – For lite"
-
-def treningsstatus_norsk(kode):
-    oversetting = {
-        "OVERREACHING_1":        "Overbelastning – reduser trening",
-        "OVERREACHING_2":        "Overbelastning – reduser trening",
-        "MAINTAINING":           "Vedlikeholder form",
-        "PRODUCTIVE":            "Produktiv treningsperiode",
-        "PEAKING":               "Toppform",
-        "RECOVERY":              "Restitusjonsfase",
-        "UNPRODUCTIVE":          "Uproduktiv – sjekk søvn og belastning",
-        "DETRAINING":            "Detrening – øk belastning gradvis",
-        "AEROBIC_HIGH_SHORTAGE": "For lite høyintensiv aerob trening",
-    }
-    return oversetting.get(kode, kode or "ikke tilgjengelig")
-
-def watt_linje(a):
-    watt_deler = []
-    if a.get("snitt_watt"):
-        watt_deler.append(f"snitt {a['snitt_watt']}W")
-    if a.get("norm_watt"):
-        watt_deler.append(f"NP {a['norm_watt']}W")
-    if a.get("maks_watt"):
-        watt_deler.append(f"maks {a['maks_watt']}W")
-    return " | ".join(watt_deler) if watt_deler else "ikke tilgjengelig"
-
-def okonomi_linje(a):
-    deler = []
-    if a.get("bakketid_ms"):
-        deler.append(f"bakketid {a['bakketid_ms']}ms")
-    if a.get("vert_ratio_pst"):
-        deler.append(f"vert.ratio {a['vert_ratio_pst']}%")
-    if a.get("vert_osc_cm"):
-        deler.append(f"osc {a['vert_osc_cm']}cm")
-    if a.get("steglengde_m"):
-        deler.append(f"steglengde {a['steglengde_m']}m")
-    return " | ".join(deler) if deler else "ikke tilgjengelig"
-
-# ──────────────────────────────────────────────
-# PROMPT-GENERATOR
-# ──────────────────────────────────────────────
-
-def lag_prompt(sovn, hrv, dag, load, bb, aktiviteter):
-    siste = aktiviteter[0] if aktiviteter else {}
-    if siste:
-        aktivitet_tekst = (
-            f"  - {siste.get('navn', 'ukjent')} ({siste.get('dato')}): "
-            f"{siste.get('dist_km')} km, {siste.get('varighet_min')} min, "
-            f"snittspuls {siste.get('snitt_puls')} bpm, "
-            f"load {siste.get('load')}, effekt: {siste.get('treningseffekt', 'ukjent')}\n"
-            f"    Effekt: {watt_linje(siste)}\n"
-            f"    Løpsøkonomi: {okonomi_linje(siste)}"
-        )
-    else:
-        aktivitet_tekst = "  - Ingen nylig aktivitet"
-
-    historikk = ""
-    for a in aktiviteter[:3]:
-        historikk += (
-            f"\n  - {a.get('dato')}: {a.get('navn')} | "
-            f"{a.get('dist_km')} km | {a.get('varighet_min')} min | "
-            f"tempo {a.get('snitt_tempo', '?')} | "
-            f"puls {a.get('snitt_puls')} bpm | "
-            f"load {a.get('load')} | "
-            f"effekt: {watt_linje(a)}"
-        )
-
-    bb_maks = dag.get("body_battery_maks") or bb.get("maks")
-    bb_min  = dag.get("body_battery_min") or bb.get("min")
-
-    prompt = f"""## DAGLIG DAGSFORM-ANALYSE – {DATO_STR}
-
-### ROLLE
-Du er en ekspert AI-treningscoach spesialisert på utholdenhetsidrett med fokus på
-halvmaraton, helmaraton og stiløping. Analyser helsedata fra natten og gi en konkret
-anbefaling for dagens trening.
-
----
-
-### HELSEDATA FRA NATTEN OG MORGENEN
-
-**HRV (Heart Rate Variability)**
-- Nattlig snitt: {hrv.get('nattlig_snitt', 'ikke tilgjengelig')} ms
-- Ukentlig snitt: {hrv.get('ukentlig_snitt', 'ikke tilgjengelig')} ms
-- 5-min maks: {hrv.get('5min_hoy', 'ikke tilgjengelig')} ms
-- Status: {hrv_vurdering(hrv)}
-- Balansert sone: {hrv.get('baseline_balansert_lav', '?')}–{hrv.get('baseline_balansert_hoy', '?')} ms
-
-**Puls og stress**
-- Hvilepuls: {dag.get('hvilepuls', 'ikke tilgjengelig')} bpm
-- Gjennomsnittlig stressnivå: {dag.get('stress_snitt', 'ikke tilgjengelig')}/100
-
-**Body Battery**
-- Morgenverdi (maks): {bb_vurdering(bb_maks)}
-- Minimumverdi: {bb_min if bb_min is not None else 'ikke tilgjengelig'}
-- Ladet under søvn: {bb.get('ladet', 'ikke tilgjengelig')}
-
-**Søvn**
-- Total søvn: {sovn_vurdering(sovn)}
-- Dyp søvn: {min_til_tid(sovn.get('dyp_min'))}
-- REM-søvn: {min_til_tid(sovn.get('rem_min'))}
-- Lett søvn: {min_til_tid(sovn.get('lett_min'))}
-- Nattlig respirasjonsrate: {sovn.get('respiration', 'ikke tilgjengelig')} ånd/min
-- SpO2: {sovn.get('spo2', 'ikke tilgjengelig')} %
-- Nattlig stressnivå: {sovn.get('stress_natt', 'ikke tilgjengelig')}
-
-**Treningsstatus**
-- VO2max: {load.get('vo2max', 'ikke tilgjengelig')}
-- Treningsstatus: {treningsstatus_norsk(load.get('status'))}
-- Belastningsbalanse: {treningsstatus_norsk(load.get('load_feedback'))}
-- ACWR (akutt/kronisk ratio): {load.get('acwr', 'ikke tilgjengelig')} [{load.get('acwr_status', '')}]
-- Aerob lav intensitet (månedlig): {load.get('aerob_lav', 'ikke tilgjengelig')}
-- Aerob høy intensitet (månedlig): {load.get('aerob_hoy', 'ikke tilgjengelig')}
-- Anaerob (månedlig): {load.get('anaerob', 'ikke tilgjengelig')}
-
----
-
-### SISTE AKTIVITET
-{aktivitet_tekst}
-
-### TRENINGSHISTORIKK (siste 3 økter)
-{historikk}
-
----
-
-### PLANLAGT TRENINGSØKT I DAG
-[FYLL INN: beskriv dagens planlagte økt – type, varighet, intensitet, soner]
-
----
-
-### ANALYSE-INSTRUKSJONER
-1. Vurder dagsformen helhetlig basert på alle målinger
-2. Identifiser avvik fra det som er normalt (HRV, RHR, BB, søvn)
-3. Gi en DAGSFORM-SCORE fra 1–10
-4. Gi én klar anbefaling: Gjennomfør som planlagt / Modifiser / Hvil
-5. Hvis modifiser: beskriv konkret hva som endres
-6. Flagg mønstre som krever oppmerksomhet over tid
-7. Gi 1–2 råd for restitusjon, søvn eller ernæring hvis relevant
-
----
-
-### OUTPUT-FORMAT
-
-**DAGSFORM:** [score/10] – [Svak / Under middels / Middels / God / Utmerket]
-
-**SIGNAL-SAMMENDRAG:**
-- HRV: [Lav/Normal/Høy] → [kort tolkning]
-- Hvilepuls: [Lav/Normal/Høy] → [kort tolkning]
-- Body Battery: [verdi] → [kort tolkning]
-- Søvn: [kort tolkning]
-- Treningsstatus: [kort tolkning]
-
-**ANBEFALING:** [Gjennomfør som planlagt / Modifiser / Hvil]
-
-**KONKRET ØKTJUSTERING (hvis aktuelt):**
-[Beskriv hva som endres og hvorfor]
-
-**LANGSIKTIG MØNSTER:**
-[Eventuelle trender å være obs på]
-
-**COACH-MELDING:**
-[Kort, motiverende avslutning]
-"""
-    return prompt
-
-# ──────────────────────────────────────────────
-# HOVEDPROGRAM
-# ──────────────────────────────────────────────
 
 def main():
-    print(f"\n{'='*55}")
-    print(f"  GARMIN MORGENRAPPORT – {DATO_STR}")
-    print(f"{'='*55}\n")
+    print(f"📡 Garmin morgendata – {DATO_STR}")
 
     api = logg_inn()
-    print()
 
-    print("📡 Henter data fra Garmin Connect...")
-    sovn        = hent_sovn(api)
-    hrv         = hent_hrv(api)
-    dag         = hent_dagsstatus(api)
-    load        = hent_treningsbelastning(api)
-    bb          = hent_body_battery(api)
-    aktiviteter = hent_siste_aktiviteter(api, antall=5)
+    data = {
+        "dato":               DATO_STR,
+        "hrv":                hent_hrv(api),
+        "sovn":               hent_sovn(api),
+        "dag":                hent_dagsstatus(api),
+        "body_battery":       hent_body_battery(api),
+        "treningsbelastning": hent_treningsbelastning(api),
+        "siste_aktiviteter":  hent_aktiviteter(api, antall=5),
+    }
 
-    bb_maks = dag.get("body_battery_maks") or bb.get("maks")
+    # Kort sammendrag i loggen
+    hrv  = data["hrv"]
+    dag  = data["dag"]
+    bb   = data["body_battery"]
+    load = data["treningsbelastning"]
+    sovn = data["sovn"]
 
-    print("\n── RÅ HELSEDATA ──────────────────────────")
-    print(f"  HRV nattlig snitt : {hrv.get('nattlig_snitt', '?')} ms  [{hrv.get('status', '?')}]")
-    print(f"  HRV ukentlig snitt: {hrv.get('ukentlig_snitt', '?')} ms")
-    print(f"  HRV 5-min maks    : {hrv.get('5min_hoy', '?')} ms")
-    print(f"  Balansert sone    : {hrv.get('baseline_balansert_lav', '?')}–{hrv.get('baseline_balansert_hoy', '?')} ms")
-    print(f"  Hvilepuls         : {dag.get('hvilepuls', '?')} bpm")
-    print(f"  Body Battery morn : {bb_maks} / 100")
-    print(f"  Søvn total        : {min_til_tid(sovn.get('total_min'))}  (score: {sovn.get('score', '?')})")
-    print(f"  Dyp søvn          : {min_til_tid(sovn.get('dyp_min'))}")
-    print(f"  REM               : {min_til_tid(sovn.get('rem_min'))}")
-    print(f"  VO2max            : {load.get('vo2max', '?')}")
-    print(f"  Treningsstatus    : {treningsstatus_norsk(load.get('status'))}")
-    print(f"  ACWR              : {load.get('acwr', '?')} [{load.get('acwr_status', '?')}]")
-
-    if aktiviteter:
-        s = aktiviteter[0]
-        print(f"\n  Siste økt: {s.get('navn')} ({s.get('dato')})")
-        print(f"  {s.get('dist_km')} km | {s.get('varighet_min')} min | "
-              f"tempo {s.get('snitt_tempo', '?')} | puls {s.get('snitt_puls')} bpm | load {s.get('load')}")
-        print(f"  Effekt: {watt_linje(s)}")
-        print(f"  Løpsøkonomi: {okonomi_linje(s)}")
-
-    prompt = lag_prompt(sovn, hrv, dag, load, bb, aktiviteter)
-
-    prompt_fil = f"garmin_prompt_{DATO_STR}.txt"
-    with open(prompt_fil, "w", encoding="utf-8") as f:
-        f.write(prompt)
-
-    print(f"\n{'='*55}")
-    print(f"  ✅ FERDIG!")
-    print(f"{'='*55}")
-    print(f"\n📋 Prompt lagret til: {prompt_fil}")
-    print("\n── CLAUDE-PROMPT ──────────────────────────\n")
-    print(prompt)
-    print("\n───────────────────────────────────────────")
+    print(f"\n── SAMMENDRAG ────────────────────────────")
+    print(f"  HRV     : {hrv.get('nattlig_snitt')} ms [{hrv.get('status')}] (uke: {hrv.get('ukentlig_snitt')})")
+    print(f"  Puls    : {dag.get('hvilepuls')} bpm | Stress: {dag.get('stress_snitt')}")
+    print(f"  BB      : {bb.get('maks')}/100 (+{bb.get('ladet')})")
+    print(f"  Søvn    : {sovn.get('total_min')} min (score: {sovn.get('score')})")
+    print(f"  ACWR    : {load.get('acwr')} [{load.get('acwr_status')}]")
+    print(f"  Status  : {load.get('status')}")
+    if data["siste_aktiviteter"]:
+        s = data["siste_aktiviteter"][0]
+        print(f"  Siste   : {s['navn']} {s['dist_km']}km | {s['snitt_tempo']} | {s['snitt_puls']}bpm")
 
     json_fil = f"garmin_data_{DATO_STR}.json"
     with open(json_fil, "w", encoding="utf-8") as f:
-        json.dump({
-            "dato":               DATO_STR,
-            "sovn":               sovn,
-            "hrv":                hrv,
-            "dag":                dag,
-            "body_battery":       bb,
-            "treningsbelastning": load,
-            "siste_aktiviteter":  aktiviteter,
-        }, f, ensure_ascii=False, indent=2)
-    print(f"💾 Rådata lagret: {json_fil}\n")
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"\n💾 Lagret: {json_fil}")
+
 
 if __name__ == "__main__":
     main()
