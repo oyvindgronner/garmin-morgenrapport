@@ -1,47 +1,97 @@
-name: Garmin morgenrapport
+import smtplib
+import os
+import json
+from datetime import date
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 
-on:
-  schedule:
-    - cron: '0 7 * * *'
-  workflow_dispatch:
 
-jobs:
-  morgenrapport:
-    runs-on: ubuntu-latest
+def send_epost(json_fil: str, dato: str):
+    gmail_user     = os.environ["GMAIL_USER"]
+    gmail_password = os.environ["GMAIL_APP_PASSWORD"]
 
-    steps:
-      - name: Sjekk ut kode
-        uses: actions/checkout@v4
+    with open(json_fil, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-      - name: Sett opp Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    hrv  = data.get("hrv", {})
+    dag  = data.get("dag", {})
+    bb   = data.get("body_battery", {})
+    load = data.get("treningsbelastning", {})
+    sovn = data.get("sovn", {})
 
-      - name: Installer avhengigheter
-        run: pip install garminconnect garth requests
+    # Trafikklys
+    poeng = 0
+    maks  = 10
+    if hrv.get("status") == "BALANCED":
+        poeng += 3
+    elif hrv.get("status") == "LOW":
+        poeng += 1
+    bb_maks = bb.get("maks")
+    if bb_maks and bb_maks >= 75:
+        poeng += 2
+    elif bb_maks and bb_maks >= 50:
+        poeng += 1
+    acwr = load.get("acwr") or 0
+    if 0.8 <= acwr <= 1.3:
+        poeng += 3
+    elif acwr < 0.8:
+        poeng += 2
+    elif acwr <= 1.5:
+        poeng += 1
+    status = load.get("status", "")
+    if status in ("PRODUCTIVE", "PEAKING", "MAINTAINING"):
+        poeng += 2
+    elif status in ("RECOVERY", "DETRAINING", "UNPRODUCTIVE"):
+        poeng += 1
 
-      - name: Hent Garmin-data
-        run: python garmin_morgen.py
-        env:
-          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
-          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+    ratio = poeng / maks
+    if ratio >= 0.75:
+        anbefaling = "🟢 Tren som planlagt"
+    elif ratio >= 0.45:
+        anbefaling = "🟡 Modifiser økten"
+    else:
+        anbefaling = "🔴 Prioriter hvile"
 
-      - name: Send til Signal
-        run: python signal_send.py
-        env:
-          SIGNAL_ID: ${{ secrets.SIGNAL_ID }}
-          SIGNAL_API_KEY: ${{ secrets.SIGNAL_API_KEY }}
+    sovn_t   = sovn.get("total_min", 0) // 60
+    sovn_min = sovn.get("total_min", 0) % 60
 
-      - name: Send e-post med JSON
-        run: python send_epost.py
-        env:
-          GMAIL_USER: ${{ secrets.GMAIL_USER }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+    brodtekst = f"""{anbefaling}
 
-      - name: Last opp som artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: garmin-${{ github.run_id }}
-          path: garmin_data_*.json
-          retention-days: 7
+Garmin morgendata – {dato}
+{'─' * 30}
+HRV       : {hrv.get('nattlig_snitt','–')} ms (uke: {hrv.get('ukentlig_snitt','–')}) [{hrv.get('status','–')}]
+Hvilepuls : {dag.get('hvilepuls','–')} bpm | Stress: {dag.get('stress_snitt','–')}
+BB        : {bb.get('maks','–')}/100 (+{bb.get('ladet','–')})
+Søvn      : {sovn_t}t {sovn_min}min | Score: {sovn.get('score','–')}
+            Dyp: {sovn.get('dyp_min','–')}min | REM: {sovn.get('rem_min','–')}min
+ACWR      : {load.get('acwr','–')} [{load.get('acwr_status','–')}]
+Status    : {load.get('status','–')}
+VO2max    : {load.get('vo2max','–')}
+{'─' * 30}
+Last opp vedlegget i Claude for full analyse.
+"""
+
+    msg = MIMEMultipart()
+    msg["From"]    = gmail_user
+    msg["To"]      = gmail_user
+    msg["Subject"] = f"{anbefaling} | Garmin {dato}"
+
+    msg.attach(MIMEText(brodtekst, "plain", "utf-8"))
+
+    with open(json_fil, "rb") as f:
+        vedlegg = MIMEApplication(f.read(), Name=f"garmin_data_{dato}.json")
+        vedlegg["Content-Disposition"] = f'attachment; filename="garmin_data_{dato}.json"'
+        msg.attach(vedlegg)
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(gmail_user, gmail_password)
+        server.send_message(msg)
+
+    print(f"✅ E-post sendt til {gmail_user}")
+
+
+if __name__ == "__main__":
+    dato     = date.today().strftime("%Y-%m-%d")
+    json_fil = f"garmin_data_{dato}.json"
+    send_epost(json_fil, dato)
