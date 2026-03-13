@@ -27,6 +27,12 @@ jobs:
           GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
           GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
 
+      - name: Hent Stryd-data
+        run: python stryd_morgen.py
+        env:
+          STRYD_EMAIL: ${{ secrets.STRYD_EMAIL }}
+          STRYD_PASSWORD: ${{ secrets.STRYD_PASSWORD }}
+
       - name: Send til Signal
         run: python signal_send.py
         env:
@@ -40,4 +46,5 @@ jobs:
           path: |
             garmin_prompt_*.txt
             garmin_data_*.json
+            stryd_data_*.json
           retention-days: 7
