@@ -1,0 +1,47 @@
+name: Garmin morgenrapport
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  morgenrapport:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sjekk ut kode
+        uses: actions/checkout@v4
+
+      - name: Sett opp Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer avhengigheter
+        run: pip install garminconnect garth requests
+
+      - name: Hent Garmin-data
+        run: python garmin_morgen.py
+        env:
+          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
+          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+
+      - name: Send til Signal
+        run: python signal_send.py
+        env:
+          SIGNAL_ID: ${{ secrets.SIGNAL_ID }}
+          SIGNAL_API_KEY: ${{ secrets.SIGNAL_API_KEY }}
+
+      - name: Send e-post med JSON
+        run: python send_epost.py
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+
+      - name: Last opp som artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: garmin-${{ github.run_id }}
+          path: garmin_data_*.json
+          retention-days: 7
