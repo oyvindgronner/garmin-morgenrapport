@@ -7,7 +7,7 @@ STRYD_AUTH_URL = "https://www.stryd.com/b/email/signin"
 STRYD_API_BASE = "https://www.stryd.com/b/api/v1"
 
 
-def logg_inn(epost: str, passord: str) -> str:
+def logg_inn(epost: str, passord: str) -> tuple[str, str]:
     response = requests.post(
         STRYD_AUTH_URL,
         json={"email": epost, "password": passord},
@@ -17,65 +17,65 @@ def logg_inn(epost: str, passord: str) -> str:
         raise Exception(f"Innlogging feilet: {response.status_code} — {response.text}")
 
     data = response.json()
+    print(f"🔍 Innloggingsrespons-nøkler: {list(data.keys())}")
+
     token = data.get("token") or data.get("sessionToken") or data.get("access_token")
+    user_id = data.get("id") or data.get("userId") or data.get("user_id")
+
     if not token:
-        raise Exception(f"Fant ikke token i respons: {list(data.keys())}")
+        raise Exception(f"Fant ikke token i respons")
 
-    print(f"✅ Innlogget på Stryd")
-    return token
+    print(f"✅ Innlogget på Stryd | user_id: {user_id}")
+    return token, str(user_id) if user_id else ""
 
 
-def hent_aktiviteter(token: str, dager: int = 14) -> list:
+def hent_aktiviteter(token: str, user_id: str, dager: int = 14) -> list:
     headers = {"Authorization": f"Bearer: {token}"}
     til_dato = date.today() + timedelta(days=1)
     fra_dato = til_dato - timedelta(days=dager)
 
-    url = (
-        f"{STRYD_API_BASE}/activities/calendar"
-        f"?srtDate={fra_dato.strftime('%m-%d-%Y')}"
-        f"&endDate={til_dato.strftime('%m-%d-%Y')}"
-        f"&sortBy=StartDate"
-    )
+    # Prøv med og uten user_id i URL
+    urls = [
+        f"{STRYD_API_BASE}/activities/calendar?srtDate={fra_dato.strftime('%m-%d-%Y')}&endDate={til_dato.strftime('%m-%d-%Y')}&sortBy=StartDate",
+        f"{STRYD_API_BASE}/users/{user_id}/activities?srtDate={fra_dato.strftime('%m-%d-%Y')}&endDate={til_dato.strftime('%m-%d-%Y')}",
+        f"{STRYD_API_BASE}/athletes/{user_id}/activities",
+    ]
 
-    response = requests.get(url, headers=headers, timeout=30)
+    for url in urls:
+        response = requests.get(url, headers=headers, timeout=30)
+        print(f"  {url.split('/b/api/v1')[1][:50]} → {response.status_code}")
+        if response.status_code == 200:
+            data = response.json()
+            aktiviteter = data.get("activities", []) if isinstance(data, dict) else data
+            print(f"✅ Hentet {len(aktiviteter)} aktiviteter")
+            return aktiviteter
 
-    if response.status_code != 200:
-        print(f"⚠️ Kunne ikke hente aktiviteter: {response.status_code} — {response.text[:200]}")
-        return []
-
-    data = response.json()
-    aktiviteter = data.get("activities", []) if isinstance(data, dict) else data
-    print(f"✅ Hentet {len(aktiviteter)} aktiviteter fra Stryd")
-    return aktiviteter
+    print("⚠️ Ingen aktiviteter hentet")
+    return []
 
 
-def hent_løperprofil(token: str) -> dict:
+def hent_løperprofil(token: str, user_id: str) -> dict:
     headers = {"Authorization": f"Bearer: {token}"}
 
-    # Prøv flere kjente endepunkter
     endepunkter = [
+        f"/users/{user_id}/profile",
+        f"/users/{user_id}",
+        f"/athletes/{user_id}",
         "/users/profile",
-        "/athlete/profile",
-        "/trainingplans/profile",
+        "/athlete",
     ]
 
     for ep in endepunkter:
-        response = requests.get(
-            f"{STRYD_API_BASE}{ep}",
-            headers=headers,
-            timeout=30
-        )
+        response = requests.get(f"{STRYD_API_BASE}{ep}", headers=headers, timeout=30)
+        print(f"  {ep} → {response.status_code}")
         if response.status_code == 200:
-            print(f"✅ Hentet løperprofil fra {ep}")
+            print(f"✅ Hentet profil fra {ep}")
             return response.json()
-        else:
-            print(f"⚠️ {ep} → {response.status_code}")
 
     return {}
 
 
 def ekstraher_profil(data: dict, aktiviteter: list) -> dict:
-    """Hent FTP/CP fra profil eller fra siste aktivitet."""
     ftp = (
         data.get("ftp")
         or data.get("functionalThresholdPower")
@@ -84,7 +84,6 @@ def ekstraher_profil(data: dict, aktiviteter: list) -> dict:
     )
     cp = data.get("cp") or data.get("criticalPower") or ftp
 
-    # Fallback: hent fra siste aktivitet
     if not ftp and aktiviteter:
         ftp = aktiviteter[0].get("ftp") or aktiviteter[0].get("cp")
 
@@ -103,9 +102,8 @@ def ekstraher_aktivitet(akt: dict) -> dict:
     return {
         "navn": akt.get("name") or akt.get("title") or "–",
         "dato": (akt.get("startTime") or akt.get("start_time") or "")[:10],
-        "type": akt.get("type") or akt.get("sport") or "–",
-        "dist_km": round(dist / 1000, 2) if dist > 100 else round(float(dist), 2),
-        "varighet_min": round(varighet / 60, 1) if varighet > 300 else round(float(varighet), 1),
+        "dist_km": round(dist / 1000, 2) if dist > 100 else round(float(dist or 0), 2),
+        "varighet_min": round(varighet / 60, 1) if varighet > 300 else round(float(varighet or 0), 1),
         "snitt_watt": akt.get("averagePower") or akt.get("average_power"),
         "maks_watt": akt.get("maxPower") or akt.get("max_power"),
         "rss": akt.get("rss") or akt.get("runningStressScore"),
@@ -115,22 +113,17 @@ def ekstraher_aktivitet(akt: dict) -> dict:
 
 
 def beregn_rss_7d(aktiviteter: list) -> float | None:
-    """Summer RSS fra siste 7 dager."""
     grense = date.today() - timedelta(days=7)
     total = 0
     talt = 0
     for a in aktiviteter:
         dato_str = (a.get("startTime") or a.get("start_time") or "")[:10]
-        if not dato_str:
-            continue
         try:
-            dato = date.fromisoformat(dato_str)
+            if dato_str and date.fromisoformat(dato_str) >= grense:
+                total += a.get("rss") or a.get("runningStressScore") or 0
+                talt += 1
         except ValueError:
             continue
-        if dato >= grense:
-            rss = a.get("rss") or a.get("runningStressScore") or 0
-            total += rss
-            talt += 1
     return round(total, 1) if talt > 0 else None
 
 
@@ -145,12 +138,13 @@ def main():
     if not epost or not passord:
         raise Exception("STRYD_EMAIL og STRYD_PASSWORD må være satt")
 
-    token = logg_inn(epost, passord)
+    token, user_id = logg_inn(epost, passord)
 
-    print("\n📡 Henter data fra Stryd...")
+    print("\n📡 Henter aktiviteter...")
+    aktiviteter_raw = hent_aktiviteter(token, user_id, dager=14)
 
-    aktiviteter_raw = hent_aktiviteter(token, dager=14)
-    profil_raw = hent_løperprofil(token)
+    print("\n📡 Henter løperprofil...")
+    profil_raw = hent_løperprofil(token, user_id)
 
     profil = ekstraher_profil(profil_raw, aktiviteter_raw)
     aktiviteter = [ekstraher_aktivitet(a) for a in aktiviteter_raw[:5]]
@@ -164,19 +158,13 @@ def main():
     }
 
     print(f"\n── STRYD NØKKELDATA ──────────────────────────")
-    print(f"  FTP          : {profil.get('ftp')} W")
-    print(f"  CP           : {profil.get('cp')} W")
-    print(f"  W'           : {profil.get('w_prime')} J")
-    print(f"  RSS 7 dager  : {rss_7d}")
+    print(f"  FTP       : {profil.get('ftp')} W")
+    print(f"  CP        : {profil.get('cp')} W")
+    print(f"  RSS 7 dager: {rss_7d}")
     if aktiviteter:
         s = aktiviteter[0]
-        print(f"  Siste økt    : {s['navn']} ({s['dato']})")
-        print(f"  Effekt       : {s['snitt_watt']}W snitt / {s['maks_watt']}W maks")
-        print(f"  RSS økt      : {s['rss']}")
-
-    # Skriv rådata for debugging
-    print(f"\n── RÅ PROFIL-DATA ────────────────────────────")
-    print(json.dumps(profil_raw, indent=2, ensure_ascii=False)[:500])
+        print(f"  Siste økt : {s['navn']} ({s['dato']})")
+        print(f"  Effekt    : {s['snitt_watt']}W snitt / {s['maks_watt']}W maks")
 
     json_fil = f"stryd_data_{dato}.json"
     with open(json_fil, "w", encoding="utf-8") as f:
@@ -184,8 +172,6 @@ def main():
 
     print(f"\n💾 Rådata lagret: {json_fil}")
     print("=" * 55)
-
-    return output
 
 
 if __name__ == "__main__":
