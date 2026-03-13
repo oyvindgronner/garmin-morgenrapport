@@ -19,7 +19,8 @@ DATO = date.today().isoformat()
 JSON_FIL = f"garmin_data_{DATO}.json"
 
 
-def hent_token():
+def hent_token_og_id():
+    """Hent token og athlete ID fra /users/v3/token — printer hele responsen for debugging"""
     url = f"{TPAPI_URL}/users/v3/token"
     headers = {
         "Cookie": f"Production_tpAuth={TP_AUTH_COOKIE}",
@@ -31,41 +32,50 @@ def hent_token():
     r = requests.get(url, headers=headers, timeout=15)
     r.raise_for_status()
     data = r.json()
+
+    # Print hele responsen så vi ser hva som faktisk returneres
+    print(f"  Token-respons (full): {json.dumps(data, indent=2)[:800]}")
+
     token = data.get("token") or data.get("access_token") or data.get("Token")
-    return token
 
-
-def dekod_athlete_id_fra_token(token):
-    """
-    JWT-token inneholder athlete ID i payload (del 2).
-    Dekoder base64 uten å verifisere signatur.
-    """
-    try:
-        parts = token.split(".")
-        if len(parts) < 2:
-            return None
-        payload = parts[1]
-        # Legg til padding om nødvendig
-        padding = 4 - len(payload) % 4
-        if padding != 4:
-            payload += "=" * padding
-        decoded = base64.urlsafe_b64decode(payload)
-        claims = json.loads(decoded)
-        print(f"  JWT claims nøkler: {list(claims.keys())}")
-        # Prøv vanlige felt-navn for athlete ID i JWT
+    # Hvis token er et dict, kan athlete ID ligge der inne
+    if isinstance(token, dict):
+        print(f"  Token er dict med nøkler: {list(token.keys())}")
         athlete_id = (
-            claims.get("unique_name")
-            or claims.get("sub")
-            or claims.get("athleteId")
-            or claims.get("athlete_id")
-            or claims.get("nameid")
-            or claims.get("UserId")
-            or claims.get("userId")
+            token.get("athleteId") or token.get("AthleteId")
+            or token.get("unique_name") or token.get("nameid")
+            or token.get("sub") or token.get("userId")
         )
-        return athlete_id
-    except Exception as e:
-        print(f"  FEIL JWT-dekoding: {e}")
-        return None
+        # Hent selve token-strengen
+        token_str = token.get("access_token") or token.get("token") or token.get("value")
+        return token_str, athlete_id
+
+    # Hvis token er en streng, prøv å dekode JWT
+    if isinstance(token, str) and "." in token:
+        try:
+            parts = token.split(".")
+            payload = parts[1]
+            padding = 4 - len(payload) % 4
+            if padding != 4:
+                payload += "=" * padding
+            claims = json.loads(base64.urlsafe_b64decode(payload))
+            print(f"  JWT claims: {json.dumps(claims, indent=2)[:400]}")
+            athlete_id = (
+                claims.get("unique_name") or claims.get("nameid")
+                or claims.get("sub") or claims.get("athleteId")
+                or claims.get("userId") or claims.get("UserId")
+            )
+            return token, athlete_id
+        except Exception as e:
+            print(f"  JWT-dekoding feilet: {e}")
+
+    # Prøv athlete ID direkte i topp-nivå respons
+    athlete_id = (
+        data.get("athleteId") or data.get("AthleteId")
+        or data.get("userId") or data.get("UserId")
+        or data.get("Id") or data.get("id")
+    )
+    return token, athlete_id
 
 
 def lag_headers(token):
@@ -190,17 +200,11 @@ def main():
     print("Henter TrainingPeaks-data...")
 
     try:
-        token = hent_token()
-        print(f"  Token hentet: {'ja' if token else 'nei'}")
-    except Exception as e:
-        print(f"  FEIL token: {e}")
-        return
-
-    try:
-        athlete_id = dekod_athlete_id_fra_token(token)
+        token, athlete_id = hent_token_og_id()
+        print(f"  Token type: {type(token).__name__}")
         print(f"  Athlete ID: {athlete_id}")
     except Exception as e:
-        print(f"  FEIL athlete ID: {e}")
+        print(f"  FEIL token/ID: {e}")
         return
 
     if not athlete_id:
@@ -245,7 +249,6 @@ def main():
         print(f"  FEIL Stryd-økter: {e}")
         tp_data["stryd_okter"] = []
 
-    # Merge inn i eksisterende Garmin-JSON
     json_path = Path(JSON_FIL)
     if json_path.exists():
         with open(json_path) as f:
