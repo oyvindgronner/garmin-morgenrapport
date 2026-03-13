@@ -93,7 +93,7 @@ def formater_melding(data: dict, dato: str) -> str:
    VO2max: {load.get('vo2max','–')}
 🏅 Siste: {siste_linje}
 {'─' * 26}
-"""
+→ Lim prompt i Claude for analyse"""
 
     return melding
 
@@ -110,4 +110,20 @@ def send_signal(tekst: str):
 
     response = requests.get(url, timeout=30)
 
-    if response.status
+    if response.status_code == 200:
+        print("✅ Signal-melding sendt")
+    else:
+        print(f"❌ Feil: {response.status_code} — {response.text}")
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    dato     = date.today().strftime("%Y-%m-%d")
+    json_fil = f"garmin_data_{dato}.json"
+
+    with open(json_fil, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    melding = formater_melding(data, dato)
+    print(melding)
+    send_signal(melding)
