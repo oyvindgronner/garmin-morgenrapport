@@ -20,7 +20,6 @@ JSON_FIL = f"garmin_data_{DATO}.json"
 
 
 def hent_token_og_id():
-    """Hent token og athlete ID fra /users/v3/token — printer hele responsen for debugging"""
     url = f"{TPAPI_URL}/users/v3/token"
     headers = {
         "Cookie": f"Production_tpAuth={TP_AUTH_COOKIE}",
@@ -33,49 +32,81 @@ def hent_token_og_id():
     r.raise_for_status()
     data = r.json()
 
-    # Print hele responsen så vi ser hva som faktisk returneres
-    print(f"  Token-respons (full): {json.dumps(data, indent=2)[:800]}")
+    token_dict = data.get("token", {})
+    access_token = token_dict.get("access_token", "")
+    scope = token_dict.get("scope", "")
+    auth_provider = token_dict.get("auth_provider", "")
+    print(f"  scope: {scope}")
+    print(f"  auth_provider: {auth_provider}")
+    print(f"  expires_in: {token_dict.get('expires_in')}")
 
-    token = data.get("token") or data.get("access_token") or data.get("Token")
+    # Prøv å dekode access_token som base64 — det starter med gAAAA (Google-style token)
+    athlete_id = None
+    try:
+        # Fjern eventuell URL-safe base64-encoding
+        padded = access_token + "=" * (4 - len(access_token) % 4)
+        decoded = base64.urlsafe_b64decode(padded)
+        decoded_str = decoded.decode("utf-8", errors="ignore")
+        print(f"  Decoded token (første 200 tegn): {decoded_str[:200]}")
+        # Let etter tall som kan være athlete ID
+        import re
+        tall = re.findall(r'"(?:athleteId|athlete_id|userId|user_id|nameid|unique_name|sub)"\s*:\s*"?(\d+)"?', decoded_str)
+        if tall:
+            athlete_id = tall[0]
+            print(f"  Fant athlete ID i decoded token: {athlete_id}")
+    except Exception as e:
+        print(f"  Base64-dekoding feilet: {e}")
 
-    # Hvis token er et dict, kan athlete ID ligge der inne
-    if isinstance(token, dict):
-        print(f"  Token er dict med nøkler: {list(token.keys())}")
-        athlete_id = (
-            token.get("athleteId") or token.get("AthleteId")
-            or token.get("unique_name") or token.get("nameid")
-            or token.get("sub") or token.get("userId")
-        )
-        # Hent selve token-strengen
-        token_str = token.get("access_token") or token.get("token") or token.get("value")
-        return token_str, athlete_id
-
-    # Hvis token er en streng, prøv å dekode JWT
-    if isinstance(token, str) and "." in token:
+    # Fallback: prøv /users/v3/user med cookien direkte
+    if not athlete_id:
         try:
-            parts = token.split(".")
-            payload = parts[1]
-            padding = 4 - len(payload) % 4
-            if padding != 4:
-                payload += "=" * padding
-            claims = json.loads(base64.urlsafe_b64decode(payload))
-            print(f"  JWT claims: {json.dumps(claims, indent=2)[:400]}")
-            athlete_id = (
-                claims.get("unique_name") or claims.get("nameid")
-                or claims.get("sub") or claims.get("athleteId")
-                or claims.get("userId") or claims.get("UserId")
+            print("  Prøver /users/v3/user med cookie...")
+            r2 = requests.get(
+                f"{TPAPI_URL}/users/v3/user",
+                headers={
+                    "Cookie": f"Production_tpAuth={TP_AUTH_COOKIE}",
+                    "Accept": "application/json",
+                    "Origin": "https://app.trainingpeaks.com",
+                },
+                timeout=15
             )
-            return token, athlete_id
+            print(f"  /users/v3/user status: {r2.status_code}")
+            if r2.ok:
+                user_data = r2.json()
+                print(f"  /users/v3/user respons: {json.dumps(user_data)[:300]}")
+                athlete_id = (
+                    user_data.get("athleteId") or user_data.get("AthleteId")
+                    or user_data.get("userId") or user_data.get("UserId")
+                    or user_data.get("Id") or user_data.get("id")
+                )
         except Exception as e:
-            print(f"  JWT-dekoding feilet: {e}")
+            print(f"  /users/v3/user feilet: {e}")
 
-    # Prøv athlete ID direkte i topp-nivå respons
-    athlete_id = (
-        data.get("athleteId") or data.get("AthleteId")
-        or data.get("userId") or data.get("UserId")
-        or data.get("Id") or data.get("id")
-    )
-    return token, athlete_id
+    # Fallback 2: prøv /users/v3/athletes/me
+    if not athlete_id:
+        try:
+            print("  Prøver /users/v3/athletes/me med bearer token...")
+            r3 = requests.get(
+                f"{TPAPI_URL}/users/v3/athletes/me",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/json",
+                    "Origin": "https://app.trainingpeaks.com",
+                },
+                timeout=15
+            )
+            print(f"  /athletes/me status: {r3.status_code}")
+            if r3.ok:
+                me_data = r3.json()
+                print(f"  /athletes/me respons: {json.dumps(me_data)[:300]}")
+                athlete_id = (
+                    me_data.get("athleteId") or me_data.get("AthleteId")
+                    or me_data.get("Id") or me_data.get("id")
+                )
+        except Exception as e:
+            print(f"  /athletes/me feilet: {e}")
+
+    return access_token, athlete_id
 
 
 def lag_headers(token):
@@ -114,11 +145,7 @@ def hent_fitness_trend(athlete_id, token, dager=42):
     siste = alle[-1]
 
     return {
-        "dagens": {
-            "ctl": siste["ctl"],
-            "atl": siste["atl"],
-            "tsb": siste["tsb"],
-        },
+        "dagens": {"ctl": siste["ctl"], "atl": siste["atl"], "tsb": siste["tsb"]},
         "trend_7d": alle[-7:],
         "trend_42d": alle[::6][-7:],
     }
@@ -201,7 +228,6 @@ def main():
 
     try:
         token, athlete_id = hent_token_og_id()
-        print(f"  Token type: {type(token).__name__}")
         print(f"  Athlete ID: {athlete_id}")
     except Exception as e:
         print(f"  FEIL token/ID: {e}")
