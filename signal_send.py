@@ -6,10 +6,6 @@ from datetime import date
 
 
 def trafikklys(hrv: dict, bb: dict, load: dict) -> str:
-    """
-    Beregner treningsanbefaling basert på tre nøkkelsignaler.
-    Returnerer emoji + tekst.
-    """
     poeng = 0
     maks  = 0
 
@@ -48,7 +44,6 @@ def trafikklys(hrv: dict, bb: dict, load: dict) -> str:
         poeng += 2
     elif status in ("RECOVERY", "DETRAINING", "UNPRODUCTIVE"):
         poeng += 1
-    # OVERREACHING gir 0
 
     ratio = poeng / maks if maks > 0 else 0
 
