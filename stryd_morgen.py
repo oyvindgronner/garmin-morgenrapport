@@ -34,16 +34,17 @@ def hent_aktiviteter(token: str, user_id: str, dager: int = 14) -> list:
     til_dato = date.today() + timedelta(days=1)
     fra_dato = til_dato - timedelta(days=dager)
 
-    # Prøv med og uten user_id i URL
     urls = [
-        f"{STRYD_API_BASE}/activities/calendar?srtDate={fra_dato.strftime('%m-%d-%Y')}&endDate={til_dato.strftime('%m-%d-%Y')}&sortBy=StartDate",
-        f"{STRYD_API_BASE}/users/{user_id}/activities?srtDate={fra_dato.strftime('%m-%d-%Y')}&endDate={til_dato.strftime('%m-%d-%Y')}",
-        f"{STRYD_API_BASE}/athletes/{user_id}/activities",
+        f"{STRYD_API_BASE}/users/{user_id}/activities/calendar?srtDate={fra_dato.strftime('%m-%d-%Y')}&endDate={til_dato.strftime('%m-%d-%Y')}&sortBy=StartDate",
+        f"{STRYD_API_BASE}/users/{user_id}/activities",
+        f"{STRYD_API_BASE}/powercenter/activities?srtDate={fra_dato.strftime('%m-%d-%Y')}&endDate={til_dato.strftime('%m-%d-%Y')}",
+        f"{STRYD_API_BASE}/activities",
     ]
 
     for url in urls:
         response = requests.get(url, headers=headers, timeout=30)
-        print(f"  {url.split('/b/api/v1')[1][:50]} → {response.status_code}")
+        kort = url.split('/b/api/v1')[1][:60]
+        print(f"  {kort} → {response.status_code}")
         if response.status_code == 200:
             data = response.json()
             aktiviteter = data.get("activities", []) if isinstance(data, dict) else data
@@ -81,6 +82,7 @@ def ekstraher_profil(data: dict, aktiviteter: list) -> dict:
         or data.get("functionalThresholdPower")
         or data.get("critical_power")
         or data.get("cp")
+        or data.get("functional_threshold_power")
     )
     cp = data.get("cp") or data.get("criticalPower") or ftp
 
@@ -146,6 +148,9 @@ def main():
     print("\n📡 Henter løperprofil...")
     profil_raw = hent_løperprofil(token, user_id)
 
+    print(f"\n🔍 RÅ PROFILDATA:")
+    print(json.dumps(profil_raw, indent=2, ensure_ascii=False)[:1000])
+
     profil = ekstraher_profil(profil_raw, aktiviteter_raw)
     aktiviteter = [ekstraher_aktivitet(a) for a in aktiviteter_raw[:5]]
     rss_7d = beregn_rss_7d(aktiviteter_raw)
@@ -158,13 +163,14 @@ def main():
     }
 
     print(f"\n── STRYD NØKKELDATA ──────────────────────────")
-    print(f"  FTP       : {profil.get('ftp')} W")
-    print(f"  CP        : {profil.get('cp')} W")
+    print(f"  FTP        : {profil.get('ftp')} W")
+    print(f"  CP         : {profil.get('cp')} W")
+    print(f"  W'         : {profil.get('w_prime')} J")
     print(f"  RSS 7 dager: {rss_7d}")
     if aktiviteter:
         s = aktiviteter[0]
-        print(f"  Siste økt : {s['navn']} ({s['dato']})")
-        print(f"  Effekt    : {s['snitt_watt']}W snitt / {s['maks_watt']}W maks")
+        print(f"  Siste økt  : {s['navn']} ({s['dato']})")
+        print(f"  Effekt     : {s['snitt_watt']}W snitt / {s['maks_watt']}W maks")
 
     json_fil = f"stryd_data_{dato}.json"
     with open(json_fil, "w", encoding="utf-8") as f:
