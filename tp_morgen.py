@@ -6,6 +6,7 @@ fra TrainingPeaks og merger inn i garmin_data_DATO.json
 
 import os
 import json
+import base64
 import requests
 from datetime import date, timedelta
 from pathlib import Path
@@ -13,7 +14,6 @@ from pathlib import Path
 
 TP_AUTH_COOKIE = os.environ.get("TP_AUTH_COOKIE", "")
 TPAPI_URL = "https://tpapi.trainingpeaks.com"
-API_URL = "https://api.trainingpeaks.com"
 
 DATO = date.today().isoformat()
 JSON_FIL = f"garmin_data_{DATO}.json"
@@ -31,21 +31,41 @@ def hent_token():
     r = requests.get(url, headers=headers, timeout=15)
     r.raise_for_status()
     data = r.json()
-    return data.get("token") or data.get("access_token") or data.get("Token")
+    token = data.get("token") or data.get("access_token") or data.get("Token")
+    return token
 
 
-def hent_athlete_id(token):
-    url = f"{API_URL}/v1/athlete/profile"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
-    r = requests.get(url, headers=headers, timeout=15)
-    r.raise_for_status()
-    data = r.json()
-    print(f"  Profil-nøkler: {list(data.keys()) if isinstance(data, dict) else type(data)}")
-    return data.get("Id") or data.get("id") or data.get("athleteId")
+def dekod_athlete_id_fra_token(token):
+    """
+    JWT-token inneholder athlete ID i payload (del 2).
+    Dekoder base64 uten å verifisere signatur.
+    """
+    try:
+        parts = token.split(".")
+        if len(parts) < 2:
+            return None
+        payload = parts[1]
+        # Legg til padding om nødvendig
+        padding = 4 - len(payload) % 4
+        if padding != 4:
+            payload += "=" * padding
+        decoded = base64.urlsafe_b64decode(payload)
+        claims = json.loads(decoded)
+        print(f"  JWT claims nøkler: {list(claims.keys())}")
+        # Prøv vanlige felt-navn for athlete ID i JWT
+        athlete_id = (
+            claims.get("unique_name")
+            or claims.get("sub")
+            or claims.get("athleteId")
+            or claims.get("athlete_id")
+            or claims.get("nameid")
+            or claims.get("UserId")
+            or claims.get("userId")
+        )
+        return athlete_id
+    except Exception as e:
+        print(f"  FEIL JWT-dekoding: {e}")
+        return None
 
 
 def lag_headers(token):
@@ -53,11 +73,12 @@ def lag_headers(token):
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "Origin": "https://app.trainingpeaks.com",
+        "Referer": "https://app.trainingpeaks.com/",
     }
 
 
 def hent_fitness_trend(athlete_id, token, dager=42):
-    """Henter daglig CTL/ATL/TSB for siste N dager — gir trenddata"""
     slutt = date.today()
     start = slutt - timedelta(days=dager)
     url = (
@@ -82,16 +103,13 @@ def hent_fitness_trend(athlete_id, token, dager=42):
     alle = [parse_dag(d) for d in data]
     siste = alle[-1]
 
-    # Returfelt: dagens verdier + komprimert trend
     return {
         "dagens": {
             "ctl": siste["ctl"],
             "atl": siste["atl"],
             "tsb": siste["tsb"],
         },
-        # Siste 7 dager — daglig granularitet for kortidsanalyse
         "trend_7d": alle[-7:],
-        # Siste 42 dager — ukentlig snapshot (hver 7. dag) for langtidstrend
         "trend_42d": alle[::6][-7:],
     }
 
@@ -122,10 +140,6 @@ def hent_planlagt_okt(athlete_id, token):
 
 
 def hent_stryd_okter(athlete_id, token, dager=14):
-    """
-    Henter gjennomførte løpeøkter siste N dager med TSS og watt-data.
-    TSS i TP for løp beregnes fra Stryd når effektmåler er koblet til.
-    """
     slutt = date.today()
     start = slutt - timedelta(days=dager)
     url = (
@@ -138,18 +152,17 @@ def hent_stryd_okter(athlete_id, token, dager=14):
 
     okter = data if isinstance(data, list) else data.get("workouts", [])
 
-    # Filtrer kun gjennomførte løpeøkter
     lopeokt = [
         o for o in okter
         if (o.get("Completed") or o.get("completed"))
         and (
             "run" in str(o.get("WorkoutTypeValueId") or o.get("workoutType") or "").lower()
-            or o.get("WorkoutTypeValueId") in [1, 3, 25]  # running type IDs i TP
+            or o.get("WorkoutTypeValueId") in [1, 3, 25]
         )
     ]
 
     resultat = []
-    for o in lopeokt[:5]:  # maks 5 siste
+    for o in lopeokt[:5]:
         np_watt = o.get("NormalizedPower") or o.get("normalizedPower")
         avg_watt = o.get("Power") or o.get("power") or o.get("AvgPower") or o.get("avgPower")
         tss = o.get("Tss") or o.get("tss")
@@ -184,7 +197,7 @@ def main():
         return
 
     try:
-        athlete_id = hent_athlete_id(token)
+        athlete_id = dekod_athlete_id_fra_token(token)
         print(f"  Athlete ID: {athlete_id}")
     except Exception as e:
         print(f"  FEIL athlete ID: {e}")
@@ -201,8 +214,8 @@ def main():
         tp_data["fitness"] = fitness
         d = fitness["dagens"]
         print(f"  CTL: {d['ctl']} | ATL: {d['atl']} | TSB: {d['tsb']}")
-        print(f"  Trend 7d hentet: {len(fitness['trend_7d'])} dager")
-        print(f"  Trend 42d hentet: {len(fitness['trend_42d'])} snapshots")
+        print(f"  Trend 7d: {len(fitness['trend_7d'])} dager")
+        print(f"  Trend 42d: {len(fitness['trend_42d'])} snapshots")
     except Exception as e:
         print(f"  FEIL fitness: {e}")
         tp_data["fitness"] = {
