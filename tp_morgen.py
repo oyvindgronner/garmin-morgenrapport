@@ -18,51 +18,76 @@ DATO = date.today().isoformat()
 JSON_FIL = f"garmin_data_{DATO}.json"
 
 
-def lag_headers():
-    return {
-        "Cookie": f"Production_tpAuth={TP_AUTH_COOKIE}",
+def lag_headers(token=None):
+    headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "Origin": "https://app.trainingpeaks.com",
         "Referer": "https://app.trainingpeaks.com/",
     }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    else:
+        headers["Cookie"] = f"Production_tpAuth={TP_AUTH_COOKIE}"
+    return headers
 
 
-def hent_bruker_id():
-    url = f"{BASE_URL}/users/v3/user"
+def hent_token_og_athlete_id():
+    """
+    Bruker /users/v3/token for å veksle cookie mot access token + athlete ID.
+    Dette er samme teknikk som tp2intervals.
+    """
+    url = f"{BASE_URL}/users/v3/token"
     r = requests.get(url, headers=lag_headers(), timeout=15)
     r.raise_for_status()
     data = r.json()
-    return data.get("userId") or data.get("Id")
+    print(f"  Token-respons nøkler: {list(data.keys())}")
+
+    # Prøv ulike felt-navn
+    athlete_id = (
+        data.get("athleteId")
+        or data.get("AthleteId")
+        or data.get("userId")
+        or data.get("UserId")
+        or data.get("Id")
+        or data.get("id")
+    )
+    token = (
+        data.get("token")
+        or data.get("access_token")
+        or data.get("Token")
+        or data.get("AccessToken")
+    )
+    return token, athlete_id
 
 
-def hent_fitness(athlete_id, dager=3):
+def hent_fitness(athlete_id, token, dager=3):
     slutt = date.today()
     start = slutt - timedelta(days=dager)
     url = (
         f"{BASE_URL}/fitness/v3/athletes/{athlete_id}/metrics"
         f"?startDate={start.isoformat()}&endDate={slutt.isoformat()}"
     )
-    r = requests.get(url, headers=lag_headers(), timeout=15)
+    r = requests.get(url, headers=lag_headers(token), timeout=15)
     r.raise_for_status()
     data = r.json()
 
     if isinstance(data, list) and data:
         siste = data[-1]
         return {
-            "ctl": round(siste.get("ctl") or siste.get("Ctl") or 0, 1),
-            "atl": round(siste.get("atl") or siste.get("Atl") or 0, 1),
-            "tsb": round(siste.get("tsb") or siste.get("Tsb") or 0, 1),
+            "ctl": round(float(siste.get("ctl") or siste.get("Ctl") or 0), 1),
+            "atl": round(float(siste.get("atl") or siste.get("Atl") or 0), 1),
+            "tsb": round(float(siste.get("tsb") or siste.get("Tsb") or 0), 1),
         }
     return {"ctl": None, "atl": None, "tsb": None}
 
 
-def hent_planlagt_okt(athlete_id):
+def hent_planlagt_okt(athlete_id, token):
     url = (
         f"{BASE_URL}/workouts/v1/athletes/{athlete_id}/workouts"
         f"?startDate={DATO}&endDate={DATO}"
     )
-    r = requests.get(url, headers=lag_headers(), timeout=15)
+    r = requests.get(url, headers=lag_headers(token), timeout=15)
     r.raise_for_status()
     data = r.json()
 
@@ -90,16 +115,21 @@ def main():
     print("Henter TrainingPeaks-data...")
 
     try:
-        athlete_id = hent_bruker_id()
+        token, athlete_id = hent_token_og_athlete_id()
         print(f"  Athlete ID: {athlete_id}")
+        print(f"  Token hentet: {'ja' if token else 'nei'}")
     except Exception as e:
-        print(f"  FEIL: Kunne ikke hente bruker-ID: {e}")
+        print(f"  FEIL: Kunne ikke hente token/athlete ID: {e}")
+        return
+
+    if not athlete_id:
+        print("  FEIL: Athlete ID er None — avbryter")
         return
 
     tp_data = {}
 
     try:
-        fitness = hent_fitness(athlete_id)
+        fitness = hent_fitness(athlete_id, token)
         tp_data["fitness"] = fitness
         print(f"  CTL: {fitness['ctl']} | ATL: {fitness['atl']} | TSB: {fitness['tsb']}")
     except Exception as e:
@@ -107,7 +137,7 @@ def main():
         tp_data["fitness"] = {"ctl": None, "atl": None, "tsb": None}
 
     try:
-        planlagt = hent_planlagt_okt(athlete_id)
+        planlagt = hent_planlagt_okt(athlete_id, token)
         tp_data["planlagt_okt"] = planlagt
         if planlagt:
             print(f"  Planlagt: {planlagt['navn']} ({planlagt['varighet_min']} min)")
