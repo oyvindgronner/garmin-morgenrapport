@@ -31,13 +31,13 @@ def logg_inn():
     if epost and passord:
         api = Garmin(epost, passord)
         api.login()
-        print("✅ Innlogget via miljøvariabler")
+        print("Innlogget via miljoevariabler")
         return api
 
     api = Garmin()
     try:
         api.login(TOKENSTI)
-        print("✅ Innlogget med lagret token")
+        print("Innlogget med lagret token")
         return api
     except Exception:
         pass
@@ -47,7 +47,7 @@ def logg_inn():
     api = Garmin(epost, passord)
     api.login()
     api.garth.dump(TOKENSTI)
-    print("✅ Innlogget og token lagret")
+    print("Innlogget og token lagret")
     return api
 
 
@@ -65,7 +65,7 @@ def hent_hrv(api):
             "baseline_balansert_hoy": baseline.get("balancedUpper"),
         }
     except Exception as e:
-        print(f"⚠️  HRV: {e}")
+        print(f"HRV feil: {e}")
         return {}
 
 
@@ -83,7 +83,7 @@ def hent_sovn(api):
             "stress_natt": daglig.get("avgSleepStress"),
         }
     except Exception as e:
-        print(f"⚠️  Søvn: {e}")
+        print(f"Sovn feil: {e}")
         return {}
 
 
@@ -96,7 +96,7 @@ def hent_dagsstatus(api):
             "skritt":       data.get("totalSteps"),
         }
     except Exception as e:
-        print(f"⚠️  Dagsstatus: {e}")
+        print(f"Dagsstatus feil: {e}")
         return {}
 
 
@@ -104,18 +104,18 @@ def hent_body_battery(api):
     try:
         data = api.get_body_battery(DATO_STR)
         if isinstance(data, list) and data:
-            dag    = data[0]
+            dag     = data[0]
             verdier = dag.get("bodyBatteryValuesArray", [])
             if verdier:
-                nivåer = [v[1] for v in verdier if len(v) > 1]
+                nivaaer = [v[1] for v in verdier if len(v) > 1]
                 return {
-                    "maks":  max(nivåer),
-                    "min":   min(nivåer),
+                    "maks":  max(nivaaer),
+                    "min":   min(nivaaer),
                     "ladet": dag.get("charged"),
                 }
         return {}
     except Exception as e:
-        print(f"⚠️  Body Battery: {e}")
+        print(f"Body Battery feil: {e}")
         return {}
 
 
@@ -127,9 +127,9 @@ def hent_treningsbelastning(api):
                       .get("generic", {})
                       .get("vo2MaxValue"))
 
-        enheter  = (data.get("mostRecentTrainingStatus", {})
-                        .get("latestTrainingStatusData", {}))
-        enhet    = next(iter(enheter.values()), {}) if enheter else {}
+        enheter = (data.get("mostRecentTrainingStatus", {})
+                       .get("latestTrainingStatusData", {}))
+        enhet   = next(iter(enheter.values()), {}) if enheter else {}
         acwr_dto = enhet.get("acuteTrainingLoadDTO", {})
 
         balance = (data.get("mostRecentTrainingLoadBalance", {})
@@ -147,11 +147,11 @@ def hent_treningsbelastning(api):
             "load_feedback": bal.get("trainingBalanceFeedbackPhrase"),
         }
     except Exception as e:
-        print(f"⚠️  Treningsbelastning: {e}")
+        print(f"Treningsbelastning feil: {e}")
         return {}
 
 
-def hent_aktiviteter(api, antall=5):
+def hent_aktiviteter(api, antall=3):
     try:
         alle     = api.get_activities(0, antall)
         resultat = []
@@ -185,14 +185,12 @@ def hent_aktiviteter(api, antall=5):
                 "vo2max":         a.get("vO2MaxValue"),
                 "bb_tap":         a.get("differenceBodyBattery"),
                 "kalorier":       a.get("calories"),
-                "høydemeter":     a.get("elevationGain"),
-                # Løpsøkonomi
+                "hoydemeter":     a.get("elevationGain"),
                 "bakketid_ms":    round(a["avgGroundContactTime"]) if a.get("avgGroundContactTime") else None,
                 "vert_osc_cm":    round(a["avgVerticalOscillation"], 1) if a.get("avgVerticalOscillation") else None,
                 "vert_ratio_pst": round(a["avgVerticalRatio"], 1) if a.get("avgVerticalRatio") else None,
                 "steglengde_cm":  round(a["avgStrideLength"]) if a.get("avgStrideLength") else None,
                 "kadens":         round(a["averageRunningCadenceInStepsPerMinute"]) if a.get("averageRunningCadenceInStepsPerMinute") else None,
-                # Pulssoner (sekunder)
                 "puls_sone_1":    round(a.get("hrTimeInZone_1", 0)),
                 "puls_sone_2":    round(a.get("hrTimeInZone_2", 0)),
                 "puls_sone_3":    round(a.get("hrTimeInZone_3", 0)),
@@ -202,13 +200,77 @@ def hent_aktiviteter(api, antall=5):
 
         return resultat
     except Exception as e:
-        print(f"⚠️  Aktiviteter: {e}")
+        print(f"Aktiviteter feil: {e}")
         return []
 
 
+def hent_planlagt_okt(api):
+    try:
+        workouts = api.get_workouts(0, 20)
+        if not workouts:
+            return None
+
+        for w in workouts:
+            scheduled = w.get("scheduledDate", "")[:10]
+            if scheduled == DATO_STR:
+                workout_id = w.get("workoutId")
+                detalj = api.get_workout_by_id(workout_id)
+
+                steps = []
+                for step in detalj.get("workoutSegments", [{}])[0].get("workoutSteps", []):
+                    step_type = step.get("type", "")
+                    if step_type == "ExecutableStepDTO":
+                        intensity = step.get("intensity", "")
+                        duration  = step.get("endCondition", {})
+                        target    = step.get("targetType", {})
+                        steps.append({
+                            "type":      intensity,
+                            "varighet":  duration.get("conditionTypeKey"),
+                            "verdi":     duration.get("conditionValue"),
+                            "mal_type":  target.get("conditionTypeKey"),
+                            "mal_fra":   step.get("targetValueOne"),
+                            "mal_til":   step.get("targetValueTwo"),
+                        })
+                    elif step_type == "RepeatGroupDTO":
+                        repeats = step.get("numberOfIterations", 1)
+                        for substep in step.get("workoutSteps", []):
+                            intensity = substep.get("intensity", "")
+                            duration  = substep.get("endCondition", {})
+                            target    = substep.get("targetType", {})
+                            steps.append({
+                                "type":      intensity,
+                                "repeats":   repeats,
+                                "varighet":  duration.get("conditionTypeKey"),
+                                "verdi":     duration.get("conditionValue"),
+                                "mal_type":  target.get("conditionTypeKey"),
+                                "mal_fra":   substep.get("targetValueOne"),
+                                "mal_til":   substep.get("targetValueTwo"),
+                            })
+
+                return {
+                    "navn":        detalj.get("workoutName"),
+                    "type":        detalj.get("sportType", {}).get("sportTypeKey"),
+                    "dato":        scheduled,
+                    "beskrivelse": detalj.get("description"),
+                    "steg":        steps,
+                }
+
+        return None
+
+    except Exception as e:
+        print(f"Planlagt okt feil: {e}")
+        return None
+
+
 def main():
-    print(f"📡 Garmin morgendata – {DATO_STR}")
+    print(f"Garmin morgendata - {DATO_STR}")
     api = logg_inn()
+
+    planlagt = hent_planlagt_okt(api)
+    if planlagt:
+        print(f"Planlagt okt: {planlagt.get('navn')}")
+    else:
+        print("Ingen planlagt okt funnet for i dag")
 
     data = {
         "dato":               DATO_STR,
@@ -217,7 +279,8 @@ def main():
         "dag":                hent_dagsstatus(api),
         "body_battery":       hent_body_battery(api),
         "treningsbelastning": hent_treningsbelastning(api),
-        "siste_aktiviteter":  hent_aktiviteter(api, antall=5),
+        "siste_aktiviteter":  hent_aktiviteter(api, antall=3),
+        "planlagt_okt":       planlagt,
     }
 
     hrv  = data["hrv"]
@@ -226,21 +289,23 @@ def main():
     load = data["treningsbelastning"]
     sovn = data["sovn"]
 
-    print(f"\n── SAMMENDRAG ────────────────────────────")
+    print(f"\n── SAMMENDRAG ────────────────────────")
     print(f"  HRV     : {hrv.get('nattlig_snitt')} ms [{hrv.get('status')}] (uke: {hrv.get('ukentlig_snitt')})")
     print(f"  Puls    : {dag.get('hvilepuls')} bpm | Stress: {dag.get('stress_snitt')}")
     print(f"  BB      : {bb.get('maks')}/100 (+{bb.get('ladet')})")
-    print(f"  Søvn    : {sovn.get('total_min')} min (score: {sovn.get('score')})")
+    print(f"  Sovn    : {sovn.get('total_min')} min (score: {sovn.get('score')})")
     print(f"  ACWR    : {load.get('acwr')} [{load.get('acwr_status')}]")
     print(f"  Status  : {load.get('status')}")
     if data["siste_aktiviteter"]:
         s = data["siste_aktiviteter"][0]
         print(f"  Siste   : {s['navn']} {s['dist_km']}km | {s['snitt_tempo']} | {s['snitt_puls']}bpm | load {s['load']}")
+    if planlagt:
+        print(f"  I dag   : {planlagt['navn']} ({len(planlagt['steg'])} steg)")
 
     json_fil = f"garmin_data_{DATO_STR}.json"
     with open(json_fil, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    print(f"\n💾 Lagret: {json_fil}")
+    print(f"\nLagret: {json_fil}")
 
 
 if __name__ == "__main__":
