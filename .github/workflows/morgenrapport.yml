@@ -1,4 +1,3 @@
-cat > ~/Desktop/garmin-repo-temp/.github/workflows/morgenrapport.yml << 'EOF'
 name: Garmin morgenrapport
 
 on:
@@ -48,4 +47,3 @@ jobs:
           name: garmin-${{ github.run_id }}
           path: garmin_data_*.json
           retention-days: 7
-EOF
