@@ -1,3 +1,4 @@
+cat > ~/Desktop/garmin-repo-temp/.github/workflows/morgenrapport.yml << 'EOF'
 name: Garmin morgenrapport
 
 on:
@@ -26,6 +27,12 @@ jobs:
         env:
           TP_AUTH_COOKIE: ${{ secrets.TP_AUTH_COOKIE }}
 
+      - run: python strava_hent.py
+        env:
+          STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+
       - run: python signal_send.py
         env:
           SIGNAL_ID: ${{ secrets.SIGNAL_ID }}
@@ -41,3 +48,4 @@ jobs:
           name: garmin-${{ github.run_id }}
           path: garmin_data_*.json
           retention-days: 7
+EOF
