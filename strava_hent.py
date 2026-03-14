@@ -107,7 +107,7 @@ def main():
     print(f"Strava-henting startet: {dato}")
 
     client_id, client_secret, refresh_token = hent_credentials()
-    access_token, ny_refresh = refresh_access_token(client_id, client_secret, refresh_token)
+    access_token, _ = refresh_access_token(client_id, client_secret, refresh_token)
     print("OK: Token refreshet.")
 
     print("Henter profil...")
@@ -132,9 +132,8 @@ def main():
             "ftp":        profil.get("ftp"),
             "vekt":       profil.get("weight"),
         },
-        "aktiviteter":    strava_aktiviteter,
-        "refresh_token":  ny_refresh,
-        "hentet":         datetime.now(timezone.utc).isoformat(),
+        "aktiviteter": strava_aktiviteter,
+        "hentet":      datetime.now(timezone.utc).isoformat(),
     }
 
     garmin_fil = finn_garmin_fil(dato)
