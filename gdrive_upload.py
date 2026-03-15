@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 MAPPE_ID = "1_hC0owPxysECL3qLPno0AO-0ypEbI5BR"
-SCOPES = ["https://www.googleapis.com/auth/drive.file"]
+SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 
 def last_opp(json_fil: str):
@@ -24,7 +24,19 @@ def last_opp(json_fil: str):
     fil = service.files().create(
         body={"name": filnavn, "parents": [MAPPE_ID]},
         media_body=media,
-        fields="id, name"
+        fields="id, name",
+        supportsAllDrives=True
+    ).execute()
+
+    # Overfør eierskap til gronneroyvind@gmail.com
+    service.permissions().create(
+        fileId=fil["id"],
+        transferOwnership=True,
+        body={
+            "type": "user",
+            "role": "owner",
+            "emailAddress": "gronneroyvind@gmail.com"
+        }
     ).execute()
 
     print(f"✅ Lastet opp: {fil['name']} (ID: {fil['id']})")
