@@ -4,7 +4,6 @@ import json
 from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
 
 
 def send_epost(json_fil: str, dato: str):
@@ -13,6 +12,7 @@ def send_epost(json_fil: str, dato: str):
 
     with open(json_fil, "r", encoding="utf-8") as f:
         data = json.load(f)
+        json_tekst = json.dumps(data, indent=2, ensure_ascii=False)
 
     hrv  = data.get("hrv", {})
     dag  = data.get("dag", {})
@@ -69,7 +69,9 @@ ACWR      : {load.get('acwr','–')} [{load.get('acwr_status','–')}]
 Status    : {load.get('status','–')}
 VO2max    : {load.get('vo2max','–')}
 {'─' * 30}
-Last opp vedlegget i Claude for full analyse.
+
+=== GARMIN JSON DATA ===
+{json_tekst}
 """
 
     msg = MIMEMultipart()
@@ -78,11 +80,6 @@ Last opp vedlegget i Claude for full analyse.
     msg["Subject"] = f"{anbefaling} | Garmin {dato}"
 
     msg.attach(MIMEText(brodtekst, "plain", "utf-8"))
-
-    with open(json_fil, "rb") as f:
-        vedlegg = MIMEApplication(f.read(), Name=f"garmin_data_{dato}.json")
-        vedlegg["Content-Disposition"] = f'attachment; filename="garmin_data_{dato}.json"'
-        msg.attach(vedlegg)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(gmail_user, gmail_password)
