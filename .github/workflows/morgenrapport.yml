@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install garminconnect garth requests google-auth google-auth-httplib2 google-api-python-client
+      - run: pip install garminconnect garth requests
 
       - run: python garmin_morgen.py
         env:
@@ -31,15 +31,6 @@ jobs:
           STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
-
-      - run: python gdrive_upload.py
-        env:
-          GDRIVE_SERVICE_ACCOUNT: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
-
-      - run: python signal_send.py
-        env:
-          SIGNAL_ID: ${{ secrets.SIGNAL_ID }}
-          SIGNAL_API_KEY: ${{ secrets.SIGNAL_API_KEY }}
 
       - run: python send_epost.py
         env:
