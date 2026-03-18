@@ -57,7 +57,7 @@ def logg_inn():
                 print(f"Innlogget og token lagret i {TOKENSTI}")
                 return api
             except Exception as e:
-                if "429" in str(e) or "Too Many" in str(e):
+                if "429" in str(e) or "Too Many" in str(e) or "Rate limit" in str(e) or "TooManyRequests" in type(e).__name__:
                     wait = 60 * (2 ** attempt)
                     print(f"Rate limit - venter {wait}s...")
                     time.sleep(wait)
