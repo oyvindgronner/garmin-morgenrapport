@@ -8,6 +8,8 @@ on:
 jobs:
   morgenrapport:
     runs-on: ubuntu-latest
+    env:
+      GARMIN_TOKEN_DIR: ${{ github.workspace }}/.garth
     steps:
       - uses: actions/checkout@v4
 
@@ -16,6 +18,12 @@ jobs:
           python-version: '3.11'
 
       - run: pip install garminconnect garth requests
+
+      - name: Hent Garmin token-cache
+        uses: actions/cache@v4
+        with:
+          path: .garth
+          key: garmin-token-v1
 
       - run: python garmin_morgen.py
         env:

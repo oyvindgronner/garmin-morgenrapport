@@ -20,29 +20,53 @@ except ImportError:
     print("Mangler garminconnect. Installer med: pip install garminconnect garth")
     sys.exit(1)
 
-TOKENSTI = os.path.expanduser("~/.garth")
+TOKENSTI = os.environ.get("GARMIN_TOKEN_DIR", os.path.expanduser("~/.garth"))
 DATO_STR = date.today().isoformat()
 
 
 def logg_inn():
-    epost   = os.environ.get("GARMIN_EMAIL")
+    """
+    Logger inn med:
+    1. Lagret token — gjenbrukes mellom kjøringer, unngår rate limit
+    2. Miljøvariabler — fallback ved ugyldig token
+    3. Manuell innlogging — lokalt på Mac
+    """
+    import time
+
+    # Forsøk 1: Gjenbruk lagret token (ingen SSO = ingen rate limit)
+    if os.path.exists(TOKENSTI):
+        try:
+            api = Garmin()
+            api.login(TOKENSTI)
+            print("Innlogget med lagret token")
+            return api
+        except Exception as e:
+            print(f"Lagret token ugyldig: {e}")
+
+    # Forsøk 2: Miljøvariabler (GitHub Actions)
+    epost = os.environ.get("GARMIN_EMAIL")
     passord = os.environ.get("GARMIN_PASSWORD")
 
     if epost and passord:
-        api = Garmin(epost, passord)
-        api.login()
-        print("Innlogget via miljoevariabler")
-        return api
+        for attempt in range(3):
+            try:
+                print(f"Logger inn med miljovariabler (forsok {attempt + 1}/3)...")
+                api = Garmin(epost, passord)
+                api.login()
+                api.garth.dump(TOKENSTI)
+                print(f"Innlogget og token lagret i {TOKENSTI}")
+                return api
+            except Exception as e:
+                if "429" in str(e) or "Too Many" in str(e):
+                    wait = 60 * (2 ** attempt)
+                    print(f"Rate limit - venter {wait}s...")
+                    time.sleep(wait)
+                else:
+                    raise
+        raise Exception("Kunne ikke logge inn etter 3 forsok (rate limit)")
 
-    api = Garmin()
-    try:
-        api.login(TOKENSTI)
-        print("Innlogget med lagret token")
-        return api
-    except Exception:
-        pass
-
-    epost   = input("Garmin e-post: ").strip()
+    # Forsøk 3: Manuell innlogging (Mac)
+    epost = input("Garmin e-post: ").strip()
     passord = getpass("Garmin passord: ")
     api = Garmin(epost, passord)
     api.login()
