@@ -2,7 +2,7 @@ name: Garmin morgenrapport
 
 on:
   schedule:
-#    - cron: '0 7 * * *'
+    - cron: '0 5 * * *'
   workflow_dispatch:
 
 jobs:
@@ -18,14 +18,6 @@ jobs:
           python-version: '3.11'
 
       - run: pip install garminconnect garth requests
-
-      - name: Dekod Garmin token fra secret
-        if: env.GARMIN_TOKEN != ''
-        env:
-          GARMIN_TOKEN: ${{ secrets.GARMIN_TOKEN }}
-        run: |
-          mkdir -p .garth
-          echo "$GARMIN_TOKEN" | base64 --decode | tar xzf - -C .garth
 
       - name: Hent Garmin token-cache
         uses: actions/cache@v4
