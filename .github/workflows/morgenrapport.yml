@@ -19,11 +19,12 @@ jobs:
 
       - run: pip install garminconnect garth requests
 
-      - name: Hent Garmin token-cache
-        uses: actions/cache@v4
-        with:
-          path: .garth
-          key: garmin-token-v1
+      - name: Dekod Garmin token fra secret
+        env:
+          GARMIN_TOKEN: ${{ secrets.GARMIN_TOKEN }}
+        run: |
+          mkdir -p .garth
+          echo "$GARMIN_TOKEN" | base64 --decode | tar xzf - -C .garth
 
       - run: python garmin_morgen.py
         env:
