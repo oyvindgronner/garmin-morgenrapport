@@ -26,14 +26,34 @@ DATO_STR = date.today().isoformat()
 
 def logg_inn():
     """
-    Logger inn med:
-    1. Lagret token — gjenbrukes mellom kjøringer, unngår rate limit
-    2. Miljøvariabler — fallback ved ugyldig token
-    3. Manuell innlogging — lokalt på Mac
+    Logger inn med garth OAuth-tokens fra miljøvariabler.
+    Bruker aldri passord-innlogging for å unngå rate limiting.
     """
-    import time
+    import garth
+    import json
 
-    # Forsøk 1: Gjenbruk lagret token (ingen SSO = ingen rate limit)
+    garth.configure(domain="garmin.com")
+    client = garth.client
+
+    # Forsøk 1: OAuth-tokens fra GitHub Secrets
+    oauth1_json = os.environ.get("GARMIN_OAUTH1")
+    oauth2_json = os.environ.get("GARMIN_OAUTH2")
+
+    if oauth1_json and oauth2_json:
+        try:
+            from garth.auth_tokens import OAuth1Token, OAuth2Token
+            client.oauth1_token = OAuth1Token(**json.loads(oauth1_json))
+            client.oauth2_token = OAuth2Token(**json.loads(oauth2_json))
+            api = Garmin()
+            api.garth = client
+            # Test at tokenet fungerer
+            api.get_full_name()
+            print("Innlogget med OAuth-tokens fra miljøvariabler")
+            return api
+        except Exception as e:
+            print(f"OAuth-token feilet: {e}")
+
+    # Forsøk 2: Lagret token lokalt (kun Mac)
     if os.path.exists(TOKENSTI):
         try:
             api = Garmin()
@@ -43,36 +63,8 @@ def logg_inn():
         except Exception as e:
             print(f"Lagret token ugyldig: {e}")
 
-    # Forsøk 2: Miljøvariabler (GitHub Actions)
-    epost = os.environ.get("GARMIN_EMAIL")
-    passord = os.environ.get("GARMIN_PASSWORD")
+    raise Exception("Ingen gyldige tokens tilgjengelig. Sett GARMIN_OAUTH1 og GARMIN_OAUTH2 i GitHub Secrets.")
 
-    if epost and passord:
-        for attempt in range(3):
-            try:
-                print(f"Logger inn med miljovariabler (forsok {attempt + 1}/3)...")
-                api = Garmin(epost, passord)
-                api.login()
-                api.garth.dump(TOKENSTI)
-                print(f"Innlogget og token lagret i {TOKENSTI}")
-                return api
-            except Exception as e:
-                if "429" in str(e) or "Too Many" in str(e) or "Rate limit" in str(e) or "TooManyRequests" in type(e).__name__:
-                    wait = 60 * (2 ** attempt)
-                    print(f"Rate limit - venter {wait}s...")
-                    time.sleep(wait)
-                else:
-                    raise
-        raise Exception("Kunne ikke logge inn etter 3 forsok (rate limit)")
-
-    # Forsøk 3: Manuell innlogging (Mac)
-    epost = input("Garmin e-post: ").strip()
-    passord = getpass("Garmin passord: ")
-    api = Garmin(epost, passord)
-    api.login()
-    api.garth.dump(TOKENSTI)
-    print("Innlogget og token lagret")
-    return api
 
 
 def hent_hrv(api):
