@@ -1,7 +1,6 @@
 import smtplib
 import os
 import json
-import re
 from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -43,7 +42,7 @@ def send_epost(json_fil: str, dato: str):
     else:
         hrv_status = "–"
 
-    # HRV-trend siste 7 dager
+    # HRV-trend
     hrv_trend = [(d["dato"][5:], d["hrv"]) for d in helse_90d[-7:] if d.get("hrv")]
     hrv_linje = " → ".join([f"{d}: {v}" for d, v in hrv_trend])
 
@@ -55,47 +54,44 @@ def send_epost(json_fil: str, dato: str):
     if aktiviteter:
         s = aktiviteter[0]
         siste_okt = f"""
-Siste økt ({s.get('dato','–')}):
-  {s.get('navn','–')} | {s.get('type','–')}
-  Dist    : {s.get('dist_km','–')} km | {s.get('varighet_min','–')} min
-  Tempo   : {s.get('snitt_tempo','–')}
+  {s.get('navn','–')} ({s.get('dato','–')}) | {s.get('type','–')}
+  Dist    : {s.get('dist_km','–')} km | {s.get('varighet_min','–')} min | {s.get('snitt_tempo','–')}
   Puls    : {s.get('snitt_puls','–')} bpm (maks: {s.get('maks_puls','–')})
   Watt    : {s.get('snitt_watt','–')}W snitt / {s.get('normalisert_watt','–')}W NP
   Suffer  : {s.get('suffer_score','–')}"""
 
-    claude_seksjon = ""
+    # Emnelinje fra første linje i Claude-analysen
     if analyse:
-        claude_seksjon = f"""
-{'─' * 40}
-COACHING-ANALYSE:
-{analyse}"""
+        emne_tekst = analyse.strip().split("\n")[0][:80]
+        emne = f"Morgen {dato} | {emne_tekst}"
+    else:
+        emne = f"Morgen {dato}"
 
-    brodtekst = f"""Morgendata – {dato}
-{'─' * 40}
-HELSE (via TrainingPeaks/Garmin):
+    brodtekst = f"""{'─' * 45}
+COACHING-ANALYSE
+{'─' * 45}
+{analyse if analyse else '(Ingen analyse tilgjengelig)'}
+
+{'─' * 45}
+RÅDATA — {dato}
+{'─' * 45}
+HELSE:
   HRV       : {hrv or '–'} ms [{hrv_status}]
   HRV-trend : {hrv_linje}
   Hvilepuls : {hvilepuls or '–'} bpm
   Body Batt : {bb_maks or '–'}/100 (min: {bb_min or '–'})
   Søvn      : {sovn_t}t {sovn_r}min (dyp: {dyp_min}min | REM: {rem_min}min)
   Stress    : {stress or '–'}
-{'─' * 40}
-FORM (TrainingPeaks):
-  CTL       : {ctl or '–'}
+
+FORM:
+  CTL       : {ctl or '–'} (mål Hamburg: 58–65)
   ATL       : {atl or '–'}
   TSB       : {tsb or '–'}
   TSB-trend : {tsb_linje}
-{'─' * 40}
-AKTIVITET (Strava):{siste_okt}{claude_seksjon}
-{'─' * 40}
-"""
 
-    # Emnelinje: hent første linje fra Claude-analysen hvis mulig
-    if analyse:
-        forste_linje = analyse.strip().split("\n")[0][:80]
-        emne = f"Morgen {dato} | {forste_linje}"
-    else:
-        emne = f"Morgen {dato}"
+SISTE ØKT:{siste_okt}
+{'─' * 45}
+"""
 
     msg = MIMEMultipart()
     msg["From"]    = gmail_user
