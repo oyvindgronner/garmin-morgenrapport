@@ -12,118 +12,108 @@ def send_epost(json_fil: str, dato: str):
 
     with open(json_fil, "r", encoding="utf-8") as f:
         data = json.load(f)
-        json_tekst = json.dumps(data, indent=2, ensure_ascii=False)
 
-    garmin_status = data.get("_garmin_status", "")
-    garmin_mangler = bool(garmin_status)
-
-    hrv   = data.get("hrv", {})
-    dag   = data.get("dag", {})
-    bb    = data.get("body_battery", {})
-    load  = data.get("treningsbelastning", {})
-    sovn  = data.get("sovn", {})
-    tp    = data.get("trainingpeaks", {})
-    tp_d  = tp.get("fitness", {}).get("dagens", {})
-    strava = data.get("strava", {})
+    tp       = data.get("trainingpeaks", {})
+    tp_d     = tp.get("fitness", {}).get("dagens", {})
+    helse    = tp.get("helsedata", {})
+    strava   = data.get("strava", {})
     aktiviteter = strava.get("aktiviteter", []) or data.get("siste_aktiviteter", [])
 
-    # Anbefaling basert på tilgjengelig data
-    if garmin_mangler:
-        tsb = tp_d.get("tsb")
-        if tsb is not None:
-            if tsb >= 8:
-                anbefaling = "🟢 Tren som planlagt"
-            elif tsb >= -10:
-                anbefaling = "🟡 Modifiser økten"
-            else:
-                anbefaling = "🔴 Prioriter hvile"
+    # Hent nøkkelverdier
+    hrv       = helse.get("hrv_nattlig_snitt")
+    hvilepuls = helse.get("hvilepuls")
+    bb_maks   = helse.get("bb_maks")
+    bb_min    = helse.get("bb_min")
+    sovn_min  = helse.get("sovn_min", 0)
+    dyp_min   = helse.get("dyp_sovn_min", 0)
+    rem_min   = helse.get("rem_sovn_min", 0)
+    stress    = helse.get("stress_snitt")
+    ctl       = tp_d.get("ctl")
+    atl       = tp_d.get("atl")
+    tsb       = tp_d.get("tsb")
+
+    sovn_t   = sovn_min // 60
+    sovn_r   = sovn_min % 60
+
+    # HRV-status
+    if hrv is not None:
+        if hrv >= 70:
+            hrv_status = "BALANSERT"
+        elif hrv >= 60:
+            hrv_status = "LAV"
         else:
-            anbefaling = "⚪ Utilstrekkelig data"
+            hrv_status = "SVÆRT LAV"
     else:
-        poeng = 0
-        if hrv.get("status") == "BALANCED":
+        hrv_status = "–"
+
+    # Anbefaling basert på HRV + TSB + BB
+    poeng = 0
+    maks  = 9
+    if hrv is not None:
+        if hrv >= 70:
             poeng += 3
-        elif hrv.get("status") == "LOW":
+        elif hrv >= 60:
             poeng += 1
-        bb_maks = bb.get("maks")
-        if bb_maks and bb_maks >= 75:
-            poeng += 2
-        elif bb_maks and bb_maks >= 50:
-            poeng += 1
-        acwr = load.get("acwr") or 0
-        if 0.8 <= acwr <= 1.3:
+    if bb_maks is not None:
+        if bb_maks >= 75:
             poeng += 3
-        elif acwr < 0.8:
+        elif bb_maks >= 50:
             poeng += 2
-        elif acwr <= 1.5:
-            poeng += 1
-        status = load.get("status", "")
-        if status in ("PRODUCTIVE", "PEAKING", "MAINTAINING"):
-            poeng += 2
-        elif status in ("RECOVERY", "DETRAINING", "UNPRODUCTIVE"):
-            poeng += 1
-        ratio = poeng / 10
-        if ratio >= 0.75:
-            anbefaling = "🟢 Tren som planlagt"
-        elif ratio >= 0.45:
-            anbefaling = "🟡 Modifiser økten"
         else:
-            anbefaling = "🔴 Prioriter hvile"
+            poeng += 1
+    if tsb is not None:
+        if tsb >= 5:
+            poeng += 3
+        elif tsb >= -10:
+            poeng += 2
+        else:
+            poeng += 1
 
-    sovn_t   = sovn.get("total_min", 0) // 60
-    sovn_min = sovn.get("total_min", 0) % 60
+    ratio = poeng / maks
+    if ratio >= 0.75:
+        anbefaling = "🟢 Tren som planlagt"
+    elif ratio >= 0.45:
+        anbefaling = "🟡 Modifiser økten"
+    else:
+        anbefaling = "🔴 Prioriter hvile"
 
-    # Siste aktivitet fra Strava
+    # Siste aktivitet
     siste_okt = ""
     if aktiviteter:
         s = aktiviteter[0]
         siste_okt = f"""
 Siste økt ({s.get('dato','–')}):
   {s.get('navn','–')} | {s.get('type','–')}
-  Dist     : {s.get('dist_km','–')} km | {s.get('varighet_min','–')} min
-  Tempo    : {s.get('snitt_tempo','–')}
-  Puls     : {s.get('snitt_puls','–')} bpm (maks: {s.get('maks_puls','–')})
-  Watt     : {s.get('snitt_watt','–')}W snitt / {s.get('normalisert_watt','–')}W NP
-  Suffer   : {s.get('suffer_score','–')}"""
-
-    garmin_varsling = ""
-    if garmin_mangler:
-        garmin_varsling = f"""
-⚠️  GARMIN DATA MANGLER
-{garmin_status}
-HRV, søvn, Body Battery og treningsbelastning er ikke tilgjengelig.
-Rapport basert på Strava og TrainingPeaks.
-{'─' * 40}
-"""
+  Dist    : {s.get('dist_km','–')} km | {s.get('varighet_min','–')} min
+  Tempo   : {s.get('snitt_tempo','–')}
+  Puls    : {s.get('snitt_puls','–')} bpm (maks: {s.get('maks_puls','–')})
+  Watt    : {s.get('snitt_watt','–')}W snitt / {s.get('normalisert_watt','–')}W NP
+  Suffer  : {s.get('suffer_score','–')}"""
 
     brodtekst = f"""{anbefaling}
 
 Morgendata – {dato}
-{'─' * 40}{garmin_varsling}
-GARMIN-DATA:
-  HRV       : {'–' if garmin_mangler else f"{hrv.get('nattlig_snitt','–')} ms (uke: {hrv.get('ukentlig_snitt','–')}) [{hrv.get('status','–')}]"}
-  Hvilepuls : {'–' if garmin_mangler else f"{dag.get('hvilepuls','–')} bpm"}
-  BB        : {'–' if garmin_mangler else f"{bb.get('maks','–')}/100 (+{bb.get('ladet','–')})"}
-  Søvn      : {'–' if garmin_mangler else f"{sovn_t}t {sovn_min}min | Score: {sovn.get('score','–')}"}
-  ACWR      : {'–' if garmin_mangler else f"{load.get('acwr','–')} [{load.get('acwr_status','–')}]"}
-  Status    : {'–' if garmin_mangler else load.get('status','–')}
 {'─' * 40}
-TRAININGPEAKS:
-  CTL       : {tp_d.get('ctl','–')}
-  ATL       : {tp_d.get('atl','–')}
-  TSB       : {tp_d.get('tsb','–')}
+HELSE (via TrainingPeaks/Garmin):
+  HRV       : {hrv if hrv else '–'} ms [{hrv_status}]
+  Hvilepuls : {hvilepuls if hvilepuls else '–'} bpm
+  Body Batt : {bb_maks if bb_maks else '–'}/100 (min: {bb_min if bb_min else '–'})
+  Søvn      : {sovn_t}t {sovn_r}min (dyp: {dyp_min}min | REM: {rem_min}min)
+  Stress    : {stress if stress else '–'}
 {'─' * 40}
-STRAVA / STRYD:{siste_okt}
+FORM (TrainingPeaks):
+  CTL       : {ctl if ctl else '–'}
+  ATL       : {atl if atl else '–'}
+  TSB       : {tsb if tsb else '–'}
 {'─' * 40}
-
-=== JSON DATA ===
-{json_tekst}
+AKTIVITET (Strava):{siste_okt}
+{'─' * 40}
 """
 
     msg = MIMEMultipart()
     msg["From"]    = gmail_user
     msg["To"]      = gmail_user
-    msg["Subject"] = f"{anbefaling} | Garmin {dato}{'  ⚠️ Garmin utilgjengelig' if garmin_mangler else ''}"
+    msg["Subject"] = f"{anbefaling} | Morgen {dato}"
 
     msg.attach(MIMEText(brodtekst, "plain", "utf-8"))
 

@@ -1,0 +1,232 @@
+{
+  "dato": "2026-03-29",
+  "siste_aktiviteter": [
+    {
+      "navn": "Fredagsmøll 2. omgang",
+      "dato": "2026-03-27",
+      "type": "Run",
+      "dist_km": 8.32,
+      "varighet_min": 42.7,
+      "snitt_tempo": "5:07 /km",
+      "snitt_puls": 133.3,
+      "maks_puls": 145.0,
+      "snitt_watt": 271.5,
+      "normalisert_watt": 271,
+      "suffer_score": 40.0,
+      "kalorier": 550.0,
+      "hoydemeter": 0,
+      "streams": {
+        "watts": [
+          0,
+          30,
+          34,
+          37,
+          41,
+          30,
+          31,
+          208,
+          203,
+          204
+        ],
+        "cadence": [
+          0,
+          59,
+          59,
+          59,
+          59,
+          59,
+          60,
+          60,
+          63,
+          65
+        ],
+        "velocity_smooth": [
+          0.0,
+          1.4,
+          1.45,
+          1.433,
+          1.45,
+          1.44,
+          1.46,
+          1.46,
+          1.5,
+          1.54
+        ],
+        "heartrate": [
+          77,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          83,
+          83
+        ],
+        "distance": [
+          0.0,
+          1.4,
+          2.9,
+          4.3,
+          5.8,
+          7.2,
+          8.7,
+          10.2,
+          11.8,
+          13.5
+        ]
+      }
+    }
+  ],
+  "strava": {
+    "profil": {
+      "ftp": null,
+      "vekt": 75.0
+    },
+    "aktiviteter": [
+      {
+        "navn": "Fredagsmøll 2. omgang",
+        "dato": "2026-03-27",
+        "type": "Run",
+        "dist_km": 8.32,
+        "varighet_min": 42.7,
+        "snitt_tempo": "5:07 /km",
+        "snitt_puls": 133.3,
+        "maks_puls": 145.0,
+        "snitt_watt": 271.5,
+        "normalisert_watt": 271,
+        "suffer_score": 40.0,
+        "kalorier": 550.0,
+        "hoydemeter": 0,
+        "streams": {
+          "watts": [
+            0,
+            30,
+            34,
+            37,
+            41,
+            30,
+            31,
+            208,
+            203,
+            204
+          ],
+          "cadence": [
+            0,
+            59,
+            59,
+            59,
+            59,
+            59,
+            60,
+            60,
+            63,
+            65
+          ],
+          "velocity_smooth": [
+            0.0,
+            1.4,
+            1.45,
+            1.433,
+            1.45,
+            1.44,
+            1.46,
+            1.46,
+            1.5,
+            1.54
+          ],
+          "heartrate": [
+            77,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            83,
+            83
+          ],
+          "distance": [
+            0.0,
+            1.4,
+            2.9,
+            4.3,
+            5.8,
+            7.2,
+            8.7,
+            10.2,
+            11.8,
+            13.5
+          ]
+        }
+      }
+    ],
+    "hentet": "2026-03-29T10:33:00.950638+00:00"
+  },
+  "trainingpeaks": {
+    "fitness": {
+      "dagens": {
+        "ctl": 49.8,
+        "atl": 29.3,
+        "tsb": 16.8
+      },
+      "trend_7d": [
+        {
+          "dato": "2026-03-23",
+          "ctl": 54.7,
+          "atl": 50.0,
+          "tsb": -2.4
+        },
+        {
+          "dato": "2026-03-24",
+          "ctl": 54.1,
+          "atl": 47.5,
+          "tsb": 4.6
+        },
+        {
+          "dato": "2026-03-25",
+          "ctl": 53.8,
+          "atl": 46.3,
+          "tsb": 6.6
+        },
+        {
+          "dato": "2026-03-26",
+          "ctl": 52.5,
+          "atl": 39.7,
+          "tsb": 7.5
+        },
+        {
+          "dato": "2026-03-27",
+          "ctl": 52.2,
+          "atl": 39.9,
+          "tsb": 12.8
+        },
+        {
+          "dato": "2026-03-28",
+          "ctl": 51.0,
+          "atl": 34.2,
+          "tsb": 12.3
+        },
+        {
+          "dato": "2026-03-29",
+          "ctl": 49.8,
+          "atl": 29.3,
+          "tsb": 16.8
+        }
+      ]
+    },
+    "helsedata": {
+      "hrv_nattlig_snitt": 72,
+      "sovn_min": 358,
+      "dyp_sovn_min": 87,
+      "lett_sovn_min": 216,
+      "rem_sovn_min": 55,
+      "bb_min": 25,
+      "bb_maks": 90,
+      "stress_snitt": 16,
+      "hvilepuls": 44
+    }
+  }
+}

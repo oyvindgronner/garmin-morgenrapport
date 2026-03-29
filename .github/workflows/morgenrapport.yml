@@ -1,53 +1,35 @@
-name: Garmin morgenrapport
+name: Morgenrapport
 
 on:
   schedule:
-    - cron: '0 5 * * *'
+    - cron: '0 7 * * *'
   workflow_dispatch:
 
 jobs:
   morgenrapport:
     runs-on: ubuntu-latest
-    env:
-      GARMIN_TOKEN_DIR: ${{ github.workspace }}/.garth
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - run: pip install garminconnect garth requests
+      - name: Installer avhengigheter
+        run: pip install requests
 
-      - name: Dekod Garmin token fra secret
+      - name: Hent data
         env:
-          GARMIN_TOKEN: ${{ secrets.GARMIN_TOKEN }}
-        run: |
-          mkdir -p .garth
-          echo "$GARMIN_TOKEN" | base64 --decode | tar xzf - -C .garth
-
-      - run: python garmin_morgen.py
-        env:
-          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
-          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
-
-      - run: python tp_morgen.py
-        env:
-          TP_AUTH_COOKIE: ${{ secrets.TP_AUTH_COOKIE }}
-
-      - run: python strava_hent.py
-        env:
-          STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_ID:     ${{ secrets.STRAVA_CLIENT_ID }}
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+          TP_AUTH_COOKIE:       ${{ secrets.TP_AUTH_COOKIE }}
+        run: python morgen.py
 
-      - run: python send_epost.py
+      - name: Send e-post
         env:
-          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: garmin-${{ github.run_id }}
-          path: garmin_data_*.json
-          retention-days: 7
+        run: python send_epost.py
