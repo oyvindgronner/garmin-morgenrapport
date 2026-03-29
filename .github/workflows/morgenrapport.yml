@@ -18,7 +18,7 @@ jobs:
           python-version: '3.11'
 
       - name: Installer avhengigheter
-        run: pip install requests
+        run: pip install requests anthropic
 
       - name: Sjekk cookie-utløp
         env:
@@ -34,6 +34,11 @@ jobs:
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
           TP_AUTH_COOKIE:       ${{ secrets.TP_AUTH_COOKIE }}
         run: python morgen.py
+
+      - name: Claude coaching-analyse
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python claude_analyse.py
 
       - name: Send e-post
         env:

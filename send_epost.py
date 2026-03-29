@@ -1,6 +1,7 @@
 import smtplib
 import os
 import json
+import re
 from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -13,14 +14,16 @@ def send_epost(json_fil: str, dato: str):
     with open(json_fil, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    tp       = data.get("trainingpeaks", {})
-    tp_d     = tp.get("fitness", {}).get("dagens", {})
-    helse    = tp.get("helsedata", {})
-    strava   = data.get("strava", {})
+    tp          = data.get("trainingpeaks", {})
+    tp_d        = tp.get("fitness", {}).get("dagens", {})
+    trend_7d    = tp.get("fitness", {}).get("trend_7d", [])
+    helse       = tp.get("helsedata", {})
+    helse_90d   = tp.get("helsedata_90d", [])
+    strava      = data.get("strava", {})
     aktiviteter = strava.get("aktiviteter", []) or data.get("siste_aktiviteter", [])
+    analyse     = data.get("claude_analyse", "")
 
-    # Hent nøkkelverdier
-    hrv       = helse.get("hrv_nattlig_snitt")
+    hrv       = helse.get("hrv")
     hvilepuls = helse.get("hvilepuls")
     bb_maks   = helse.get("bb_maks")
     bb_min    = helse.get("bb_min")
@@ -32,50 +35,20 @@ def send_epost(json_fil: str, dato: str):
     atl       = tp_d.get("atl")
     tsb       = tp_d.get("tsb")
 
-    sovn_t   = sovn_min // 60
-    sovn_r   = sovn_min % 60
+    sovn_t = sovn_min // 60
+    sovn_r = sovn_min % 60
 
-    # HRV-status
     if hrv is not None:
-        if hrv >= 70:
-            hrv_status = "BALANSERT"
-        elif hrv >= 60:
-            hrv_status = "LAV"
-        else:
-            hrv_status = "SVÆRT LAV"
+        hrv_status = "BALANSERT" if hrv >= 70 else "LAV" if hrv >= 60 else "SVÆRT LAV"
     else:
         hrv_status = "–"
 
-    # Anbefaling basert på HRV + TSB + BB
-    poeng = 0
-    maks  = 9
-    if hrv is not None:
-        if hrv >= 70:
-            poeng += 3
-        elif hrv >= 60:
-            poeng += 1
-    if bb_maks is not None:
-        if bb_maks >= 75:
-            poeng += 3
-        elif bb_maks >= 50:
-            poeng += 2
-        else:
-            poeng += 1
-    if tsb is not None:
-        if tsb >= 5:
-            poeng += 3
-        elif tsb >= -10:
-            poeng += 2
-        else:
-            poeng += 1
+    # HRV-trend siste 7 dager
+    hrv_trend = [(d["dato"][5:], d["hrv"]) for d in helse_90d[-7:] if d.get("hrv")]
+    hrv_linje = " → ".join([f"{d}: {v}" for d, v in hrv_trend])
 
-    ratio = poeng / maks
-    if ratio >= 0.75:
-        anbefaling = "🟢 Tren som planlagt"
-    elif ratio >= 0.45:
-        anbefaling = "🟡 Modifiser økten"
-    else:
-        anbefaling = "🔴 Prioriter hvile"
+    # TSB-trend
+    tsb_linje = " → ".join([str(d["tsb"]) for d in trend_7d])
 
     # Siste aktivitet
     siste_okt = ""
@@ -90,31 +63,44 @@ Siste økt ({s.get('dato','–')}):
   Watt    : {s.get('snitt_watt','–')}W snitt / {s.get('normalisert_watt','–')}W NP
   Suffer  : {s.get('suffer_score','–')}"""
 
-    brodtekst = f"""{anbefaling}
+    claude_seksjon = ""
+    if analyse:
+        claude_seksjon = f"""
+{'─' * 40}
+COACHING-ANALYSE:
+{analyse}"""
 
-Morgendata – {dato}
+    brodtekst = f"""Morgendata – {dato}
 {'─' * 40}
 HELSE (via TrainingPeaks/Garmin):
-  HRV       : {hrv if hrv else '–'} ms [{hrv_status}]
-  Hvilepuls : {hvilepuls if hvilepuls else '–'} bpm
-  Body Batt : {bb_maks if bb_maks else '–'}/100 (min: {bb_min if bb_min else '–'})
+  HRV       : {hrv or '–'} ms [{hrv_status}]
+  HRV-trend : {hrv_linje}
+  Hvilepuls : {hvilepuls or '–'} bpm
+  Body Batt : {bb_maks or '–'}/100 (min: {bb_min or '–'})
   Søvn      : {sovn_t}t {sovn_r}min (dyp: {dyp_min}min | REM: {rem_min}min)
-  Stress    : {stress if stress else '–'}
+  Stress    : {stress or '–'}
 {'─' * 40}
 FORM (TrainingPeaks):
-  CTL       : {ctl if ctl else '–'}
-  ATL       : {atl if atl else '–'}
-  TSB       : {tsb if tsb else '–'}
+  CTL       : {ctl or '–'}
+  ATL       : {atl or '–'}
+  TSB       : {tsb or '–'}
+  TSB-trend : {tsb_linje}
 {'─' * 40}
-AKTIVITET (Strava):{siste_okt}
+AKTIVITET (Strava):{siste_okt}{claude_seksjon}
 {'─' * 40}
 """
+
+    # Emnelinje: hent første linje fra Claude-analysen hvis mulig
+    if analyse:
+        forste_linje = analyse.strip().split("\n")[0][:80]
+        emne = f"Morgen {dato} | {forste_linje}"
+    else:
+        emne = f"Morgen {dato}"
 
     msg = MIMEMultipart()
     msg["From"]    = gmail_user
     msg["To"]      = gmail_user
-    msg["Subject"] = f"{anbefaling} | Morgen {dato}"
-
+    msg["Subject"] = emne
     msg.attach(MIMEText(brodtekst, "plain", "utf-8"))
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
