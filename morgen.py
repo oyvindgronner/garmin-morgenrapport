@@ -3,11 +3,11 @@
 morgen.py
 =========
 Morgenrapport basert på TrainingPeaks (HRV, søvn, BB, CTL/ATL/TSB) og Strava.
+Inkluderer 90 dagers historikk for full kontekst i analyse.
 """
 
 import json
 import os
-import sys
 import time
 import urllib.request
 import urllib.parse
@@ -38,25 +38,33 @@ def hent_strava():
     print("Henter Strava-data...")
     token = strava_refresh_token()
     profil = strava_get("https://www.strava.com/api/v3/athlete", token)
-    etter = int(time.time()) - (3 * 86400)
-    aktiviteter_raw = strava_get(
-        f"https://www.strava.com/api/v3/athlete/activities?after={etter}&per_page=10",
+
+    # Siste 3 aktiviteter med full detalj og streams
+    etter_3d = int(time.time()) - (3 * 86400)
+    siste_raw = strava_get(
+        f"https://www.strava.com/api/v3/athlete/activities?after={etter_3d}&per_page=10",
         token
     )
-    aktiviteter = []
-    for a in aktiviteter_raw[:3]:
-        aid = a["id"]
-        detalj = strava_get(f"https://www.strava.com/api/v3/activities/{aid}", token)
+
+    # Historikk siste 90 dager — kun nøkkeldata
+    etter_90d = int(time.time()) - (90 * 86400)
+    alle_raw = strava_get(
+        f"https://www.strava.com/api/v3/athlete/activities?after={etter_90d}&per_page=100",
+        token
+    )
+
+    def formater_full(a):
+        detalj = strava_get(f"https://www.strava.com/api/v3/activities/{a['id']}", token)
         try:
             streams = strava_get(
-                f"https://www.strava.com/api/v3/activities/{aid}/streams?keys=heartrate,watts,cadence,velocity_smooth&key_by_type=true",
+                f"https://www.strava.com/api/v3/activities/{a['id']}/streams?keys=heartrate,watts,cadence,velocity_smooth&key_by_type=true",
                 token
             )
         except Exception:
             streams = {}
         dist = a.get("distance", 0)
         fart = a.get("average_speed", 0)
-        aktiviteter.append({
+        return {
             "navn":             a.get("name"),
             "dato":             a.get("start_date_local", "")[:10],
             "type":             a.get("sport_type"),
@@ -71,19 +79,37 @@ def hent_strava():
             "kalorier":         detalj.get("calories"),
             "hoydemeter":       a.get("total_elevation_gain"),
             "streams": {k: v.get("data", [])[:10] for k, v in streams.items()} if streams else {},
-        })
-    print(f"  OK: {len(aktiviteter)} aktivitet(er)")
+        }
+
+    def formater_lett(a):
+        dist = a.get("distance", 0)
+        fart = a.get("average_speed", 0)
+        return {
+            "dato":         a.get("start_date_local", "")[:10],
+            "navn":         a.get("name"),
+            "type":         a.get("sport_type"),
+            "dist_km":      round(dist / 1000, 2),
+            "varighet_min": round(a.get("moving_time", 0) / 60, 1),
+            "snitt_tempo":  f"{int(1000/fart//60)}:{int(1000/fart%60):02d} /km" if fart > 0 else None,
+            "snitt_puls":   a.get("average_heartrate"),
+            "suffer_score": a.get("suffer_score"),
+        }
+
+    aktiviteter = [formater_full(a) for a in siste_raw[:3]]
+    historikk = [formater_lett(a) for a in alle_raw]
+
+    print(f"  OK: {len(aktiviteter)} aktivitet(er) | {len(historikk)} historiske (90d)")
     return {
         "profil": {"ftp": profil.get("ftp"), "vekt": profil.get("weight")},
         "aktiviteter": aktiviteter,
+        "historikk_90d": historikk,
         "hentet": datetime.now(timezone.utc).isoformat(),
     }
 
 # ─── TRAININGPEAKS ─────────────────────────────────────────
 
 def hent_tp_token(cookie):
-    BASE = "https://tpapi.trainingpeaks.com"
-    r = requests.get(f"{BASE}/users/v3/token",
+    r = requests.get("https://tpapi.trainingpeaks.com/users/v3/token",
         headers={"Cookie": f"Production_tpAuth={cookie}",
                  "Accept": "application/json",
                  "Origin": "https://app.trainingpeaks.com"}, timeout=15)
@@ -113,10 +139,10 @@ def hent_trainingpeaks():
 
     tp_data = {}
 
-    # CTL / ATL / TSB
+    # CTL / ATL / TSB siste 90 dager
     try:
         slutt = date.today()
-        start = slutt - timedelta(days=42)
+        start = slutt - timedelta(days=90)
         url = f"{BASE}/fitness/v1/athletes/{ATHLETE_ID}/reporting/performancedata/{start.isoformat()}/{slutt.isoformat()}"
         body = {"atlConstant": 7, "atlStart": 0, "ctlConstant": 42, "ctlStart": 0, "workoutTypes": []}
         r = requests.post(url, json=body, headers=headers, timeout=15)
@@ -131,52 +157,62 @@ def hent_trainingpeaks():
             },
             "trend_7d": [{"dato": d["workoutDay"][:10], "ctl": round(d["ctl"],1),
                           "atl": round(d["atl"],1), "tsb": round(d["tsb"],1)} for d in data[-7:]],
+            "trend_90d": [{"dato": d["workoutDay"][:10], "ctl": round(d["ctl"],1),
+                           "atl": round(d["atl"],1), "tsb": round(d["tsb"],1)} for d in data],
         }
         d = tp_data["fitness"]["dagens"]
         print(f"  CTL: {d['ctl']} | ATL: {d['atl']} | TSB: {d['tsb']}")
     except Exception as e:
         print(f"  FEIL fitness: {e}")
-        tp_data["fitness"] = {"dagens": {"ctl": None, "atl": None, "tsb": None}, "trend_7d": []}
+        tp_data["fitness"] = {"dagens": {"ctl": None, "atl": None, "tsb": None},
+                              "trend_7d": [], "trend_90d": []}
 
-    # HRV, søvn, Body Battery, hvilepuls, stress
+    # Helsedata siste 90 dager
     try:
-        url = f"{BASE}/metrics/v3/athletes/{ATHLETE_ID}/consolidatedtimedmetrics/{DATO}/{DATO}"
+        slutt = date.today().isoformat()
+        start = (date.today() - timedelta(days=90)).isoformat()
+        url = f"{BASE}/metrics/v3/athletes/{ATHLETE_ID}/consolidatedtimedmetrics/{start}/{slutt}"
         r = requests.get(url, headers=headers, timeout=15)
         r.raise_for_status()
         mdata = r.json()
-        dagens = next((d for d in mdata if d.get("timeStamp", "").startswith(DATO)), None)
-        helsedata = {}
-        if dagens:
-            for felt in dagens.get("details", []):
+
+        historikk_helse = []
+        helsedata_dagens = {}
+
+        for dag in mdata:
+            dato = dag.get("timeStamp", "")[:10]
+            hrv = hvile = bb_maks = bb_min = sovn = dyp = rem = stress = None
+            for felt in dag.get("details", []):
                 label = felt.get("label")
                 value = felt.get("value")
-                if label == "HRV":
-                    helsedata["hrv_nattlig_snitt"] = value
-                elif label == "Sleep Hours":
-                    helsedata["sovn_min"] = round(value * 60)
-                elif label == "Time in Deep Sleep":
-                    helsedata["dyp_sovn_min"] = round(value * 60)
-                elif label == "Time in REM Sleep":
-                    helsedata["rem_sovn_min"] = round(value * 60)
-                elif label == "Time in Light Sleep":
-                    helsedata["lett_sovn_min"] = round(value * 60)
-                elif label == "Body Battery":
-                    if isinstance(value, list) and len(value) >= 2:
-                        helsedata["bb_min"] = value[0]
-                        helsedata["bb_maks"] = value[1]
-                elif label == "Stress Level":
-                    if isinstance(value, list) and len(value) >= 3:
-                        helsedata["stress_snitt"] = round(value[2], 1)
-                elif label == "Pulse":
-                    helsedata["hvilepuls"] = value
-        tp_data["helsedata"] = helsedata
-        print(f"  HRV: {helsedata.get('hrv_nattlig_snitt','–')} ms | "
-              f"Hvilepuls: {helsedata.get('hvilepuls','–')} bpm | "
-              f"BB: {helsedata.get('bb_maks','–')} | "
-              f"Søvn: {helsedata.get('sovn_min','–')} min")
+                if label == "HRV": hrv = value
+                elif label == "Pulse": hvile = value
+                elif label == "Body Battery" and isinstance(value, list):
+                    bb_min = value[0]; bb_maks = value[1]
+                elif label == "Sleep Hours": sovn = round(value * 60)
+                elif label == "Time in Deep Sleep": dyp = round(value * 60)
+                elif label == "Time in REM Sleep": rem = round(value * 60)
+                elif label == "Stress Level" and isinstance(value, list):
+                    stress = round(value[2], 1)
+
+            rad = {"dato": dato, "hrv": hrv, "hvilepuls": hvile,
+                   "bb_maks": bb_maks, "bb_min": bb_min,
+                   "sovn_min": sovn, "dyp_sovn_min": dyp,
+                   "rem_sovn_min": rem, "stress_snitt": stress}
+            historikk_helse.append(rad)
+            if dato == DATO:
+                helsedata_dagens = rad
+
+        tp_data["helsedata"] = helsedata_dagens
+        tp_data["helsedata_90d"] = historikk_helse
+        print(f"  HRV: {helsedata_dagens.get('hrv','–')} ms | "
+              f"Hvilepuls: {helsedata_dagens.get('hvilepuls','–')} bpm | "
+              f"BB: {helsedata_dagens.get('bb_maks','–')} | "
+              f"Søvn: {helsedata_dagens.get('sovn_min','–')} min")
     except Exception as e:
         print(f"  FEIL helsedata: {e}")
         tp_data["helsedata"] = {}
+        tp_data["helsedata_90d"] = []
 
     return tp_data
 

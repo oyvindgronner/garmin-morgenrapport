@@ -163,7 +163,989 @@
         }
       }
     ],
-    "hentet": "2026-03-29T10:33:00.950638+00:00"
+    "historikk_90d": [
+      {
+        "dato": "2025-12-31",
+        "navn": "Mølle før styrke",
+        "type": "Run",
+        "dist_km": 8.08,
+        "varighet_min": 42.6,
+        "snitt_tempo": "5:16 /km",
+        "snitt_puls": 135.2,
+        "suffer_score": 46.0
+      },
+      {
+        "dato": "2026-01-01",
+        "navn": "Godt nyttår fra tunnelen 🎉",
+        "type": "Run",
+        "dist_km": 12.01,
+        "varighet_min": 65.8,
+        "snitt_tempo": "5:28 /km",
+        "snitt_puls": 129.0,
+        "suffer_score": 35.0
+      },
+      {
+        "dato": "2026-01-02",
+        "navn": "Lunch Nordic Ski",
+        "type": "NordicSki",
+        "dist_km": 0.16,
+        "varighet_min": 2.5,
+        "snitt_tempo": "15:47 /km",
+        "snitt_puls": 99.2,
+        "suffer_score": 0.0
+      },
+      {
+        "dato": "2026-01-02",
+        "navn": "Lunch Backcountry Ski",
+        "type": "BackcountrySki",
+        "dist_km": 5.24,
+        "varighet_min": 62.5,
+        "snitt_tempo": "11:55 /km",
+        "snitt_puls": 91.4,
+        "suffer_score": 9.0
+      },
+      {
+        "dato": "2026-01-02",
+        "navn": "Tunellsyn",
+        "type": "Run",
+        "dist_km": 17.94,
+        "varighet_min": 79.1,
+        "snitt_tempo": "4:24 /km",
+        "snitt_puls": 147.1,
+        "suffer_score": 147.0
+      },
+      {
+        "dato": "2026-01-03",
+        "navn": "Mølle 🏃",
+        "type": "Run",
+        "dist_km": 12.07,
+        "varighet_min": 65.8,
+        "snitt_tempo": "5:27 /km",
+        "snitt_puls": 127.3,
+        "suffer_score": 26.0
+      },
+      {
+        "dato": "2026-01-04",
+        "navn": "Progressiv tunelltur @ 5.15 - 4.10",
+        "type": "Run",
+        "dist_km": 18.05,
+        "varighet_min": 88.9,
+        "snitt_tempo": "4:55 /km",
+        "snitt_puls": 134.0,
+        "suffer_score": 75.0
+      },
+      {
+        "dato": "2026-01-05",
+        "navn": "Mølle 🏃‍♀️",
+        "type": "Run",
+        "dist_km": 10.3,
+        "varighet_min": 55.1,
+        "snitt_tempo": "5:20 /km",
+        "snitt_puls": 131.9,
+        "suffer_score": 44.0
+      },
+      {
+        "dato": "2026-01-06",
+        "navn": "Terskeltirsdag i tunellen🏃",
+        "type": "Run",
+        "dist_km": 16.43,
+        "varighet_min": 72.7,
+        "snitt_tempo": "4:25 /km",
+        "snitt_puls": 147.7,
+        "suffer_score": 153.0
+      },
+      {
+        "dato": "2026-01-07",
+        "navn": "Møll",
+        "type": "Run",
+        "dist_km": 8.03,
+        "varighet_min": 43.9,
+        "snitt_tempo": "5:27 /km",
+        "snitt_puls": 129.4,
+        "suffer_score": 24.0
+      },
+      {
+        "dato": "2026-01-08",
+        "navn": "Tunellen 🚇",
+        "type": "Run",
+        "dist_km": 14.94,
+        "varighet_min": 66.7,
+        "snitt_tempo": "4:27 /km",
+        "snitt_puls": 143.2,
+        "suffer_score": 105.0
+      },
+      {
+        "dato": "2026-01-09",
+        "navn": "Rolig møll 🏃‍♀️",
+        "type": "Run",
+        "dist_km": 8.03,
+        "varighet_min": 45.0,
+        "snitt_tempo": "5:36 /km",
+        "snitt_puls": 124.8,
+        "suffer_score": 12.0
+      },
+      {
+        "dato": "2026-01-10",
+        "navn": "Lunch Walk",
+        "type": "Walk",
+        "dist_km": 2.64,
+        "varighet_min": 52.3,
+        "snitt_tempo": "19:50 /km",
+        "snitt_puls": 84.6,
+        "suffer_score": 6.0
+      },
+      {
+        "dato": "2026-01-10",
+        "navn": "Afternoon Walk",
+        "type": "Walk",
+        "dist_km": 2.11,
+        "varighet_min": 31.3,
+        "snitt_tempo": "14:52 /km",
+        "snitt_puls": 65.8,
+        "suffer_score": 2.0
+      },
+      {
+        "dato": "2026-01-11",
+        "navn": "Langtur i tunellen 🚇🥸",
+        "type": "Run",
+        "dist_km": 32.13,
+        "varighet_min": 161.6,
+        "snitt_tempo": "5:01 /km",
+        "snitt_puls": 139.6,
+        "suffer_score": 209.0
+      },
+      {
+        "dato": "2026-01-12",
+        "navn": "Restitusjonsmølle 🏃‍♀️",
+        "type": "Run",
+        "dist_km": 5.01,
+        "varighet_min": 29.1,
+        "snitt_tempo": "5:49 /km",
+        "snitt_puls": 123.5,
+        "suffer_score": 8.0
+      },
+      {
+        "dato": "2026-01-13",
+        "navn": "Oppvarming før terskel",
+        "type": "Elliptical",
+        "dist_km": 0.0,
+        "varighet_min": 14.7,
+        "snitt_tempo": null,
+        "snitt_puls": 110.1,
+        "suffer_score": 3.0
+      },
+      {
+        "dato": "2026-01-13",
+        "navn": "Mølle m 10 x 4 minutter / 1 min flyt",
+        "type": "Run",
+        "dist_km": 13.24,
+        "varighet_min": 60.3,
+        "snitt_tempo": "4:33 /km",
+        "snitt_puls": 147.9,
+        "suffer_score": 117.0
+      },
+      {
+        "dato": "2026-01-14",
+        "navn": "Morning Elliptical",
+        "type": "Elliptical",
+        "dist_km": 0.0,
+        "varighet_min": 5.0,
+        "snitt_tempo": null,
+        "snitt_puls": 100.7,
+        "suffer_score": 0.0
+      },
+      {
+        "dato": "2026-01-14",
+        "navn": "Kort morgenmølle",
+        "type": "Run",
+        "dist_km": 5.61,
+        "varighet_min": 31.1,
+        "snitt_tempo": "5:33 /km",
+        "snitt_puls": 128.7,
+        "suffer_score": 17.0
+      },
+      {
+        "dato": "2026-01-15",
+        "navn": "Mølle",
+        "type": "Run",
+        "dist_km": 11.13,
+        "varighet_min": 53.5,
+        "snitt_tempo": "4:48 /km",
+        "snitt_puls": 147.7,
+        "suffer_score": 110.0
+      },
+      {
+        "dato": "2026-01-16",
+        "navn": "Rolig runde i byn",
+        "type": "Run",
+        "dist_km": 9.12,
+        "varighet_min": 48.7,
+        "snitt_tempo": "5:20 /km",
+        "snitt_puls": 127.0,
+        "suffer_score": 21.0
+      },
+      {
+        "dato": "2026-01-17",
+        "navn": "🏃‍♀️",
+        "type": "Run",
+        "dist_km": 12.29,
+        "varighet_min": 62.9,
+        "snitt_tempo": "5:06 /km",
+        "snitt_puls": 124.7,
+        "suffer_score": 22.0
+      },
+      {
+        "dato": "2026-01-18",
+        "navn": "Afternoon Run",
+        "type": "Run",
+        "dist_km": 1.15,
+        "varighet_min": 5.7,
+        "snitt_tempo": "4:54 /km",
+        "snitt_puls": 120.1,
+        "suffer_score": 1.0
+      },
+      {
+        "dato": "2026-01-18",
+        "navn": "Lang progressiv søndagstur",
+        "type": "Run",
+        "dist_km": 21.34,
+        "varighet_min": 103.7,
+        "snitt_tempo": "4:51 /km",
+        "snitt_puls": 141.6,
+        "suffer_score": 152.0
+      },
+      {
+        "dato": "2026-01-19",
+        "navn": "Rolig Eftermiddagstur",
+        "type": "Run",
+        "dist_km": 10.07,
+        "varighet_min": 53.6,
+        "snitt_tempo": "5:19 /km",
+        "snitt_puls": 125.6,
+        "suffer_score": 23.0
+      },
+      {
+        "dato": "2026-01-20",
+        "navn": "Terskeltirsdag",
+        "type": "Run",
+        "dist_km": 16.57,
+        "varighet_min": 76.0,
+        "snitt_tempo": "4:35 /km",
+        "snitt_puls": 143.7,
+        "suffer_score": 122.0
+      },
+      {
+        "dato": "2026-01-21",
+        "navn": "Til/fra hjemmekontoret",
+        "type": "Run",
+        "dist_km": 8.13,
+        "varighet_min": 44.2,
+        "snitt_tempo": "5:25 /km",
+        "snitt_puls": 137.9,
+        "suffer_score": 56.0
+      },
+      {
+        "dato": "2026-01-22",
+        "navn": "10x3 minutter under giftlokket",
+        "type": "Run",
+        "dist_km": 12.4,
+        "varighet_min": 55.0,
+        "snitt_tempo": "4:26 /km",
+        "snitt_puls": 142.9,
+        "suffer_score": 85.0
+      },
+      {
+        "dato": "2026-01-23",
+        "navn": "🏃‍♀️ til styrketrening",
+        "type": "Run",
+        "dist_km": 3.15,
+        "varighet_min": 16.0,
+        "snitt_tempo": "5:04 /km",
+        "snitt_puls": 124.1,
+        "suffer_score": 6.0
+      },
+      {
+        "dato": "2026-01-23",
+        "navn": "🏃‍♀️ fra styrketrening",
+        "type": "Run",
+        "dist_km": 1.83,
+        "varighet_min": 11.2,
+        "snitt_tempo": "6:08 /km",
+        "snitt_puls": 128.8,
+        "suffer_score": 8.0
+      },
+      {
+        "dato": "2026-01-24",
+        "navn": "Afternoon Walk",
+        "type": "Walk",
+        "dist_km": 3.0,
+        "varighet_min": 33.2,
+        "snitt_tempo": "11:03 /km",
+        "snitt_puls": 76.8,
+        "suffer_score": 3.0
+      },
+      {
+        "dato": "2026-01-24",
+        "navn": "Lørdagstur 🏃‍♀️",
+        "type": "Run",
+        "dist_km": 9.8,
+        "varighet_min": 52.5,
+        "snitt_tempo": "5:21 /km",
+        "snitt_puls": 132.2,
+        "suffer_score": 44.0
+      },
+      {
+        "dato": "2026-01-25",
+        "navn": "Langkjør",
+        "type": "Run",
+        "dist_km": 30.02,
+        "varighet_min": 147.7,
+        "snitt_tempo": "4:55 /km",
+        "snitt_puls": 144.8,
+        "suffer_score": 258.0
+      },
+      {
+        "dato": "2026-01-26",
+        "navn": "Rolig",
+        "type": "Run",
+        "dist_km": 10.55,
+        "varighet_min": 56.1,
+        "snitt_tempo": "5:19 /km",
+        "snitt_puls": 130.5,
+        "suffer_score": 38.0
+      },
+      {
+        "dato": "2026-01-27",
+        "navn": "12x1000",
+        "type": "Run",
+        "dist_km": 17.3,
+        "varighet_min": 75.9,
+        "snitt_tempo": "4:23 /km",
+        "snitt_puls": 146.5,
+        "suffer_score": 142.0
+      },
+      {
+        "dato": "2026-01-28",
+        "navn": "Møll #1",
+        "type": "Run",
+        "dist_km": 6.03,
+        "varighet_min": 32.0,
+        "snitt_tempo": "5:19 /km",
+        "snitt_puls": 126.8,
+        "suffer_score": 15.0
+      },
+      {
+        "dato": "2026-01-28",
+        "navn": "Møll #2",
+        "type": "Run",
+        "dist_km": 2.3,
+        "varighet_min": 12.2,
+        "snitt_tempo": "5:16 /km",
+        "snitt_puls": null,
+        "suffer_score": null
+      },
+      {
+        "dato": "2026-01-29",
+        "navn": "Tunnelterskel",
+        "type": "Run",
+        "dist_km": 16.57,
+        "varighet_min": 72.7,
+        "snitt_tempo": "4:23 /km",
+        "snitt_puls": 138.1,
+        "suffer_score": 109.0
+      },
+      {
+        "dato": "2026-01-30",
+        "navn": "Rolig 🥶",
+        "type": "Run",
+        "dist_km": 8.08,
+        "varighet_min": 44.6,
+        "snitt_tempo": "5:31 /km",
+        "snitt_puls": 126.9,
+        "suffer_score": 22.0
+      },
+      {
+        "dato": "2026-01-31",
+        "navn": "Chicago - Bergen t/r",
+        "type": "Run",
+        "dist_km": 11.14,
+        "varighet_min": 59.2,
+        "snitt_tempo": "5:18 /km",
+        "snitt_puls": 124.3,
+        "suffer_score": 19.0
+      },
+      {
+        "dato": "2026-02-01",
+        "navn": "Progressiv søndagstur",
+        "type": "Run",
+        "dist_km": 18.7,
+        "varighet_min": 91.2,
+        "snitt_tempo": "4:52 /km",
+        "snitt_puls": 134.3,
+        "suffer_score": 84.0
+      },
+      {
+        "dato": "2026-02-02",
+        "navn": "Laxevaag - Landaas",
+        "type": "Run",
+        "dist_km": 11.44,
+        "varighet_min": 62.6,
+        "snitt_tempo": "5:28 /km",
+        "snitt_puls": 125.3,
+        "suffer_score": 23.0
+      },
+      {
+        "dato": "2026-02-03",
+        "navn": "11x1000",
+        "type": "Run",
+        "dist_km": 16.76,
+        "varighet_min": 74.3,
+        "snitt_tempo": "4:26 /km",
+        "snitt_puls": 141.1,
+        "suffer_score": 112.0
+      },
+      {
+        "dato": "2026-02-04",
+        "navn": "Rolig",
+        "type": "Run",
+        "dist_km": 8.09,
+        "varighet_min": 44.9,
+        "snitt_tempo": "5:32 /km",
+        "snitt_puls": 123.1,
+        "suffer_score": 14.0
+      },
+      {
+        "dato": "2026-02-05",
+        "navn": "3x10",
+        "type": "Run",
+        "dist_km": 14.64,
+        "varighet_min": 68.1,
+        "snitt_tempo": "4:39 /km",
+        "snitt_puls": 140.5,
+        "suffer_score": 90.0
+      },
+      {
+        "dato": "2026-02-06",
+        "navn": "Freitag",
+        "type": "Run",
+        "dist_km": 6.09,
+        "varighet_min": 33.2,
+        "snitt_tempo": "5:26 /km",
+        "snitt_puls": 122.4,
+        "suffer_score": 12.0
+      },
+      {
+        "dato": "2026-02-07",
+        "navn": "Progressiv lang",
+        "type": "Run",
+        "dist_km": 30.39,
+        "varighet_min": 145.5,
+        "snitt_tempo": "4:47 /km",
+        "snitt_puls": 141.8,
+        "suffer_score": 210.0
+      },
+      {
+        "dato": "2026-02-08",
+        "navn": "Lunch Walk",
+        "type": "Walk",
+        "dist_km": 5.02,
+        "varighet_min": 45.9,
+        "snitt_tempo": "9:09 /km",
+        "snitt_puls": 95.0,
+        "suffer_score": 7.0
+      },
+      {
+        "dato": "2026-02-08",
+        "navn": "Riste løs",
+        "type": "Run",
+        "dist_km": 5.1,
+        "varighet_min": 29.2,
+        "snitt_tempo": "5:43 /km",
+        "snitt_puls": 118.6,
+        "suffer_score": 9.0
+      },
+      {
+        "dato": "2026-02-09",
+        "navn": "Rolig bytur",
+        "type": "Run",
+        "dist_km": 10.36,
+        "varighet_min": 61.7,
+        "snitt_tempo": "5:57 /km",
+        "snitt_puls": 121.1,
+        "suffer_score": 19.0
+      },
+      {
+        "dato": "2026-02-10",
+        "navn": "Tunellen igjen",
+        "type": "Run",
+        "dist_km": 13.65,
+        "varighet_min": 58.5,
+        "snitt_tempo": "4:17 /km",
+        "snitt_puls": 147.8,
+        "suffer_score": 114.0
+      },
+      {
+        "dato": "2026-02-11",
+        "navn": "Rolig runde",
+        "type": "Run",
+        "dist_km": 8.42,
+        "varighet_min": 45.8,
+        "snitt_tempo": "5:26 /km",
+        "snitt_puls": 121.7,
+        "suffer_score": 14.0
+      },
+      {
+        "dato": "2026-02-12",
+        "navn": "Rolig",
+        "type": "Run",
+        "dist_km": 13.64,
+        "varighet_min": 75.0,
+        "snitt_tempo": "5:29 /km",
+        "snitt_puls": 125.9,
+        "suffer_score": 36.0
+      },
+      {
+        "dato": "2026-02-12",
+        "navn": "Night Weight Training",
+        "type": "WeightTraining",
+        "dist_km": 0.0,
+        "varighet_min": 13.4,
+        "snitt_tempo": null,
+        "snitt_puls": 91.2,
+        "suffer_score": 1.0
+      },
+      {
+        "dato": "2026-02-13",
+        "navn": "Mølle før styrke",
+        "type": "Run",
+        "dist_km": 5.03,
+        "varighet_min": 27.7,
+        "snitt_tempo": "5:30 /km",
+        "snitt_puls": 117.0,
+        "suffer_score": 9.0
+      },
+      {
+        "dato": "2026-02-13",
+        "navn": "Evening Weight Training",
+        "type": "WeightTraining",
+        "dist_km": 0.0,
+        "varighet_min": 38.5,
+        "snitt_tempo": null,
+        "snitt_puls": 74.1,
+        "suffer_score": 3.0
+      },
+      {
+        "dato": "2026-02-17",
+        "navn": "Lunch Run",
+        "type": "Run",
+        "dist_km": 5.89,
+        "varighet_min": 32.8,
+        "snitt_tempo": "5:34 /km",
+        "snitt_puls": 121.5,
+        "suffer_score": 10.0
+      },
+      {
+        "dato": "2026-02-18",
+        "navn": "Morning Walk",
+        "type": "Walk",
+        "dist_km": 1.77,
+        "varighet_min": 19.6,
+        "snitt_tempo": "11:03 /km",
+        "snitt_puls": 88.2,
+        "suffer_score": 2.0
+      },
+      {
+        "dato": "2026-02-18",
+        "navn": "Tunneltrav",
+        "type": "Run",
+        "dist_km": 11.95,
+        "varighet_min": 63.6,
+        "snitt_tempo": "5:19 /km",
+        "snitt_puls": 128.7,
+        "suffer_score": 35.0
+      },
+      {
+        "dato": "2026-02-19",
+        "navn": "Morning Walk",
+        "type": "Walk",
+        "dist_km": 2.33,
+        "varighet_min": 24.8,
+        "snitt_tempo": "10:37 /km",
+        "snitt_puls": 79.9,
+        "suffer_score": 2.0
+      },
+      {
+        "dato": "2026-02-19",
+        "navn": "Kjapp ryggstrekk",
+        "type": "Run",
+        "dist_km": 6.77,
+        "varighet_min": 35.1,
+        "snitt_tempo": "5:11 /km",
+        "snitt_puls": 133.2,
+        "suffer_score": 29.0
+      },
+      {
+        "dato": "2026-02-21",
+        "navn": "Løping igjen",
+        "type": "Run",
+        "dist_km": 10.32,
+        "varighet_min": 51.0,
+        "snitt_tempo": "4:56 /km",
+        "snitt_puls": 127.8,
+        "suffer_score": 34.0
+      },
+      {
+        "dato": "2026-02-22",
+        "navn": "Tunnelen igjen",
+        "type": "Run",
+        "dist_km": 12.08,
+        "varighet_min": 62.1,
+        "snitt_tempo": "5:08 /km",
+        "snitt_puls": 132.0,
+        "suffer_score": 50.0
+      },
+      {
+        "dato": "2026-02-23",
+        "navn": "Lunch Alpine Ski",
+        "type": "AlpineSki",
+        "dist_km": 4.98,
+        "varighet_min": 20.9,
+        "snitt_tempo": "4:12 /km",
+        "snitt_puls": 85.2,
+        "suffer_score": 2.0
+      },
+      {
+        "dato": "2026-02-23",
+        "navn": "Snowjogger",
+        "type": "TrailRun",
+        "dist_km": 7.17,
+        "varighet_min": 45.6,
+        "snitt_tempo": "6:21 /km",
+        "snitt_puls": 123.5,
+        "suffer_score": 20.0
+      },
+      {
+        "dato": "2026-02-24",
+        "navn": "Morning Alpine Ski",
+        "type": "AlpineSki",
+        "dist_km": 10.3,
+        "varighet_min": 36.6,
+        "snitt_tempo": "3:33 /km",
+        "snitt_puls": 89.0,
+        "suffer_score": 5.0
+      },
+      {
+        "dato": "2026-02-24",
+        "navn": "Afternoon Alpine Ski",
+        "type": "AlpineSki",
+        "dist_km": 13.85,
+        "varighet_min": 42.8,
+        "snitt_tempo": "3:05 /km",
+        "snitt_puls": 78.2,
+        "suffer_score": 4.0
+      },
+      {
+        "dato": "2026-02-24",
+        "navn": "Afternoon Backcountry Ski",
+        "type": "BackcountrySki",
+        "dist_km": 2.98,
+        "varighet_min": 30.1,
+        "snitt_tempo": "10:05 /km",
+        "snitt_puls": 131.1,
+        "suffer_score": 29.0
+      },
+      {
+        "dato": "2026-02-25",
+        "navn": "Lunch Alpine Ski",
+        "type": "AlpineSki",
+        "dist_km": 4.6,
+        "varighet_min": 16.8,
+        "snitt_tempo": "3:39 /km",
+        "snitt_puls": 93.6,
+        "suffer_score": 2.0
+      },
+      {
+        "dato": "2026-02-25",
+        "navn": "Afternoon Alpine Ski",
+        "type": "AlpineSki",
+        "dist_km": 10.3,
+        "varighet_min": 46.4,
+        "snitt_tempo": "4:30 /km",
+        "snitt_puls": 83.1,
+        "suffer_score": 5.0
+      },
+      {
+        "dato": "2026-02-28",
+        "navn": "Lørdagstur type kort",
+        "type": "Run",
+        "dist_km": 7.44,
+        "varighet_min": 38.6,
+        "snitt_tempo": "5:11 /km",
+        "snitt_puls": 138.4,
+        "suffer_score": 48.0
+      },
+      {
+        "dato": "2026-03-01",
+        "navn": "Vår ☀️",
+        "type": "Run",
+        "dist_km": 8.83,
+        "varighet_min": 48.4,
+        "snitt_tempo": "5:28 /km",
+        "snitt_puls": 128.4,
+        "suffer_score": 30.0
+      },
+      {
+        "dato": "2026-03-02",
+        "navn": "Evening Run",
+        "type": "Run",
+        "dist_km": 4.93,
+        "varighet_min": 25.1,
+        "snitt_tempo": "5:06 /km",
+        "snitt_puls": 135.0,
+        "suffer_score": 26.0
+      },
+      {
+        "dato": "2026-03-02",
+        "navn": "Evening Weight Training",
+        "type": "WeightTraining",
+        "dist_km": 0.0,
+        "varighet_min": 22.1,
+        "snitt_tempo": null,
+        "snitt_puls": 102.9,
+        "suffer_score": 4.0
+      },
+      {
+        "dato": "2026-03-05",
+        "navn": "Handletur",
+        "type": "Run",
+        "dist_km": 5.34,
+        "varighet_min": 29.6,
+        "snitt_tempo": "5:32 /km",
+        "snitt_puls": 133.5,
+        "suffer_score": 30.0
+      },
+      {
+        "dato": "2026-03-06",
+        "navn": "Tunnelen",
+        "type": "Run",
+        "dist_km": 11.97,
+        "varighet_min": 60.7,
+        "snitt_tempo": "5:04 /km",
+        "snitt_puls": 138.1,
+        "suffer_score": 85.0
+      },
+      {
+        "dato": "2026-03-07",
+        "navn": "Mølle før styrke",
+        "type": "Run",
+        "dist_km": 4.34,
+        "varighet_min": 25.0,
+        "snitt_tempo": "5:45 /km",
+        "snitt_puls": 123.2,
+        "suffer_score": 7.0
+      },
+      {
+        "dato": "2026-03-07",
+        "navn": "Evening Weight Training",
+        "type": "WeightTraining",
+        "dist_km": 0.0,
+        "varighet_min": 24.2,
+        "snitt_tempo": null,
+        "snitt_puls": 94.2,
+        "suffer_score": 3.0
+      },
+      {
+        "dato": "2026-03-09",
+        "navn": "Våt løpetur",
+        "type": "Run",
+        "dist_km": 12.43,
+        "varighet_min": 60.2,
+        "snitt_tempo": "4:50 /km",
+        "snitt_puls": 141.6,
+        "suffer_score": 90.0
+      },
+      {
+        "dato": "2026-03-10",
+        "navn": "Delvis progressivt",
+        "type": "Run",
+        "dist_km": 12.85,
+        "varighet_min": 59.3,
+        "snitt_tempo": "4:37 /km",
+        "snitt_puls": 140.1,
+        "suffer_score": 79.0
+      },
+      {
+        "dato": "2026-03-11",
+        "navn": "Loffing i tunnelen 🍞",
+        "type": "Run",
+        "dist_km": 7.36,
+        "varighet_min": 38.4,
+        "snitt_tempo": "5:12 /km",
+        "snitt_puls": 129.6,
+        "suffer_score": 23.0
+      },
+      {
+        "dato": "2026-03-12",
+        "navn": "4x8 minutter terskel i tunnel",
+        "type": "Run",
+        "dist_km": 12.65,
+        "varighet_min": 55.8,
+        "snitt_tempo": "4:24 /km",
+        "snitt_puls": 147.2,
+        "suffer_score": 105.0
+      },
+      {
+        "dato": "2026-03-13",
+        "navn": "Møll før styrk",
+        "type": "Run",
+        "dist_km": 6.09,
+        "varighet_min": 33.6,
+        "snitt_tempo": "5:30 /km",
+        "snitt_puls": 130.1,
+        "suffer_score": 23.0
+      },
+      {
+        "dato": "2026-03-13",
+        "navn": "Kort styrke",
+        "type": "WeightTraining",
+        "dist_km": 0.0,
+        "varighet_min": 12.0,
+        "snitt_tempo": null,
+        "snitt_puls": 103.9,
+        "suffer_score": 2.0
+      },
+      {
+        "dato": "2026-03-14",
+        "navn": "Mellom to byger ☔️",
+        "type": "Run",
+        "dist_km": 8.13,
+        "varighet_min": 41.0,
+        "snitt_tempo": "5:03 /km",
+        "snitt_puls": 128.2,
+        "suffer_score": 20.0
+      },
+      {
+        "dato": "2026-03-15",
+        "navn": "Siste langtur før Madrid neste søndag 🇪🇸",
+        "type": "Run",
+        "dist_km": 20.1,
+        "varighet_min": 99.5,
+        "snitt_tempo": "4:57 /km",
+        "snitt_puls": 136.6,
+        "suffer_score": 107.0
+      },
+      {
+        "dato": "2026-03-16",
+        "navn": "Kveldsmøll",
+        "type": "Run",
+        "dist_km": 6.31,
+        "varighet_min": 34.7,
+        "snitt_tempo": "5:30 /km",
+        "snitt_puls": 128.8,
+        "suffer_score": 17.0
+      },
+      {
+        "dato": "2026-03-17",
+        "navn": "2x10 min med litt fart",
+        "type": "Run",
+        "dist_km": 10.01,
+        "varighet_min": 47.0,
+        "snitt_tempo": "4:42 /km",
+        "snitt_puls": 145.7,
+        "suffer_score": 87.0
+      },
+      {
+        "dato": "2026-03-18",
+        "navn": "Restitusjon",
+        "type": "Run",
+        "dist_km": 8.1,
+        "varighet_min": 46.2,
+        "snitt_tempo": "5:42 /km",
+        "snitt_puls": 124.0,
+        "suffer_score": 18.0
+      },
+      {
+        "dato": "2026-03-19",
+        "navn": "30 minutters søvnig surring",
+        "type": "Run",
+        "dist_km": 5.76,
+        "varighet_min": 32.7,
+        "snitt_tempo": "5:40 /km",
+        "snitt_puls": 128.6,
+        "suffer_score": 19.0
+      },
+      {
+        "dato": "2026-03-21",
+        "navn": "Sightseeing i Madrid 🇪🇸",
+        "type": "Run",
+        "dist_km": 8.07,
+        "varighet_min": 44.8,
+        "snitt_tempo": "5:32 /km",
+        "snitt_puls": 122.6,
+        "suffer_score": 20.0
+      },
+      {
+        "dato": "2026-03-22",
+        "navn": "Morning Run",
+        "type": "Run",
+        "dist_km": 3.04,
+        "varighet_min": 19.8,
+        "snitt_tempo": "6:29 /km",
+        "snitt_puls": 129.0,
+        "suffer_score": 11.0
+      },
+      {
+        "dato": "2026-03-22",
+        "navn": "Madrid halvmaraton 🇪🇸",
+        "type": "Run",
+        "dist_km": 21.24,
+        "varighet_min": 87.0,
+        "snitt_tempo": "4:07 /km",
+        "snitt_puls": 166.7,
+        "suffer_score": 349.0
+      },
+      {
+        "dato": "2026-03-24",
+        "navn": "Småstøl",
+        "type": "Run",
+        "dist_km": 5.93,
+        "varighet_min": 31.8,
+        "snitt_tempo": "5:21 /km",
+        "snitt_puls": 130.1,
+        "suffer_score": 21.0
+      },
+      {
+        "dato": "2026-03-25",
+        "navn": "Evening Run",
+        "type": "Run",
+        "dist_km": 1.07,
+        "varighet_min": 5.9,
+        "snitt_tempo": "5:33 /km",
+        "snitt_puls": 126.3,
+        "suffer_score": 2.0
+      },
+      {
+        "dato": "2026-03-25",
+        "navn": "Møll",
+        "type": "Run",
+        "dist_km": 7.01,
+        "varighet_min": 36.5,
+        "snitt_tempo": "5:12 /km",
+        "snitt_puls": 135.2,
+        "suffer_score": 43.0
+      },
+      {
+        "dato": "2026-03-27",
+        "navn": "Fredagsmøll 2. omgang",
+        "type": "Run",
+        "dist_km": 8.32,
+        "varighet_min": 42.7,
+        "snitt_tempo": "5:07 /km",
+        "snitt_puls": 133.3,
+        "suffer_score": 40.0
+      }
+    ],
+    "hentet": "2026-03-29T10:47:36.494518+00:00"
   },
   "trainingpeaks": {
     "fitness": {
@@ -215,18 +1197,1569 @@
           "atl": 29.3,
           "tsb": 16.8
         }
+      ],
+      "trend_90d": [
+        {
+          "dato": "2025-12-29",
+          "ctl": 57.7,
+          "atl": 70.7,
+          "tsb": -12.6
+        },
+        {
+          "dato": "2025-12-30",
+          "ctl": 56.3,
+          "atl": 60.6,
+          "tsb": -13.0
+        },
+        {
+          "dato": "2025-12-31",
+          "ctl": 55.9,
+          "atl": 57.4,
+          "tsb": -4.3
+        },
+        {
+          "dato": "2026-01-01",
+          "ctl": 56.1,
+          "atl": 58.1,
+          "tsb": -1.5
+        },
+        {
+          "dato": "2026-01-02",
+          "ctl": 58.7,
+          "atl": 73.4,
+          "tsb": -2.0
+        },
+        {
+          "dato": "2026-01-03",
+          "ctl": 58.6,
+          "atl": 71.0,
+          "tsb": -14.8
+        },
+        {
+          "dato": "2026-01-04",
+          "ctl": 59.7,
+          "atl": 75.5,
+          "tsb": -12.4
+        },
+        {
+          "dato": "2026-01-05",
+          "ctl": 59.4,
+          "atl": 71.8,
+          "tsb": -15.9
+        },
+        {
+          "dato": "2026-01-06",
+          "ctl": 60.5,
+          "atl": 76.7,
+          "tsb": -12.4
+        },
+        {
+          "dato": "2026-01-07",
+          "ctl": 60.0,
+          "atl": 71.0,
+          "tsb": -16.2
+        },
+        {
+          "dato": "2026-01-08",
+          "ctl": 60.7,
+          "atl": 74.1,
+          "tsb": -11.1
+        },
+        {
+          "dato": "2026-01-09",
+          "ctl": 60.2,
+          "atl": 68.8,
+          "tsb": -13.4
+        },
+        {
+          "dato": "2026-01-10",
+          "ctl": 59.0,
+          "atl": 60.4,
+          "tsb": -8.6
+        },
+        {
+          "dato": "2026-01-11",
+          "ctl": 62.1,
+          "atl": 78.7,
+          "tsb": -1.4
+        },
+        {
+          "dato": "2026-01-12",
+          "ctl": 61.1,
+          "atl": 70.5,
+          "tsb": -16.6
+        },
+        {
+          "dato": "2026-01-13",
+          "ctl": 61.7,
+          "atl": 73.0,
+          "tsb": -9.4
+        },
+        {
+          "dato": "2026-01-14",
+          "ctl": 61.0,
+          "atl": 66.8,
+          "tsb": -11.3
+        },
+        {
+          "dato": "2026-01-15",
+          "ctl": 60.9,
+          "atl": 65.8,
+          "tsb": -5.8
+        },
+        {
+          "dato": "2026-01-16",
+          "ctl": 60.6,
+          "atl": 63.3,
+          "tsb": -4.9
+        },
+        {
+          "dato": "2026-01-17",
+          "ctl": 60.7,
+          "atl": 63.3,
+          "tsb": -2.6
+        },
+        {
+          "dato": "2026-01-18",
+          "ctl": 62.4,
+          "atl": 73.4,
+          "tsb": -2.6
+        },
+        {
+          "dato": "2026-01-19",
+          "ctl": 62.3,
+          "atl": 70.8,
+          "tsb": -10.9
+        },
+        {
+          "dato": "2026-01-20",
+          "ctl": 63.4,
+          "atl": 76.2,
+          "tsb": -8.6
+        },
+        {
+          "dato": "2026-01-21",
+          "ctl": 63.0,
+          "atl": 71.9,
+          "tsb": -12.8
+        },
+        {
+          "dato": "2026-01-22",
+          "ctl": 63.4,
+          "atl": 73.0,
+          "tsb": -8.9
+        },
+        {
+          "dato": "2026-01-23",
+          "ctl": 62.5,
+          "atl": 66.5,
+          "tsb": -9.7
+        },
+        {
+          "dato": "2026-01-24",
+          "ctl": 62.6,
+          "atl": 66.2,
+          "tsb": -4.0
+        },
+        {
+          "dato": "2026-01-25",
+          "ctl": 65.3,
+          "atl": 82.0,
+          "tsb": -3.6
+        },
+        {
+          "dato": "2026-01-26",
+          "ctl": 65.1,
+          "atl": 78.4,
+          "tsb": -16.8
+        },
+        {
+          "dato": "2026-01-27",
+          "ctl": 66.4,
+          "atl": 84.4,
+          "tsb": -13.3
+        },
+        {
+          "dato": "2026-01-28",
+          "ctl": 65.7,
+          "atl": 77.6,
+          "tsb": -18.0
+        },
+        {
+          "dato": "2026-01-29",
+          "ctl": 66.7,
+          "atl": 81.7,
+          "tsb": -11.9
+        },
+        {
+          "dato": "2026-01-30",
+          "ctl": 66.1,
+          "atl": 76.3,
+          "tsb": -15.0
+        },
+        {
+          "dato": "2026-01-31",
+          "ctl": 66.0,
+          "atl": 74.1,
+          "tsb": -10.2
+        },
+        {
+          "dato": "2026-02-01",
+          "ctl": 67.0,
+          "atl": 79.3,
+          "tsb": -8.1
+        },
+        {
+          "dato": "2026-02-02",
+          "ctl": 67.0,
+          "atl": 77.5,
+          "tsb": -12.2
+        },
+        {
+          "dato": "2026-02-03",
+          "ctl": 67.9,
+          "atl": 81.2,
+          "tsb": -10.5
+        },
+        {
+          "dato": "2026-02-04",
+          "ctl": 67.3,
+          "atl": 75.6,
+          "tsb": -13.3
+        },
+        {
+          "dato": "2026-02-05",
+          "ctl": 67.9,
+          "atl": 77.9,
+          "tsb": -8.3
+        },
+        {
+          "dato": "2026-02-06",
+          "ctl": 67.0,
+          "atl": 71.4,
+          "tsb": -10.0
+        },
+        {
+          "dato": "2026-02-07",
+          "ctl": 69.7,
+          "atl": 87.0,
+          "tsb": -4.4
+        },
+        {
+          "dato": "2026-02-08",
+          "ctl": 69.0,
+          "atl": 80.4,
+          "tsb": -17.3
+        },
+        {
+          "dato": "2026-02-09",
+          "ctl": 68.8,
+          "atl": 77.3,
+          "tsb": -11.3
+        },
+        {
+          "dato": "2026-02-10",
+          "ctl": 69.3,
+          "atl": 78.9,
+          "tsb": -8.5
+        },
+        {
+          "dato": "2026-02-11",
+          "ctl": 68.7,
+          "atl": 74.0,
+          "tsb": -9.7
+        },
+        {
+          "dato": "2026-02-12",
+          "ctl": 69.0,
+          "atl": 75.4,
+          "tsb": -5.3
+        },
+        {
+          "dato": "2026-02-13",
+          "ctl": 68.4,
+          "atl": 70.8,
+          "tsb": -6.4
+        },
+        {
+          "dato": "2026-02-14",
+          "ctl": 66.8,
+          "atl": 60.6,
+          "tsb": -2.3
+        },
+        {
+          "dato": "2026-02-15",
+          "ctl": 65.2,
+          "atl": 52.0,
+          "tsb": 6.1
+        },
+        {
+          "dato": "2026-02-16",
+          "ctl": 63.6,
+          "atl": 44.6,
+          "tsb": 13.2
+        },
+        {
+          "dato": "2026-02-17",
+          "ctl": 62.9,
+          "atl": 42.5,
+          "tsb": 19.1
+        },
+        {
+          "dato": "2026-02-18",
+          "ctl": 63.0,
+          "atl": 46.2,
+          "tsb": 20.3
+        },
+        {
+          "dato": "2026-02-19",
+          "ctl": 62.6,
+          "atl": 46.4,
+          "tsb": 16.7
+        },
+        {
+          "dato": "2026-02-20",
+          "ctl": 61.1,
+          "atl": 39.8,
+          "tsb": 16.2
+        },
+        {
+          "dato": "2026-02-21",
+          "ctl": 61.0,
+          "atl": 42.0,
+          "tsb": 21.3
+        },
+        {
+          "dato": "2026-02-22",
+          "ctl": 61.2,
+          "atl": 45.7,
+          "tsb": 19.0
+        },
+        {
+          "dato": "2026-02-23",
+          "ctl": 62.0,
+          "atl": 52.9,
+          "tsb": 15.4
+        },
+        {
+          "dato": "2026-02-24",
+          "ctl": 63.8,
+          "atl": 65.2,
+          "tsb": 9.1
+        },
+        {
+          "dato": "2026-02-25",
+          "ctl": 64.0,
+          "atl": 66.0,
+          "tsb": -1.4
+        },
+        {
+          "dato": "2026-02-26",
+          "ctl": 62.5,
+          "atl": 56.6,
+          "tsb": -2.0
+        },
+        {
+          "dato": "2026-02-27",
+          "ctl": 61.0,
+          "atl": 48.5,
+          "tsb": 5.9
+        },
+        {
+          "dato": "2026-02-28",
+          "ctl": 60.5,
+          "atl": 47.4,
+          "tsb": 12.5
+        },
+        {
+          "dato": "2026-03-01",
+          "ctl": 60.2,
+          "atl": 47.6,
+          "tsb": 13.1
+        },
+        {
+          "dato": "2026-03-02",
+          "ctl": 59.7,
+          "atl": 46.3,
+          "tsb": 12.6
+        },
+        {
+          "dato": "2026-03-03",
+          "ctl": 58.3,
+          "atl": 39.7,
+          "tsb": 13.4
+        },
+        {
+          "dato": "2026-03-04",
+          "ctl": 56.9,
+          "atl": 34.0,
+          "tsb": 18.6
+        },
+        {
+          "dato": "2026-03-05",
+          "ctl": 56.3,
+          "atl": 33.6,
+          "tsb": 22.9
+        },
+        {
+          "dato": "2026-03-06",
+          "ctl": 56.5,
+          "atl": 38.3,
+          "tsb": 22.7
+        },
+        {
+          "dato": "2026-03-07",
+          "ctl": 56.0,
+          "atl": 37.8,
+          "tsb": 18.2
+        },
+        {
+          "dato": "2026-03-08",
+          "ctl": 54.7,
+          "atl": 32.4,
+          "tsb": 18.2
+        },
+        {
+          "dato": "2026-03-09",
+          "ctl": 55.1,
+          "atl": 37.9,
+          "tsb": 22.3
+        },
+        {
+          "dato": "2026-03-10",
+          "ctl": 55.7,
+          "atl": 44.1,
+          "tsb": 17.1
+        },
+        {
+          "dato": "2026-03-11",
+          "ctl": 55.3,
+          "atl": 43.6,
+          "tsb": 11.5
+        },
+        {
+          "dato": "2026-03-12",
+          "ctl": 56.0,
+          "atl": 49.2,
+          "tsb": 11.7
+        },
+        {
+          "dato": "2026-03-13",
+          "ctl": 55.5,
+          "atl": 47.3,
+          "tsb": 6.8
+        },
+        {
+          "dato": "2026-03-14",
+          "ctl": 55.2,
+          "atl": 46.5,
+          "tsb": 8.2
+        },
+        {
+          "dato": "2026-03-15",
+          "ctl": 56.7,
+          "atl": 56.9,
+          "tsb": 8.7
+        },
+        {
+          "dato": "2026-03-16",
+          "ctl": 56.0,
+          "atl": 52.9,
+          "tsb": -0.2
+        },
+        {
+          "dato": "2026-03-17",
+          "ctl": 56.1,
+          "atl": 53.5,
+          "tsb": 3.1
+        },
+        {
+          "dato": "2026-03-18",
+          "ctl": 55.7,
+          "atl": 51.8,
+          "tsb": 2.6
+        },
+        {
+          "dato": "2026-03-19",
+          "ctl": 55.1,
+          "atl": 48.8,
+          "tsb": 4.0
+        },
+        {
+          "dato": "2026-03-20",
+          "ctl": 53.8,
+          "atl": 41.8,
+          "tsb": 6.3
+        },
+        {
+          "dato": "2026-03-21",
+          "ctl": 53.5,
+          "atl": 42.0,
+          "tsb": 12.0
+        },
+        {
+          "dato": "2026-03-22",
+          "ctl": 56.0,
+          "atl": 58.4,
+          "tsb": 11.6
+        },
+        {
+          "dato": "2026-03-23",
+          "ctl": 54.7,
+          "atl": 50.0,
+          "tsb": -2.4
+        },
+        {
+          "dato": "2026-03-24",
+          "ctl": 54.1,
+          "atl": 47.5,
+          "tsb": 4.6
+        },
+        {
+          "dato": "2026-03-25",
+          "ctl": 53.8,
+          "atl": 46.3,
+          "tsb": 6.6
+        },
+        {
+          "dato": "2026-03-26",
+          "ctl": 52.5,
+          "atl": 39.7,
+          "tsb": 7.5
+        },
+        {
+          "dato": "2026-03-27",
+          "ctl": 52.2,
+          "atl": 39.9,
+          "tsb": 12.8
+        },
+        {
+          "dato": "2026-03-28",
+          "ctl": 51.0,
+          "atl": 34.2,
+          "tsb": 12.3
+        },
+        {
+          "dato": "2026-03-29",
+          "ctl": 49.8,
+          "atl": 29.3,
+          "tsb": 16.8
+        }
       ]
     },
     "helsedata": {
-      "hrv_nattlig_snitt": 72,
+      "dato": "2026-03-29",
+      "hrv": 72,
+      "hvilepuls": 44,
+      "bb_maks": 90,
+      "bb_min": 25,
       "sovn_min": 358,
       "dyp_sovn_min": 87,
-      "lett_sovn_min": 216,
       "rem_sovn_min": 55,
-      "bb_min": 25,
-      "bb_maks": 90,
-      "stress_snitt": 16,
-      "hvilepuls": 44
-    }
+      "stress_snitt": 16
+    },
+    "helsedata_90d": [
+      {
+        "dato": "2025-12-29",
+        "hrv": 83,
+        "hvilepuls": 42,
+        "bb_maks": 100,
+        "bb_min": 19,
+        "sovn_min": 475,
+        "dyp_sovn_min": 79,
+        "rem_sovn_min": 81,
+        "stress_snitt": 29
+      },
+      {
+        "dato": "2025-12-30",
+        "hrv": 47,
+        "hvilepuls": 48,
+        "bb_maks": 49,
+        "bb_min": 12,
+        "sovn_min": 411,
+        "dyp_sovn_min": 115,
+        "rem_sovn_min": 22,
+        "stress_snitt": 28
+      },
+      {
+        "dato": "2025-12-31",
+        "hrv": 96,
+        "hvilepuls": 42,
+        "bb_maks": 100,
+        "bb_min": 24,
+        "sovn_min": 441,
+        "dyp_sovn_min": 51,
+        "rem_sovn_min": 67,
+        "stress_snitt": 22
+      },
+      {
+        "dato": "2026-01-01",
+        "hrv": 64,
+        "hvilepuls": 43,
+        "bb_maks": 71,
+        "bb_min": 20,
+        "sovn_min": 305,
+        "dyp_sovn_min": 87,
+        "rem_sovn_min": 0,
+        "stress_snitt": 25
+      },
+      {
+        "dato": "2026-01-02",
+        "hrv": 77,
+        "hvilepuls": 42,
+        "bb_maks": 99,
+        "bb_min": 19,
+        "sovn_min": 508,
+        "dyp_sovn_min": 103,
+        "rem_sovn_min": 84,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-01-03",
+        "hrv": 55,
+        "hvilepuls": 43,
+        "bb_maks": 71,
+        "bb_min": 16,
+        "sovn_min": 347,
+        "dyp_sovn_min": 117,
+        "rem_sovn_min": 44,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-01-04",
+        "hrv": 86,
+        "hvilepuls": 43,
+        "bb_maks": 98,
+        "bb_min": 25,
+        "sovn_min": 438,
+        "dyp_sovn_min": 76,
+        "rem_sovn_min": 44,
+        "stress_snitt": 19
+      },
+      {
+        "dato": "2026-01-05",
+        "hrv": 98,
+        "hvilepuls": 42,
+        "bb_maks": 99,
+        "bb_min": 34,
+        "sovn_min": 450,
+        "dyp_sovn_min": 57,
+        "rem_sovn_min": 43,
+        "stress_snitt": 19
+      },
+      {
+        "dato": "2026-01-06",
+        "hrv": 82,
+        "hvilepuls": 42,
+        "bb_maks": 97,
+        "bb_min": 17,
+        "sovn_min": 432,
+        "dyp_sovn_min": 62,
+        "rem_sovn_min": 77,
+        "stress_snitt": 27
+      },
+      {
+        "dato": "2026-01-07",
+        "hrv": 69,
+        "hvilepuls": 45,
+        "bb_maks": 81,
+        "bb_min": 16,
+        "sovn_min": 401,
+        "dyp_sovn_min": 62,
+        "rem_sovn_min": 43,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-01-08",
+        "hrv": 77,
+        "hvilepuls": 44,
+        "bb_maks": 90,
+        "bb_min": 23,
+        "sovn_min": 420,
+        "dyp_sovn_min": 79,
+        "rem_sovn_min": 36,
+        "stress_snitt": 25
+      },
+      {
+        "dato": "2026-01-09",
+        "hrv": 68,
+        "hvilepuls": 44,
+        "bb_maks": 87,
+        "bb_min": 28,
+        "sovn_min": 425,
+        "dyp_sovn_min": 100,
+        "rem_sovn_min": 59,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-01-10",
+        "hrv": 88,
+        "hvilepuls": 42,
+        "bb_maks": 99,
+        "bb_min": 28,
+        "sovn_min": 490,
+        "dyp_sovn_min": 61,
+        "rem_sovn_min": 128,
+        "stress_snitt": 18
+      },
+      {
+        "dato": "2026-01-11",
+        "hrv": 93,
+        "hvilepuls": 42,
+        "bb_maks": 95,
+        "bb_min": 12,
+        "sovn_min": 368,
+        "dyp_sovn_min": 60,
+        "rem_sovn_min": 39,
+        "stress_snitt": 29
+      },
+      {
+        "dato": "2026-01-12",
+        "hrv": 75,
+        "hvilepuls": 45,
+        "bb_maks": 77,
+        "bb_min": 12,
+        "sovn_min": 410,
+        "dyp_sovn_min": 78,
+        "rem_sovn_min": 75,
+        "stress_snitt": 22
+      },
+      {
+        "dato": "2026-01-13",
+        "hrv": 78,
+        "hvilepuls": 44,
+        "bb_maks": 92,
+        "bb_min": 19,
+        "sovn_min": 395,
+        "dyp_sovn_min": 74,
+        "rem_sovn_min": 38,
+        "stress_snitt": 28
+      },
+      {
+        "dato": "2026-01-14",
+        "hrv": 78,
+        "hvilepuls": 44,
+        "bb_maks": 90,
+        "bb_min": 25,
+        "sovn_min": 431,
+        "dyp_sovn_min": 71,
+        "rem_sovn_min": 49,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-01-15",
+        "hrv": 91,
+        "hvilepuls": 41,
+        "bb_maks": 98,
+        "bb_min": 17,
+        "sovn_min": 423,
+        "dyp_sovn_min": 41,
+        "rem_sovn_min": 101,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-01-16",
+        "hrv": 77,
+        "hvilepuls": 45,
+        "bb_maks": 88,
+        "bb_min": 17,
+        "sovn_min": 436,
+        "dyp_sovn_min": 100,
+        "rem_sovn_min": 61,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-01-17",
+        "hrv": 85,
+        "hvilepuls": 42,
+        "bb_maks": 100,
+        "bb_min": 24,
+        "sovn_min": 456,
+        "dyp_sovn_min": 66,
+        "rem_sovn_min": 80,
+        "stress_snitt": 21
+      },
+      {
+        "dato": "2026-01-18",
+        "hrv": 63,
+        "hvilepuls": 45,
+        "bb_maks": 84,
+        "bb_min": 24,
+        "sovn_min": 479,
+        "dyp_sovn_min": 76,
+        "rem_sovn_min": 73,
+        "stress_snitt": 23
+      },
+      {
+        "dato": "2026-01-19",
+        "hrv": 85,
+        "hvilepuls": 42,
+        "bb_maks": 100,
+        "bb_min": 35,
+        "sovn_min": 437,
+        "dyp_sovn_min": 68,
+        "rem_sovn_min": 86,
+        "stress_snitt": 19
+      },
+      {
+        "dato": "2026-01-20",
+        "hrv": 82,
+        "hvilepuls": 42,
+        "bb_maks": 98,
+        "bb_min": 24,
+        "sovn_min": 410,
+        "dyp_sovn_min": 53,
+        "rem_sovn_min": 84,
+        "stress_snitt": 23
+      },
+      {
+        "dato": "2026-01-21",
+        "hrv": 89,
+        "hvilepuls": 44,
+        "bb_maks": 91,
+        "bb_min": 22,
+        "sovn_min": 345,
+        "dyp_sovn_min": 52,
+        "rem_sovn_min": 61,
+        "stress_snitt": 22
+      },
+      {
+        "dato": "2026-01-22",
+        "hrv": 89,
+        "hvilepuls": 42,
+        "bb_maks": 97,
+        "bb_min": 23,
+        "sovn_min": 441,
+        "dyp_sovn_min": 88,
+        "rem_sovn_min": 82,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-01-23",
+        "hrv": 96,
+        "hvilepuls": 43,
+        "bb_maks": 99,
+        "bb_min": 22,
+        "sovn_min": 463,
+        "dyp_sovn_min": 84,
+        "rem_sovn_min": 64,
+        "stress_snitt": 25
+      },
+      {
+        "dato": "2026-01-24",
+        "hrv": 74,
+        "hvilepuls": 41,
+        "bb_maks": 98,
+        "bb_min": 21,
+        "sovn_min": 512,
+        "dyp_sovn_min": 115,
+        "rem_sovn_min": 103,
+        "stress_snitt": 25
+      },
+      {
+        "dato": "2026-01-25",
+        "hrv": 77,
+        "hvilepuls": 42,
+        "bb_maks": 95,
+        "bb_min": 24,
+        "sovn_min": 443,
+        "dyp_sovn_min": 86,
+        "rem_sovn_min": 81,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-01-26",
+        "hrv": 84,
+        "hvilepuls": 44,
+        "bb_maks": 96,
+        "bb_min": 25,
+        "sovn_min": 382,
+        "dyp_sovn_min": 46,
+        "rem_sovn_min": 59,
+        "stress_snitt": 22
+      },
+      {
+        "dato": "2026-01-27",
+        "hrv": 78,
+        "hvilepuls": 43,
+        "bb_maks": 89,
+        "bb_min": 19,
+        "sovn_min": 371,
+        "dyp_sovn_min": 79,
+        "rem_sovn_min": 47,
+        "stress_snitt": 23
+      },
+      {
+        "dato": "2026-01-28",
+        "hrv": 82,
+        "hvilepuls": 44,
+        "bb_maks": 96,
+        "bb_min": 19,
+        "sovn_min": 439,
+        "dyp_sovn_min": 89,
+        "rem_sovn_min": 62,
+        "stress_snitt": 29
+      },
+      {
+        "dato": "2026-01-29",
+        "hrv": 82,
+        "hvilepuls": 43,
+        "bb_maks": 90,
+        "bb_min": 19,
+        "sovn_min": 422,
+        "dyp_sovn_min": 94,
+        "rem_sovn_min": 69,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-01-30",
+        "hrv": 72,
+        "hvilepuls": 44,
+        "bb_maks": 90,
+        "bb_min": 20,
+        "sovn_min": 413,
+        "dyp_sovn_min": 95,
+        "rem_sovn_min": 55,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-01-31",
+        "hrv": 65,
+        "hvilepuls": 44,
+        "bb_maks": 80,
+        "bb_min": 16,
+        "sovn_min": 395,
+        "dyp_sovn_min": 83,
+        "rem_sovn_min": 48,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-02-01",
+        "hrv": 94,
+        "hvilepuls": 44,
+        "bb_maks": 96,
+        "bb_min": 23,
+        "sovn_min": 418,
+        "dyp_sovn_min": 61,
+        "rem_sovn_min": 34,
+        "stress_snitt": 23
+      },
+      {
+        "dato": "2026-02-02",
+        "hrv": 81,
+        "hvilepuls": 45,
+        "bb_maks": 84,
+        "bb_min": 24,
+        "sovn_min": 408,
+        "dyp_sovn_min": 112,
+        "rem_sovn_min": 70,
+        "stress_snitt": 21
+      },
+      {
+        "dato": "2026-02-03",
+        "hrv": 88,
+        "hvilepuls": 43,
+        "bb_maks": 96,
+        "bb_min": 22,
+        "sovn_min": 394,
+        "dyp_sovn_min": 74,
+        "rem_sovn_min": 101,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-02-04",
+        "hrv": 74,
+        "hvilepuls": 42,
+        "bb_maks": 88,
+        "bb_min": 24,
+        "sovn_min": 452,
+        "dyp_sovn_min": 106,
+        "rem_sovn_min": 132,
+        "stress_snitt": 19
+      },
+      {
+        "dato": "2026-02-05",
+        "hrv": 91,
+        "hvilepuls": 42,
+        "bb_maks": 96,
+        "bb_min": 21,
+        "sovn_min": 380,
+        "dyp_sovn_min": 55,
+        "rem_sovn_min": 76,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-02-06",
+        "hrv": 92,
+        "hvilepuls": 43,
+        "bb_maks": 89,
+        "bb_min": 22,
+        "sovn_min": 377,
+        "dyp_sovn_min": 65,
+        "rem_sovn_min": 105,
+        "stress_snitt": 20
+      },
+      {
+        "dato": "2026-02-07",
+        "hrv": 92,
+        "hvilepuls": 41,
+        "bb_maks": 98,
+        "bb_min": 16,
+        "sovn_min": 439,
+        "dyp_sovn_min": 66,
+        "rem_sovn_min": 101,
+        "stress_snitt": 27
+      },
+      {
+        "dato": "2026-02-08",
+        "hrv": 58,
+        "hvilepuls": 45,
+        "bb_maks": 65,
+        "bb_min": 13,
+        "sovn_min": 361,
+        "dyp_sovn_min": 127,
+        "rem_sovn_min": 11,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-02-09",
+        "hrv": 99,
+        "hvilepuls": 43,
+        "bb_maks": 97,
+        "bb_min": 34,
+        "sovn_min": 416,
+        "dyp_sovn_min": 45,
+        "rem_sovn_min": 55,
+        "stress_snitt": 16
+      },
+      {
+        "dato": "2026-02-10",
+        "hrv": 88,
+        "hvilepuls": 41,
+        "bb_maks": 97,
+        "bb_min": 21,
+        "sovn_min": 398,
+        "dyp_sovn_min": 80,
+        "rem_sovn_min": 55,
+        "stress_snitt": 25
+      },
+      {
+        "dato": "2026-02-11",
+        "hrv": 87,
+        "hvilepuls": 42,
+        "bb_maks": 92,
+        "bb_min": 21,
+        "sovn_min": 401,
+        "dyp_sovn_min": 84,
+        "rem_sovn_min": 75,
+        "stress_snitt": 20
+      },
+      {
+        "dato": "2026-02-12",
+        "hrv": 74,
+        "hvilepuls": 43,
+        "bb_maks": 92,
+        "bb_min": 24,
+        "sovn_min": 437,
+        "dyp_sovn_min": 106,
+        "rem_sovn_min": 94,
+        "stress_snitt": 22
+      },
+      {
+        "dato": "2026-02-13",
+        "hrv": 68,
+        "hvilepuls": 44,
+        "bb_maks": 76,
+        "bb_min": 23,
+        "sovn_min": 392,
+        "dyp_sovn_min": 129,
+        "rem_sovn_min": 62,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-02-14",
+        "hrv": 92,
+        "hvilepuls": 43,
+        "bb_maks": 96,
+        "bb_min": 15,
+        "sovn_min": 410,
+        "dyp_sovn_min": 59,
+        "rem_sovn_min": 59,
+        "stress_snitt": 34
+      },
+      {
+        "dato": "2026-02-15",
+        "hrv": 50,
+        "hvilepuls": 47,
+        "bb_maks": 51,
+        "bb_min": 14,
+        "sovn_min": 257,
+        "dyp_sovn_min": 64,
+        "rem_sovn_min": 35,
+        "stress_snitt": 28
+      },
+      {
+        "dato": "2026-02-16",
+        "hrv": 59,
+        "hvilepuls": 44,
+        "bb_maks": 56,
+        "bb_min": 10,
+        "sovn_min": 131,
+        "dyp_sovn_min": 62,
+        "rem_sovn_min": 0,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-02-17",
+        "hrv": 73,
+        "hvilepuls": 44,
+        "bb_maks": 75,
+        "bb_min": 6,
+        "sovn_min": 167,
+        "dyp_sovn_min": 57,
+        "rem_sovn_min": 0,
+        "stress_snitt": 25
+      },
+      {
+        "dato": "2026-02-18",
+        "hrv": 72,
+        "hvilepuls": 43,
+        "bb_maks": 75,
+        "bb_min": 12,
+        "sovn_min": 394,
+        "dyp_sovn_min": 136,
+        "rem_sovn_min": 48,
+        "stress_snitt": 28
+      },
+      {
+        "dato": "2026-02-19",
+        "hrv": 60,
+        "hvilepuls": 46,
+        "bb_maks": 59,
+        "bb_min": 5,
+        "sovn_min": 369,
+        "dyp_sovn_min": 102,
+        "rem_sovn_min": 40,
+        "stress_snitt": 32
+      },
+      {
+        "dato": "2026-02-20",
+        "hrv": 72,
+        "hvilepuls": 42,
+        "bb_maks": 85,
+        "bb_min": 5,
+        "sovn_min": 473,
+        "dyp_sovn_min": 88,
+        "rem_sovn_min": 67,
+        "stress_snitt": 23
+      },
+      {
+        "dato": "2026-02-21",
+        "hrv": 90,
+        "hvilepuls": 41,
+        "bb_maks": 98,
+        "bb_min": 20,
+        "sovn_min": 423,
+        "dyp_sovn_min": 57,
+        "rem_sovn_min": 68,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-02-22",
+        "hrv": 69,
+        "hvilepuls": 42,
+        "bb_maks": 84,
+        "bb_min": 20,
+        "sovn_min": 393,
+        "dyp_sovn_min": 83,
+        "rem_sovn_min": 62,
+        "stress_snitt": 27
+      },
+      {
+        "dato": "2026-02-23",
+        "hrv": 84,
+        "hvilepuls": 42,
+        "bb_maks": 99,
+        "bb_min": 28,
+        "sovn_min": 470,
+        "dyp_sovn_min": 55,
+        "rem_sovn_min": 59,
+        "stress_snitt": 23
+      },
+      {
+        "dato": "2026-02-24",
+        "hrv": 83,
+        "hvilepuls": 42,
+        "bb_maks": 100,
+        "bb_min": 28,
+        "sovn_min": 486,
+        "dyp_sovn_min": 123,
+        "rem_sovn_min": 40,
+        "stress_snitt": 22
+      },
+      {
+        "dato": "2026-02-25",
+        "hrv": 75,
+        "hvilepuls": 45,
+        "bb_maks": 88,
+        "bb_min": 20,
+        "sovn_min": 459,
+        "dyp_sovn_min": 83,
+        "rem_sovn_min": 27,
+        "stress_snitt": 31
+      },
+      {
+        "dato": "2026-02-26",
+        "hrv": 61,
+        "hvilepuls": 42,
+        "bb_maks": 67,
+        "bb_min": 17,
+        "sovn_min": 403,
+        "dyp_sovn_min": 83,
+        "rem_sovn_min": 49,
+        "stress_snitt": 33
+      },
+      {
+        "dato": "2026-02-27",
+        "hrv": 75,
+        "hvilepuls": 43,
+        "bb_maks": 89,
+        "bb_min": 16,
+        "sovn_min": 392,
+        "dyp_sovn_min": 88,
+        "rem_sovn_min": 43,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-02-28",
+        "hrv": 82,
+        "hvilepuls": 43,
+        "bb_maks": 97,
+        "bb_min": 22,
+        "sovn_min": 377,
+        "dyp_sovn_min": 109,
+        "rem_sovn_min": 0,
+        "stress_snitt": 23
+      },
+      {
+        "dato": "2026-03-01",
+        "hrv": 72,
+        "hvilepuls": 44,
+        "bb_maks": 86,
+        "bb_min": 19,
+        "sovn_min": 432,
+        "dyp_sovn_min": 74,
+        "rem_sovn_min": 40,
+        "stress_snitt": 28
+      },
+      {
+        "dato": "2026-03-02",
+        "hrv": 66,
+        "hvilepuls": 45,
+        "bb_maks": 83,
+        "bb_min": 14,
+        "sovn_min": 423,
+        "dyp_sovn_min": 65,
+        "rem_sovn_min": 68,
+        "stress_snitt": 32
+      },
+      {
+        "dato": "2026-03-03",
+        "hrv": 64,
+        "hvilepuls": 48,
+        "bb_maks": 65,
+        "bb_min": 14,
+        "sovn_min": 420,
+        "dyp_sovn_min": 61,
+        "rem_sovn_min": 39,
+        "stress_snitt": 34
+      },
+      {
+        "dato": "2026-03-04",
+        "hrv": 67,
+        "hvilepuls": 45,
+        "bb_maks": 76,
+        "bb_min": 15,
+        "sovn_min": 449,
+        "dyp_sovn_min": 107,
+        "rem_sovn_min": 59,
+        "stress_snitt": 33
+      },
+      {
+        "dato": "2026-03-05",
+        "hrv": 80,
+        "hvilepuls": 47,
+        "bb_maks": 73,
+        "bb_min": 7,
+        "sovn_min": 411,
+        "dyp_sovn_min": 56,
+        "rem_sovn_min": 20,
+        "stress_snitt": 37
+      },
+      {
+        "dato": "2026-03-06",
+        "hrv": 63,
+        "hvilepuls": 45,
+        "bb_maks": 66,
+        "bb_min": 7,
+        "sovn_min": 410,
+        "dyp_sovn_min": 100,
+        "rem_sovn_min": 49,
+        "stress_snitt": 28
+      },
+      {
+        "dato": "2026-03-07",
+        "hrv": 47,
+        "hvilepuls": 47,
+        "bb_maks": 61,
+        "bb_min": 6,
+        "sovn_min": 395,
+        "dyp_sovn_min": 162,
+        "rem_sovn_min": 56,
+        "stress_snitt": 35
+      },
+      {
+        "dato": "2026-03-08",
+        "hrv": 48,
+        "hvilepuls": 47,
+        "bb_maks": 57,
+        "bb_min": 5,
+        "sovn_min": 389,
+        "dyp_sovn_min": 103,
+        "rem_sovn_min": 15,
+        "stress_snitt": 27
+      },
+      {
+        "dato": "2026-03-09",
+        "hrv": 59,
+        "hvilepuls": 43,
+        "bb_maks": 90,
+        "bb_min": 19,
+        "sovn_min": 442,
+        "dyp_sovn_min": 64,
+        "rem_sovn_min": 117,
+        "stress_snitt": 27
+      },
+      {
+        "dato": "2026-03-10",
+        "hrv": 56,
+        "hvilepuls": 45,
+        "bb_maks": 84,
+        "bb_min": 13,
+        "sovn_min": 463,
+        "dyp_sovn_min": 64,
+        "rem_sovn_min": 63,
+        "stress_snitt": 30
+      },
+      {
+        "dato": "2026-03-11",
+        "hrv": 65,
+        "hvilepuls": 46,
+        "bb_maks": 76,
+        "bb_min": 13,
+        "sovn_min": 405,
+        "dyp_sovn_min": 66,
+        "rem_sovn_min": 63,
+        "stress_snitt": 29
+      },
+      {
+        "dato": "2026-03-12",
+        "hrv": 81,
+        "hvilepuls": 44,
+        "bb_maks": 89,
+        "bb_min": 14,
+        "sovn_min": 432,
+        "dyp_sovn_min": 58,
+        "rem_sovn_min": 70,
+        "stress_snitt": 31
+      },
+      {
+        "dato": "2026-03-13",
+        "hrv": 62,
+        "hvilepuls": 45,
+        "bb_maks": 75,
+        "bb_min": 14,
+        "sovn_min": 424,
+        "dyp_sovn_min": 91,
+        "rem_sovn_min": 63,
+        "stress_snitt": 30
+      },
+      {
+        "dato": "2026-03-14",
+        "hrv": 66,
+        "hvilepuls": 44,
+        "bb_maks": 75,
+        "bb_min": 12,
+        "sovn_min": 403,
+        "dyp_sovn_min": 73,
+        "rem_sovn_min": 94,
+        "stress_snitt": 27
+      },
+      {
+        "dato": "2026-03-15",
+        "hrv": 76,
+        "hvilepuls": 45,
+        "bb_maks": 83,
+        "bb_min": 14,
+        "sovn_min": 420,
+        "dyp_sovn_min": 82,
+        "rem_sovn_min": 41,
+        "stress_snitt": 31
+      },
+      {
+        "dato": "2026-03-16",
+        "hrv": 86,
+        "hvilepuls": 44,
+        "bb_maks": 88,
+        "bb_min": 14,
+        "sovn_min": 413,
+        "dyp_sovn_min": 56,
+        "rem_sovn_min": 54,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-03-17",
+        "hrv": 77,
+        "hvilepuls": 44,
+        "bb_maks": 94,
+        "bb_min": 23,
+        "sovn_min": 444,
+        "dyp_sovn_min": 75,
+        "rem_sovn_min": 108,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-03-18",
+        "hrv": 91,
+        "hvilepuls": 43,
+        "bb_maks": 99,
+        "bb_min": 28,
+        "sovn_min": 463,
+        "dyp_sovn_min": 55,
+        "rem_sovn_min": 51,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-03-19",
+        "hrv": 81,
+        "hvilepuls": 43,
+        "bb_maks": 95,
+        "bb_min": 25,
+        "sovn_min": 422,
+        "dyp_sovn_min": 54,
+        "rem_sovn_min": 99,
+        "stress_snitt": 24
+      },
+      {
+        "dato": "2026-03-20",
+        "hrv": 64,
+        "hvilepuls": 45,
+        "bb_maks": 76,
+        "bb_min": 12,
+        "sovn_min": 399,
+        "dyp_sovn_min": 91,
+        "rem_sovn_min": 30,
+        "stress_snitt": 35
+      },
+      {
+        "dato": "2026-03-21",
+        "hrv": 90,
+        "hvilepuls": 43,
+        "bb_maks": 84,
+        "bb_min": 12,
+        "sovn_min": 386,
+        "dyp_sovn_min": 56,
+        "rem_sovn_min": 27,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-03-22",
+        "hrv": 67,
+        "hvilepuls": 45,
+        "bb_maks": 71,
+        "bb_min": 5,
+        "sovn_min": 379,
+        "dyp_sovn_min": 114,
+        "rem_sovn_min": 50,
+        "stress_snitt": 37
+      },
+      {
+        "dato": "2026-03-23",
+        "hrv": 52,
+        "hvilepuls": 48,
+        "bb_maks": 37,
+        "bb_min": 5,
+        "sovn_min": 284,
+        "dyp_sovn_min": 43,
+        "rem_sovn_min": 46,
+        "stress_snitt": 28
+      },
+      {
+        "dato": "2026-03-24",
+        "hrv": 64,
+        "hvilepuls": 46,
+        "bb_maks": 71,
+        "bb_min": 13,
+        "sovn_min": 281,
+        "dyp_sovn_min": 105,
+        "rem_sovn_min": 21,
+        "stress_snitt": 23
+      },
+      {
+        "dato": "2026-03-25",
+        "hrv": 55,
+        "hvilepuls": 47,
+        "bb_maks": 76,
+        "bb_min": 14,
+        "sovn_min": 440,
+        "dyp_sovn_min": 106,
+        "rem_sovn_min": 79,
+        "stress_snitt": 27
+      },
+      {
+        "dato": "2026-03-26",
+        "hrv": 71,
+        "hvilepuls": 45,
+        "bb_maks": 87,
+        "bb_min": 20,
+        "sovn_min": 409,
+        "dyp_sovn_min": 91,
+        "rem_sovn_min": 29,
+        "stress_snitt": 25
+      },
+      {
+        "dato": "2026-03-27",
+        "hrv": 83,
+        "hvilepuls": 44,
+        "bb_maks": 98,
+        "bb_min": 14,
+        "sovn_min": 433,
+        "dyp_sovn_min": 66,
+        "rem_sovn_min": 78,
+        "stress_snitt": 31
+      },
+      {
+        "dato": "2026-03-28",
+        "hrv": 64,
+        "hvilepuls": 44,
+        "bb_maks": 78,
+        "bb_min": 17,
+        "sovn_min": 421,
+        "dyp_sovn_min": 78,
+        "rem_sovn_min": 58,
+        "stress_snitt": 26
+      },
+      {
+        "dato": "2026-03-29",
+        "hrv": 72,
+        "hvilepuls": 44,
+        "bb_maks": 90,
+        "bb_min": 25,
+        "sovn_min": 358,
+        "dyp_sovn_min": 87,
+        "rem_sovn_min": 55,
+        "stress_snitt": 16
+      }
+    ]
   }
 }
