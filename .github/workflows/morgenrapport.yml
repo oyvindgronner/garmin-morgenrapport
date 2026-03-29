@@ -20,6 +20,13 @@ jobs:
       - name: Installer avhengigheter
         run: pip install requests
 
+      - name: Sjekk cookie-utløp
+        env:
+          TP_AUTH_COOKIE:     ${{ secrets.TP_AUTH_COOKIE }}
+          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python sjekk_cookie.py
+
       - name: Hent data
         env:
           STRAVA_CLIENT_ID:     ${{ secrets.STRAVA_CLIENT_ID }}
