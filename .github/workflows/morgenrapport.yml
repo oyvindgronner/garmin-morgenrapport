@@ -2,11 +2,25 @@ name: Morgenrapport
 
 on:
   schedule:
-    - cron: '0 7 * * *'
+    - cron: '0 7 * * *'   # 09:00 norsk sommertid (CEST, UTC+2)
+    - cron: '0 8 * * *'   # 09:00 norsk vintertid (CET, UTC+1)
   workflow_dispatch:
 
 jobs:
+  tidssjekk:
+    runs-on: ubuntu-latest
+    outputs:
+      riktig_tid: ${{ steps.sjekk.outputs.riktig_tid }}
+    steps:
+      - id: sjekk
+        run: |
+          NORSK_TIME=$(TZ="Europe/Oslo" date +%H)
+          echo "Norsk tid: $NORSK_TIME:00"
+          echo "riktig_tid=$([ "$NORSK_TIME" = "09" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
   morgenrapport:
+    needs: tidssjekk
+    if: needs.tidssjekk.outputs.riktig_tid == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
