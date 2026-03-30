@@ -1,6 +1,7 @@
 {
   "uke": "2026-W14",
   "oppdatert": "2026-03-30",
+  "notat": "Påskeuke. Randonée/skitur som aerob støtte ons–søn. Én tydelig kvalitetsøkt lørdag.",
   "okter": [
     {
       "dato": "2026-03-30",
@@ -12,11 +13,55 @@
     },
     {
       "dato": "2026-03-31",
-      "type": "Intervall",
-      "beskrivelse": "3 × (3 min / 2 min / 1 min)",
-      "dist_km": 8.0,
-      "tempo_min_km": "3:50–3:40",
-      "varighet_min": 40
+      "type": "Maratonspesifikk",
+      "beskrivelse": "Rolig løp med 2 × 10–12 min maratonfart (4:15–4:17/km) midt i",
+      "dist_km": 13.0,
+      "tempo_min_km": "4:15–4:17 (dragseksjonene)",
+      "varighet_min": 70,
+      "puls_sone": "rolig S1–S2 innledning/avslutning, S3 på drag"
+    },
+    {
+      "dato": "2026-04-01",
+      "type": "Randonée",
+      "beskrivelse": "Randonée/skitur sone 1–2 — jevn aerob belastning, hold det komfortabelt",
+      "dist_km": null,
+      "varighet_min": 150,
+      "puls_sone": "S1–S2, maks 148 bpm"
+    },
+    {
+      "dato": "2026-04-02",
+      "type": "Rolig",
+      "beskrivelse": "Rolig løpetur for å holde løpsfølelsen i gang",
+      "dist_km": 9.0,
+      "tempo_min_km": "5:30–5:10",
+      "varighet_min": 52,
+      "puls_sone": "S1, under 139 bpm"
+    },
+    {
+      "dato": "2026-04-03",
+      "type": "Styrke",
+      "beskrivelse": "Fast løpestyrke (Stryd) — kontrollert, ikke tungt",
+      "dist_km": null,
+      "varighet_min": 28,
+      "puls_sone": "kontrollert, ingen terskelintensitet"
+    },
+    {
+      "dato": "2026-04-04",
+      "type": "Terskel",
+      "beskrivelse": "Nøkkeløkt på asfalt — kort terskel/fartstøtte hvis beina kjennes fine",
+      "dist_km": 10.0,
+      "tempo_min_km": "4:00–4:05 (dragseksjonene)",
+      "varighet_min": 55,
+      "puls_sone": "S4: 159–169 bpm / 295–344W NP på drag"
+    },
+    {
+      "dato": "2026-04-05",
+      "type": "Langtur",
+      "beskrivelse": "Rolig langtur på asfalt (førstvalg) eller rolig skitur som aerob støtte",
+      "dist_km": 14.0,
+      "tempo_min_km": "5:30–5:10",
+      "varighet_min": 88,
+      "puls_sone": "S1–S2, under 148 bpm"
     }
   ]
 }
