@@ -1,0 +1,22 @@
+{
+  "uke": "2026-W14",
+  "oppdatert": "2026-03-30",
+  "okter": [
+    {
+      "dato": "2026-03-30",
+      "type": "Rolig",
+      "beskrivelse": "10 km rolig uten stigningsløp",
+      "dist_km": 10.0,
+      "tempo_min_km": "5:30–5:00",
+      "varighet_min": 52
+    },
+    {
+      "dato": "2026-03-31",
+      "type": "Intervall",
+      "beskrivelse": "3 × (3 min / 2 min / 1 min)",
+      "dist_km": 8.0,
+      "tempo_min_km": "3:50–3:40",
+      "varighet_min": 40
+    }
+  ]
+}

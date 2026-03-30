@@ -216,6 +216,14 @@ def hent_trainingpeaks():
 
     return tp_data
 
+# ─── UKEPLAN ───────────────────────────────────────────────
+
+def hent_ukeplan():
+    if os.path.exists("ukeplan.json"):
+        with open("ukeplan.json", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
 # ─── HOVEDPROGRAM ──────────────────────────────────────────
 
 def main():
@@ -239,6 +247,11 @@ def main():
         data["trainingpeaks"] = hent_trainingpeaks()
     except Exception as e:
         print(f"  FEIL TrainingPeaks: {e}")
+
+    data["ukeplan"] = hent_ukeplan()
+    if data["ukeplan"]:
+        antall = len(data["ukeplan"].get("okter", []))
+        print(f"Ukeplan lastet: {antall} økt(er) (uke {data['ukeplan'].get('uke', '–')})")
 
     with open(JSON_FIL, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)

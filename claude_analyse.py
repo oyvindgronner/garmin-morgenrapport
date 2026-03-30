@@ -54,22 +54,27 @@ Kun det som faktisk er verdt å nevne — ikke list opp alt.
 Hvis HRV er normal, si det kort. Hvis søvn er dårlig, si det.
 Ikke kommenter noe som er innenfor normalen med mer enn ett ord.
 
-ANBEFALING I DAG:
-Konkret økt — type, intensitet (bpm + watt), varighet.
-Hvis hvile er riktig, si det og begrunn det kort.
+BELASTNINGSVURDERING I DAG:
+Hvis det finnes en planlagt økt (UKEPLAN ← I DAG), gi én av disse tre vurderingene:
+→ "GJENNOMFØR SOM PLANLAGT" — dagsform støtter planen, ingen justering nødvendig.
+→ "LEGG PÅ: [konkret justering]" — dagsform er bedre enn forventet ELLER CTL-underskudd mot Hamburg krever ekstra stimulans. Angi hva som skal økes: km, dragtid, intensitet — med tall.
+→ "REDUSER: [konkret justering]" — dagsform advarer mot full belastning. Angi hva som skal kuttes — med tall.
+Følg alltid opp med én setning begrunnelse basert på HRV, TSB og CTL-gap mot mål.
+Hvis ingen økt er planlagt for i dag: gi konkret øktanbefaling med type, intensitet og varighet.
 
 MØNSTER (kun hvis det er noe å si):
 Én observasjon om responsen på treningen siste 7–14 dager.
 Utelat denne seksjonen hvis det ikke er noe tydelig mønster.
 
 REGLER:
-- Maks 220 ord
+- Maks 260 ord
 - Norsk språk
 - Kvantifiser alltid: bpm, watt, km, min
 - Balanser — si bare det som faktisk er sant
 - Ikke finn på problemer som ikke finnes
 - Ikke finn på positiver som ikke er der
-- Bruk belastningsbalanse, ikke ACWR"""
+- Bruk belastningsbalanse, ikke ACWR
+- Hvis CTL er under 55 og det er under 20 dager til Hamburg: alltid anbefal å legge på last med mindre HRV er under 65 ms eller TSB er under -20"""
 
 
 def bygg_prompt(data: dict) -> str:
@@ -100,6 +105,20 @@ def bygg_prompt(data: dict) -> str:
     np_verdier = [a.get("normalisert_watt") for a in historikk[-14:] if a.get("normalisert_watt") and a.get("normalisert_watt", 0) > 200]
     np_snitt = round(sum(np_verdier) / len(np_verdier)) if np_verdier else None
 
+    ukeplan = data.get("ukeplan", {})
+    ukeplan_linjer = ""
+    if ukeplan and ukeplan.get("okter"):
+        today = date.today().isoformat()
+        linjer = []
+        for o in ukeplan["okter"]:
+            tag = " ← I DAG" if o["dato"] == today else ""
+            linjer.append(
+                f"- {o['dato'][5:]} {o['type']}: {o['beskrivelse']} | "
+                f"{o.get('dist_km', '–')} km | {o.get('tempo_min_km', '–')}/km | "
+                f"{o.get('varighet_min', '–')} min{tag}"
+            )
+        ukeplan_linjer = "\n".join(linjer)
+
     prompt = f"""MORGENDATA {data.get('dato', '')}
 DAGER TIL HAMBURG: {(date(2026, 4, 26) - date.today()).days}
 
@@ -127,7 +146,10 @@ Watt: {siste.get('snitt_watt','–')}W snitt / {siste.get('normalisert_watt','�
 (Terskelwatt sone 4: 295–344W | NP-snitt siste 14d løpeøkter: {np_snitt}W)
 
 AKTIVITETER SISTE 7 DAGER:
-{akt_linjer}"""
+{akt_linjer}
+
+PLANLAGT UKE (Pacepilot → ukeplan.json):
+{ukeplan_linjer if ukeplan_linjer else "Ingen ukeplan registrert"}"""
 
     return prompt
 
