@@ -1,67 +1,239 @@
 {
-  "uke": "2026-W14",
+  "uke": "2026-W14-W17",
   "oppdatert": "2026-03-30",
-  "notat": "Påskeuke. Randonée/skitur som aerob støtte ons–søn. Én tydelig kvalitetsøkt lørdag.",
+  "notat": "Trenerprogram frem til Hamburg Maraton 26. april. Fokus: maratonspesifikk CTL, én terskeløkt, stor langtur 12. april, taper fra 19. april.",
   "okter": [
-    {
-      "dato": "2026-03-30",
-      "type": "Rolig",
-      "beskrivelse": "10 km rolig uten stigningsløp",
-      "dist_km": 10.0,
-      "tempo_min_km": "5:30–5:00",
-      "varighet_min": 52
-    },
     {
       "dato": "2026-03-31",
       "type": "Intervall",
-      "beskrivelse": "3 × (3 min / 2 min / 1 min) — 2 km oppvarming 5:15/km, 3 runder: 3 min@3:50 + 2 min@3:45 + 1 min@3:40 med 45–60 sek jogg mellom, 1 km nedjogg 5:15/km",
+      "beskrivelse": "3 × (3 min / 2 min / 1 min) — 2 km oppvarming 5:15/km, 3 runder: 3 min@3:50 + 2 min@3:45 + 1 min@3:40 med 45–60 sek jogg mellom, 1 km nedjogg 5:15/km. Kort fartspassasje for kapasitet og løpsøkonomi.",
       "dist_km": 8.0,
       "tempo_min_km": "3:50–3:40",
       "varighet_min": 40,
-      "puls_sone": "S4 av 5 (159–169 bpm)"
+      "puls_sone": "S4 av 5"
     },
     {
       "dato": "2026-04-01",
-      "type": "Randonée",
-      "beskrivelse": "Randonée/skitur sone 1–2 — jevn aerob belastning, hold det komfortabelt",
+      "type": "Ski",
+      "beskrivelse": "Skigåing — ingen løping. Bevisst droppet for å unngå for mye totalvolum. Fokus: tåle skigåinga, komme ut av uka frisk.",
       "dist_km": null,
-      "varighet_min": 150,
-      "puls_sone": "S1–S2, maks 148 bpm"
+      "varighet_min": null
     },
     {
       "dato": "2026-04-02",
-      "type": "Rolig",
-      "beskrivelse": "Rolig løpetur for å holde løpsfølelsen i gang",
-      "dist_km": 9.0,
-      "tempo_min_km": "5:30–5:10",
-      "varighet_min": 52,
-      "puls_sone": "S1, under 139 bpm"
+      "type": "Ski",
+      "beskrivelse": "Skigåing — ingen løping.",
+      "dist_km": null,
+      "varighet_min": null
     },
     {
       "dato": "2026-04-03",
-      "type": "Styrke",
-      "beskrivelse": "Fast løpestyrke (Stryd) — kontrollert, ikke tungt",
+      "type": "Ski",
+      "beskrivelse": "Skigåing — ingen løping.",
       "dist_km": null,
-      "varighet_min": 28,
-      "puls_sone": "kontrollert, ingen terskelintensitet"
+      "varighet_min": null
     },
     {
       "dato": "2026-04-04",
-      "type": "Terskel",
-      "beskrivelse": "Nøkkeløkt på asfalt — kort terskel/fartstøtte hvis beina kjennes fine",
-      "dist_km": 10.0,
-      "tempo_min_km": "4:00–4:05 (dragseksjonene)",
-      "varighet_min": 55,
-      "puls_sone": "S4: 159–169 bpm / 295–344W NP på drag"
+      "type": "Ski",
+      "beskrivelse": "Skigåing — ingen løping.",
+      "dist_km": null,
+      "varighet_min": null
     },
     {
       "dato": "2026-04-05",
+      "type": "Ski",
+      "beskrivelse": "Skigåing — ingen løping.",
+      "dist_km": null,
+      "varighet_min": null
+    },
+    {
+      "dato": "2026-04-06",
+      "type": "Rolig",
+      "beskrivelse": "10 km rolig + 4 × 20 sek stigningsløp (60 sek jogg mellom). Komme i gang etter skiuka uten å dra opp belastningen.",
+      "dist_km": 10.0,
+      "tempo_min_km": "5:25–4:55",
+      "varighet_min": 58,
+      "puls_sone": "S1–lav S2"
+    },
+    {
+      "dato": "2026-04-07",
+      "type": "Maratonspesifikk",
+      "beskrivelse": "15 km totalt: 3 km oppvarming + 4 stigningsløp, hoveddel 3 × 3 km i maratonfart (4:16–4:12/km) med 1 km rolig jogg mellom, 3 km nedjogg. Jevn fart, kontrollert innsats, god race-feel.",
+      "dist_km": 17.0,
+      "tempo_min_km": "4:16–4:12",
+      "varighet_min": 90,
+      "puls_sone": "S3–S4"
+    },
+    {
+      "dato": "2026-04-08",
+      "type": "Rolig",
+      "beskrivelse": "8 km rolig — lett flyt, ingen kvalitet.",
+      "dist_km": 8.0,
+      "tempo_min_km": "5:30–5:00",
+      "varighet_min": 45,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-09",
+      "type": "Maratonspesifikk",
+      "beskrivelse": "16 km progressiv: 5 km rolig, 8 km i maratonfart (4:16–4:12/km), 3 km nedjogg. Solid spesifikk økt uten å bli like tung som langtur.",
+      "dist_km": 16.0,
+      "tempo_min_km": "4:16–4:12",
+      "varighet_min": 85,
+      "puls_sone": "S3–S4 på maratondraget"
+    },
+    {
+      "dato": "2026-04-10",
+      "type": "Rolig",
+      "beskrivelse": "6 km veldig rolig — ren restitusjon.",
+      "dist_km": 6.0,
+      "tempo_min_km": "5:40–5:10",
+      "varighet_min": 34,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-11",
+      "type": "Rolig",
+      "beskrivelse": "8 km rolig — lett og kontrollert.",
+      "dist_km": 8.0,
+      "tempo_min_km": "5:30–5:00",
+      "varighet_min": 45,
+      "puls_sone": "S1–S2"
+    },
+    {
+      "dato": "2026-04-12",
       "type": "Langtur",
-      "beskrivelse": "Rolig langtur på asfalt (førstvalg) eller rolig skitur som aerob støtte",
+      "beskrivelse": "28 km NØKKELØKT: 10 km rolig (5:20–5:05/km), 16 km i maratonfart (4:16–4:12/km), 2 km nedjogg. Ta gel og drikke som på konkurransedag. Største og mest maratonspesifikke økt i hele blokka.",
+      "dist_km": 28.0,
+      "tempo_min_km": "4:16–4:12 (maratondelen)",
+      "varighet_min": 165,
+      "puls_sone": "S1–S2 innledning, S3–S4 maratondelen"
+    },
+    {
+      "dato": "2026-04-13",
+      "type": "Rolig",
+      "beskrivelse": "8 km rolig restitusjon etter langturen.",
+      "dist_km": 8.0,
+      "tempo_min_km": "5:30–5:15",
+      "varighet_min": 46,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-14",
+      "type": "Terskel",
+      "beskrivelse": "12 km terskel: 3 km oppvarming, 2 × 3 km i terskelfart (4:02–3:58/km) med 2 min jogg mellom, 3 km nedjogg. Eneste terskeløkt — holder fartsfølelsen.",
+      "dist_km": 12.0,
+      "tempo_min_km": "4:02–3:58",
+      "varighet_min": 65,
+      "puls_sone": "S4: 159–169 bpm / 295–344W NP"
+    },
+    {
+      "dato": "2026-04-15",
+      "type": "Rolig",
+      "beskrivelse": "6 km rolig — kort og lett.",
+      "dist_km": 6.0,
+      "tempo_min_km": "5:35–5:20",
+      "varighet_min": 34,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-16",
+      "type": "Maratonspesifikk",
+      "beskrivelse": "14 km: 4 km rolig, 8 km i maratonfart (4:16–4:12/km), 2 km nedjogg. Kontrollert og jevn gjennomføring.",
       "dist_km": 14.0,
+      "tempo_min_km": "4:16–4:12",
+      "varighet_min": 75,
+      "puls_sone": "S3–S4 på maratondraget"
+    },
+    {
+      "dato": "2026-04-17",
+      "type": "Rolig",
+      "beskrivelse": "6 km rolig — myk dag, lett restitusjon.",
+      "dist_km": 6.0,
+      "tempo_min_km": "5:35–5:10",
+      "varighet_min": 34,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-18",
+      "type": "Rolig",
+      "beskrivelse": "8 km rolig i sone 1 — jevnt og avslappet.",
+      "dist_km": 8.0,
+      "tempo_min_km": "5:30–5:00",
+      "varighet_min": 45,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-19",
+      "type": "Langtur",
+      "beskrivelse": "20 km taperlangtur: 15 km rolig (5:20–5:05/km), 5 km i maratonfart (4:16–4:12/km), rolig avslutning. Lettere langtur med spesifikk verdi.",
+      "dist_km": 20.0,
+      "tempo_min_km": "4:16–4:12 (siste 5 km)",
+      "varighet_min": 115,
+      "puls_sone": "S1–S2 rolig, S3 avslutning"
+    },
+    {
+      "dato": "2026-04-20",
+      "type": "Rolig",
+      "beskrivelse": "8 km rolig — lett restitusjon, hold igjen.",
+      "dist_km": 8.0,
       "tempo_min_km": "5:30–5:10",
-      "varighet_min": 88,
-      "puls_sone": "S1–S2, under 148 bpm"
+      "varighet_min": 45,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-21",
+      "type": "Rolig",
+      "beskrivelse": "6 km rolig sone 1 + 4 × 20 sek stigningsløp (60 sek jogg mellom).",
+      "dist_km": 6.0,
+      "tempo_min_km": "5:30–5:10",
+      "varighet_min": 35,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-22",
+      "type": "Maratonspesifikk",
+      "beskrivelse": "10 km maratonskarphet: 2 km oppvarming, 3 × 2 km i maratonfart (4:16–4:12/km) med 1 km jogg mellom, 2 km nedjogg. Kort og presis for å holde rytmen.",
+      "dist_km": 10.0,
+      "tempo_min_km": "4:16–4:12",
+      "varighet_min": 55,
+      "puls_sone": "S3–S4"
+    },
+    {
+      "dato": "2026-04-23",
+      "type": "Intervall",
+      "beskrivelse": "8 km fartsvekker: 2 km oppvarming, 6 × 400 m (3:50–3:45/km) med 200 m jogg mellom, 2 km nedjogg. Liten fartspåminnelse, ikke hard økt.",
+      "dist_km": 8.0,
+      "tempo_min_km": "3:50–3:45",
+      "varighet_min": 42,
+      "puls_sone": "S4–S5 på 400-dragene"
+    },
+    {
+      "dato": "2026-04-24",
+      "type": "Rolig",
+      "beskrivelse": "5 km veldig rolig (5:30–5:15/km) + 3 × 20 sek stigningsløp (60 sek jogg mellom). Kort og friskende.",
+      "dist_km": 5.0,
+      "tempo_min_km": "5:30–5:15",
+      "varighet_min": 28,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-25",
+      "type": "Rolig",
+      "beskrivelse": "5 km rolig + 3 × 20 sek stigningsløp. Svært lett i beina. Siste letthet før løpet.",
+      "dist_km": 5.0,
+      "tempo_min_km": "5:30–5:15",
+      "varighet_min": 28,
+      "puls_sone": "S1"
+    },
+    {
+      "dato": "2026-04-26",
+      "type": "Rase",
+      "beskrivelse": "HAMBURG MARATON — mål sub 3:00. Start kontrollert ~4:16/km, stabiliser i maratonfart, vurder progresjon siste del hvis kroppen sitter bra. Gel ca. hver 30–35 min.",
+      "dist_km": 42.2,
+      "tempo_min_km": "4:16",
+      "varighet_min": 180
     }
   ]
 }

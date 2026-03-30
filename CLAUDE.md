@@ -99,8 +99,23 @@ Pulssoner: S1 <139 / S2 139–148 / S3 149–158 / S4 159–169 / S5 >169 bpm
 Wattsoner: S1 <196 / S2 196–245 / S3 246–294 / S4 295–344 / S5 345–392 / S6 >392 W
 
 Rasekalender: Madrid HM 22.03.2026 (1:26:59, PR) | Hamburg Maraton 26.04.2026 (mål: sub 3:00)
-Fase: Hamburg-taper. Metode: Norwegian Singles — 2 terskeløkter/uke.
+Fase: Siste byggeblokk + taper. Metode: Norwegian Singles — 1 terskeløkt (14. april), resten maratonspesifikk volum.
 CTL-mål inn mot Hamburg: 58–65 | TSB race-uka: +12 til +20
+
+## Trenerprogram frem til Hamburg (oppdatert 30. mars 2026)
+
+Nøkkelprioriteringer:
+- Maratonspesifikk CTL via volum og maratontempodrag — ikke terskelvolum
+- Én terskeløkt totalt (14. april)
+- Stor nøkkeløkt: 28 km langtur 12. april (16 km i maratonfart)
+- Påskeuka (1.–5. april): kun skigåing, ingen løping
+- Taper starter 19. april
+
+Dragtempo maratonfart: 4:16–4:12/km
+Terskelfart: 4:02–3:58/km
+Gel-strategi race-dag: hver 30–35 min
+
+Fullt program ligger i ukeplan.json (31. mars – 26. april).
 
 ---
 
