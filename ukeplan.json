@@ -13,12 +13,12 @@
     },
     {
       "dato": "2026-03-31",
-      "type": "Maratonspesifikk",
-      "beskrivelse": "Rolig løp med 2 × 10–12 min maratonfart (4:15–4:17/km) midt i",
-      "dist_km": 13.0,
-      "tempo_min_km": "4:15–4:17 (dragseksjonene)",
-      "varighet_min": 70,
-      "puls_sone": "rolig S1–S2 innledning/avslutning, S3 på drag"
+      "type": "Intervall",
+      "beskrivelse": "3 × (3 min / 2 min / 1 min) — 2 km oppvarming 5:15/km, 3 runder: 3 min@3:50 + 2 min@3:45 + 1 min@3:40 med 45–60 sek jogg mellom, 1 km nedjogg 5:15/km",
+      "dist_km": 8.0,
+      "tempo_min_km": "3:50–3:40",
+      "varighet_min": 40,
+      "puls_sone": "S4 av 5 (159–169 bpm)"
     },
     {
       "dato": "2026-04-01",
