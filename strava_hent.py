@@ -91,7 +91,7 @@ def formater_aktivitet(a, detalj, streams):
         "har_heartrate":    a.get("has_heartrate"),
         "privat":           a.get("private"),
         "streams":          {
-            k: v.get("data", [])[:10]
+            k: v.get("data", [])
             for k, v in streams.items()
         } if streams else {},
     }

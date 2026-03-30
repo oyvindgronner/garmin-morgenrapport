@@ -78,7 +78,7 @@ def hent_strava():
             "suffer_score":     a.get("suffer_score"),
             "kalorier":         detalj.get("calories"),
             "hoydemeter":       a.get("total_elevation_gain"),
-            "streams": {k: v.get("data", [])[:10] for k, v in streams.items()} if streams else {},
+            "streams": {k: v.get("data", []) for k, v in streams.items()} if streams else {},
         }
 
     def formater_lett(a):
