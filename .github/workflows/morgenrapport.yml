@@ -51,10 +51,12 @@ jobs:
           TP_AUTH_COOKIE:       ${{ secrets.TP_AUTH_COOKIE }}
         run: python morgen.py
 
-      - name: Hent Garmin direkte (søvnscore, HRV)
-        env:
-          GARMIN_TOKENS: ${{ secrets.GARMIN_TOKENS }}
-        run: python garmin_direkte.py
+      # Garmin direkte deaktivert — venter på at rate limit løsner (~1 uke)
+      # Aktiver igjen etter vellykket python garmin_auth.py
+      # - name: Hent Garmin direkte (søvnscore, HRV)
+      #   env:
+      #     GARMIN_TOKENS: ${{ secrets.GARMIN_TOKENS }}
+      #   run: python garmin_direkte.py
 
       - name: Claude coaching-analyse
         env:
