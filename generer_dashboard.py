@@ -243,7 +243,7 @@ def main():
     payload["okt_logg"] = okt_logg[-10:]  # siste 10 kommentarer
     payload["github_token"] = os.environ.get("DASHBOARD_GITHUB_TOKEN", "")
 
-    passord    = os.environ.get("DASHBOARD_PASSWORD", "hamburg2026")
+    passord    = os.environ.get("DASHBOARD_PASSWORD") or "hamburg2026"
     kryptert   = krypter_payload(json.dumps(payload, ensure_ascii=False), passord)
 
     # ── Status-badge og dager (ikke-sensitiv, vises ikke i dashboardet) ──
