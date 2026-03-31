@@ -15,42 +15,42 @@
     {
       "dato": "2026-04-01",
       "type": "Rolig",
-      "beskrivelse": "10 km lett løpetur sone 1.",
-      "dist_km": 10.0,
+      "beskrivelse": "Ren løping 8–10 km, sone 1–2. Ingen ski.",
+      "dist_km": 9.0,
       "tempo_min_km": "5:20–5:40",
-      "varighet_min": 55,
-      "puls_sone": "S1, under 140 bpm"
+      "varighet_min": 50,
+      "puls_sone": "S1–S2, under 148 bpm"
     },
     {
       "dato": "2026-04-02",
       "type": "Ski+Løp",
-      "beskrivelse": "DAG 2: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 35–45 min rolig løp på flat asfalt, under 140 bpm. Juster ned til 25–30 min hvis bena er veldig møre etter ski.",
-      "dist_km": 7.0,
-      "varighet_min": 40,
+      "beskrivelse": "Løping ~8 km sone 1 + randoneski 2–4 timer sone 1.",
+      "dist_km": 8.0,
+      "varighet_min": 45,
       "puls_sone": "S1, under 140 bpm"
     },
     {
       "dato": "2026-04-03",
       "type": "Ski+Løp",
-      "beskrivelse": "DAG 3: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 35–40 min rolig løp på flat asfalt, under 140 bpm. Midtpunkt i uka — lytt til bena.",
-      "dist_km": 7.0,
-      "varighet_min": 38,
+      "beskrivelse": "Løping ~8 km sone 1 + randoneski 2–4 timer sone 1.",
+      "dist_km": 8.0,
+      "varighet_min": 45,
       "puls_sone": "S1, under 140 bpm"
     },
     {
       "dato": "2026-04-04",
       "type": "Ski+Løp",
-      "beskrivelse": "DAG 4: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 30–40 min rolig løp på flat asfalt, under 140 bpm. Trening på møre bein er maratonspesifikt — hold formen god selv om tempoet er lavt.",
-      "dist_km": 6.0,
-      "varighet_min": 35,
+      "beskrivelse": "Løping ~8 km sone 1 + randoneski 2–4 timer sone 1.",
+      "dist_km": 8.0,
+      "varighet_min": 45,
       "puls_sone": "S1, under 140 bpm"
     },
     {
       "dato": "2026-04-05",
-      "type": "Ski+Løp",
-      "beskrivelse": "DAG 5: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 25–35 min rolig løp, under 140 bpm. Siste dag i skiuka — ikke press, bare aerob stimulans. Morgendagen er rolig comeback-dag.",
+      "type": "Rolig",
+      "beskrivelse": "Kortere løpetur, kun løping (ingen ski). Rolig avslutning av påskeuka.",
       "dist_km": 6.0,
-      "varighet_min": 30,
+      "varighet_min": 35,
       "puls_sone": "S1, under 140 bpm"
     },
     {
