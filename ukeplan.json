@@ -5,12 +5,12 @@
   "okter": [
     {
       "dato": "2026-03-31",
-      "type": "Intervall",
-      "beskrivelse": "3 × (3 min / 2 min / 1 min) — 2 km oppvarming 5:15/km, 3 runder: 3 min@3:50 + 2 min@3:45 + 1 min@3:40 med 45–60 sek jogg mellom, 1 km nedjogg 5:15/km. Kort fartspassasje for kapasitet og løpsøkonomi.",
-      "dist_km": 8.0,
-      "tempo_min_km": "3:50–3:40",
-      "varighet_min": 40,
-      "puls_sone": "S4 av 5"
+      "type": "Rolig",
+      "beskrivelse": "12 km langkjør sone 1. Gjennomført.",
+      "dist_km": 12.0,
+      "tempo_min_km": "5:05–5:30",
+      "varighet_min": 65,
+      "puls_sone": "S1, under 140 bpm"
     },
     {
       "dato": "2026-04-01",
