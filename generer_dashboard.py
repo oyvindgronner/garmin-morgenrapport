@@ -10,8 +10,9 @@ Kildekoden i HTML-en inneholder ikke lesbar helsedata.
 import base64
 import glob
 import json
+import math
 import os
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 
 def finn_siste_json():
@@ -65,6 +66,65 @@ def status_fra_analyse(analyse: str):
     elif "🔴" in analyse:
         return "IKKE I RUTE", "#ef4444", "🔴"
     return "UKJENT", "#64748b", "?"
+
+
+# TSS-estimat per økttype og varighet
+TSS_SNITT = {
+    "Rolig":            55,   # per time
+    "Maratonspesifikk": 75,
+    "Terskel":          90,
+    "Intervall":        85,
+    "Langtur":          65,
+    "Ski+Løp":          70,   # kombinert dag
+    "Ski":              50,
+    "Styrke":           35,
+    "Hvile":             0,
+    "Rase":            110,
+}
+
+def beregn_projeksjon(ctl_start: float, atl_start: float, okter: list, fra_dato: date) -> list:
+    """
+    Simulerer CTL/ATL/TSB dag for dag frem til Hamburg (26. april)
+    basert på planlagte økter i ukeplan.json.
+    Returnerer liste med {dato, ctl, atl, tsb} fra i dag+1 til race day.
+    """
+    CTL_K = 1 - math.exp(-1 / 42)
+    ATL_K = 1 - math.exp(-1 / 7)
+
+    # Bygg oppslag dato → TSS fra ukeplan
+    tss_plan = {}
+    for o in okter:
+        try:
+            d = date.fromisoformat(o["dato"])
+        except Exception:
+            continue
+        if d < fra_dato:
+            continue
+        varighet_t = (o.get("varighet_min") or 60) / 60
+        tss_per_t  = TSS_SNITT.get(o.get("type", "Rolig"), 55)
+        tss_plan[d] = round(varighet_t * tss_per_t)
+
+    race_day = date(2026, 4, 26)
+    ctl  = ctl_start
+    atl  = atl_start
+    resultat = []
+
+    dag = fra_dato
+    while dag <= race_day:
+        # På løpsdagen viser vi formen FØR løpet (ikke inkluder løpets TSS)
+        tss = 0 if dag == race_day else tss_plan.get(dag, 0)
+        ctl = ctl + CTL_K * (tss - ctl)
+        atl = atl + ATL_K * (tss - atl)
+        tsb = ctl - atl
+        resultat.append({
+            "dato": (dag.strftime("%m-%d")),
+            "ctl":  round(ctl, 1),
+            "atl":  round(atl, 1),
+            "tsb":  round(tsb, 1),
+        })
+        dag += timedelta(days=1)
+
+    return resultat
 
 
 def main():
@@ -138,6 +198,12 @@ def main():
             {"dato": d.get("dato","")[5:], "ctl": d.get("ctl"), "atl": d.get("atl"), "tsb": d.get("tsb")}
             for d in trend_90d
         ],
+        "projeksjon": beregn_projeksjon(
+            ctl_start = round(fitness_d.get("ctl") or 0, 1),
+            atl_start = round(fitness_d.get("atl") or 0, 1),
+            okter     = ukeplan.get("okter", []),
+            fra_dato  = today,
+        ),
         "hrv14": [{"dato": d[0], "hrv": d[1]} for d in hrv14],
         "bb7":   [{"dato": d[0], "bb":  d[1]} for d in bb7],
         "sovn14": [
@@ -257,9 +323,9 @@ footer span{{color:#64748b}}
     <h3 id="maal-tittel">Hamburg-mål · Sub 3:00</h3>
     <div class="grid3" style="margin-top:12px;margin-bottom:0" id="maal-grid"></div>
     <div style="margin-top:12px;font-size:0.75rem;color:#475569">
-      Kondisjon = treningsbase bygd over 42 dager &nbsp;·&nbsp;
-      Belastning = tretthet fra siste 7 dager &nbsp;·&nbsp;
-      Overskudd = kondisjon minus belastning
+      Kondisjon = treningsbase bygd opp over 42 dager &nbsp;·&nbsp;
+      Tretthet = belastning siste 7 dager &nbsp;·&nbsp;
+      Dagsform = kondisjon minus tretthet
     </div>
   </div>
 
@@ -274,10 +340,10 @@ footer span{{color:#64748b}}
   <div class="analyse-boks" id="analyse-boks"></div>
 
   <!-- Formkurve -->
-  <div class="seksjon-tittel">Formkurve — siste 90 dager</div>
+  <div class="seksjon-tittel">Formkurve — siste 90 dager + plan frem til Hamburg</div>
   <div class="chart-boks">
-    <h3>Kondisjon / Belastning / Overskudd · Mål Hamburg: Kondisjon 58–65, Overskudd +12–+20</h3>
-    <canvas id="ctlChart" height="120"></canvas>
+    <h3>Kondisjon / Tretthet / Dagsform &nbsp;·&nbsp; Stiplet = planlagt &nbsp;·&nbsp; Mål: Kondisjon 58–65, Dagsform +12–+20 på løpsdagen</h3>
+    <canvas id="ctlChart" height="130"></canvas>
   </div>
 
   <div class="grid2">
@@ -459,7 +525,7 @@ function visDashboard(d) {{
       <div style="font-size:.75rem;color:#64748b">${{ctl >= 58 ? "✅ I mål" : `⚠️ ${{(58-ctl).toFixed(1)}} bak min.mål`}}</div>
     </div>
     <div>
-      <div style="font-size:.8rem;color:#94a3b8">Overskudd (TSB)</div>
+      <div style="font-size:.8rem;color:#94a3b8">Dagsform (TSB)</div>
       <div class="stor-tall" style="color:${{fargeTSB(tsb)}}">${{tsb >= 0 ? "+" : ""}}${{tsb.toFixed(1)}}</div>
       <div class="sub-tall">Race-mål: +12 til +20</div>
       <div class="fremgang-bg"><div class="fremgang-fill" style="width:${{tsbPct}}%;background:#3b82f6"></div></div>
@@ -569,19 +635,100 @@ function visDashboard(d) {{
     }}
   }};
 
-  // Kondisjon/Belastning/Overskudd (CTL/ATL/TSB)
-  new Chart(document.getElementById("ctlChart"), {{
-    type: "line",
-    data: {{
-      labels: d.trend90.map(x => x.dato),
-      datasets: [
-        {{label:"Kondisjon (CTL)", data:d.trend90.map(x=>x.ctl), borderColor:"#3b82f6", backgroundColor:"transparent", borderWidth:2, pointRadius:0, tension:0.3}},
-        {{label:"Belastning (ATL)", data:d.trend90.map(x=>x.atl), borderColor:"#f97316", backgroundColor:"transparent", borderWidth:2, pointRadius:0, tension:0.3}},
-        {{label:"Overskudd (TSB)", data:d.trend90.map(x=>x.tsb), borderColor:"#22c55e", backgroundColor:"#22c55e11", borderWidth:1.5, pointRadius:0, tension:0.3, fill:true}},
-      ]
-    }},
-    options: {{...DEFAULTS, scales:{{x:DEFAULTS.scales.x, y:{{...DEFAULTS.scales.y, suggestedMin:-30, suggestedMax:80}}}}}}
-  }});
+  // Kondisjon/Tretthet/Dagsform (CTL/ATL/TSB) + prosjeksjon
+  {{
+    // Historikk-labels + prosjeksjon-labels i én felles akse
+    const histLbl = d.trend90.map(x => x.dato);
+    const projLbl = (d.projeksjon || []).map(x => x.dato);
+
+    // Null-padding: historikk-serier er tomme der prosjeksjonen starter, og omvendt
+    const histLen = histLbl.length;
+    const projLen = projLbl.length;
+    const allLbl  = [...histLbl, ...projLbl];
+
+    const pad = (arr, before, after) =>
+      [...Array(before).fill(null), ...arr, ...Array(after).fill(null)];
+
+    const histCTL = d.trend90.map(x => x.ctl);
+    const histATL = d.trend90.map(x => x.atl);
+    const histTSB = d.trend90.map(x => x.tsb);
+    const projCTL = (d.projeksjon || []).map(x => x.ctl);
+    const projATL = (d.projeksjon || []).map(x => x.atl);
+    const projTSB = (d.projeksjon || []).map(x => x.tsb);
+
+    // Siste historikk-punkt kobles til første proj-punkt (ingen gap i linjen)
+    const bridge = 1;
+
+    new Chart(document.getElementById("ctlChart"), {{
+      type: "line",
+      data: {{
+        labels: allLbl,
+        datasets: [
+          // ── Historikk (heltrukket) ──
+          {{
+            label: "Kondisjon",
+            data: [...histCTL, projCTL[0] ?? null, ...Array(projLen - bridge).fill(null)],
+            borderColor: "#3b82f6", backgroundColor: "transparent",
+            borderWidth: 2.5, pointRadius: 0, tension: 0.3
+          }},
+          {{
+            label: "Tretthet",
+            data: [...histATL, projATL[0] ?? null, ...Array(projLen - bridge).fill(null)],
+            borderColor: "#f97316", backgroundColor: "transparent",
+            borderWidth: 2.5, pointRadius: 0, tension: 0.3
+          }},
+          {{
+            label: "Dagsform",
+            data: [...histTSB, projTSB[0] ?? null, ...Array(projLen - bridge).fill(null)],
+            borderColor: "#22c55e", backgroundColor: "#22c55e11",
+            borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true
+          }},
+          // ── Prosjeksjon (stiplet) ──
+          {{
+            label: "Kondisjon (plan)",
+            data: [...Array(histLen).fill(null), ...projCTL],
+            borderColor: "#3b82f6", backgroundColor: "transparent",
+            borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.3
+          }},
+          {{
+            label: "Tretthet (plan)",
+            data: [...Array(histLen).fill(null), ...projATL],
+            borderColor: "#f97316", backgroundColor: "transparent",
+            borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.3
+          }},
+          {{
+            label: "Dagsform (plan)",
+            data: [...Array(histLen).fill(null), ...projTSB],
+            borderColor: "#22c55e", backgroundColor: "transparent",
+            borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0, tension: 0.3
+          }},
+        ]
+      }},
+      options: {{
+        ...DEFAULTS,
+        plugins: {{
+          ...DEFAULTS.plugins,
+          legend: {{
+            labels: {{
+              color: "#94a3b8", boxWidth: 14,
+              // Vis bare de 3 historikk-seriene i legenden
+              filter: item => !item.text.includes("(plan)")
+            }}
+          }},
+          tooltip: {{
+            callbacks: {{
+              title: ctx => ctx[0].label,
+              label: ctx => `${{ctx.dataset.label}}: ${{ctx.parsed.y?.toFixed(1) ?? "–"}}`
+            }}
+          }}
+        }},
+        scales: {{
+          x: {{ ...DEFAULTS.scales.x, ticks: {{ color: "#64748b", maxTicksLimit: 14 }} }},
+          y: {{ ...DEFAULTS.scales.y, suggestedMin: -30, suggestedMax: 80 }}
+        }}
+      }}
+    }});
+  }}
 
   // HRV
   const hrvVals = d.hrv14.map(x => x.hrv);
