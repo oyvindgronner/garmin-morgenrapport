@@ -127,6 +127,7 @@ def main():
             "dyp_sovn_min":  helse.get("dyp_sovn_min"),
             "rem_sovn_min":  helse.get("rem_sovn_min"),
             "stress_snitt":  helse.get("stress_snitt"),
+            "sovn_score":    helse.get("sovn_score"),
         },
         "fitness": {
             "ctl": round(fitness_d.get("ctl") or 0, 1),
@@ -470,32 +471,28 @@ function visDashboard(d) {{
       <div class="sub-tall">Balansert: 70–98 ms</div>
     </div>`;
 
-  // Søvnscore 0–100
-  function beregnSovnscore(sovnMin, dypMin, remMin) {{
-    if (!sovnMin) return null;
-    // Varighet: 420 min = 40 poeng, 480 min = 40 poeng (maks), <300 = 0
-    let v = Math.min(40, Math.max(0, (sovnMin - 300) / (480 - 300) * 40));
-    // Dyptsøvn: mål ≥15% → 30 poeng
-    const dypPct = dypMin ? (dypMin / sovnMin * 100) : 0;
-    let d = Math.min(30, Math.max(0, dypPct / 20 * 30));
-    // REM: mål ≥20% → 30 poeng
-    const remPct = remMin ? (remMin / sovnMin * 100) : 0;
-    let r = Math.min(30, Math.max(0, remPct / 25 * 30));
-    return Math.round(v + d + r);
-  }}
-
   // Dagsform
   const sovnMin = helse.sovn_min;
   const sovnStr = sovnMin ? `${{Math.floor(sovnMin/60)}}t ${{sovnMin%60}}min` : "–";
-  const sovnscore = beregnSovnscore(sovnMin, helse.dyp_sovn_min, helse.rem_sovn_min);
-  const sovnscoreStr = sovnscore !== null ? `${{sovnscore}}/100` : "–";
+
+  // Garmin søvnscore (hentes direkte fra API — Garmin sin egen algoritme)
+  // Fallback: beregn fra varighet + dyp + REM hvis scoren mangler
+  let sovnscore = helse.sovn_score ?? null;
+  if (sovnscore === null && sovnMin) {{
+    const v = Math.min(40, Math.max(0, (sovnMin - 300) / 180 * 40));
+    const dp = helse.dyp_sovn_min ? Math.min(30, (helse.dyp_sovn_min / sovnMin * 100) / 20 * 30) : 0;
+    const rm = helse.rem_sovn_min ? Math.min(30, (helse.rem_sovn_min / sovnMin * 100) / 25 * 30) : 0;
+    sovnscore = Math.round(v + dp + rm);
+  }}
   const sovnscoreFarge = sovnscore >= 75 ? "#22c55e" : sovnscore >= 55 ? "#f59e0b" : "#ef4444";
-  const sovnscoreLabel = sovnscore >= 75 ? "God" : sovnscore >= 55 ? "Ok" : "Dårlig";
+  const sovnscoreLabel = sovnscore >= 80 ? "Utmerket" : sovnscore >= 65 ? "God" : sovnscore >= 50 ? "Ok" : "Dårlig";
+  const sovnscoreKilde = helse.sovn_score != null ? "" : " (beregnet)";
+
   document.getElementById("dagsform-innhold").innerHTML =
     metrikk("HRV",          hrv ? `${{hrv}} ms` : "–",       fargeHRV(hrv||0))
   + metrikk("Hvilepuls",    helse.hvilepuls ? `${{helse.hvilepuls}} bpm` : "–")
   + metrikk("Body Battery", helse.bb_maks ? `${{helse.bb_maks}}/100` : "–",  fargeBB(helse.bb_maks||0))
-  + metrikk("Søvnscore",    sovnscore !== null ? `${{sovnscoreStr}} — ${{sovnscoreLabel}}` : "–", sovnscoreFarge)
+  + metrikk("Søvnscore",    sovnscore !== null ? `${{sovnscore}}/100 — ${{sovnscoreLabel}}${{sovnscoreKilde}}` : "–", sovnscoreFarge)
   + metrikk("Søvn totalt",  sovnStr)
   + metrikk("Dyp søvn",     helse.dyp_sovn_min ? `${{helse.dyp_sovn_min}} min` : "–")
   + metrikk("REM",          helse.rem_sovn_min ? `${{helse.rem_sovn_min}} min` : "–")

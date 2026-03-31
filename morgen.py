@@ -177,7 +177,7 @@ def hent_trainingpeaks():
 
         for dag in mdata:
             dato = dag.get("timeStamp", "")[:10]
-            hrv = hvile = bb_maks = bb_min = sovn = dyp = rem = stress = None
+            hrv = hvile = bb_maks = bb_min = sovn = dyp = rem = stress = sovn_score = None
             for felt in dag.get("details", []):
                 label = felt.get("label")
                 value = felt.get("value")
@@ -190,11 +190,13 @@ def hent_trainingpeaks():
                 elif label == "Time in REM Sleep": rem = round(value * 60)
                 elif label == "Stress Level" and isinstance(value, list):
                     stress = round(value[2], 1)
+                elif label == "Sleep Score": sovn_score = round(value)
 
             rad = {"dato": dato, "hrv": hrv, "hvilepuls": hvile,
                    "bb_maks": bb_maks, "bb_min": bb_min,
                    "sovn_min": sovn, "dyp_sovn_min": dyp,
-                   "rem_sovn_min": rem, "stress_snitt": stress}
+                   "rem_sovn_min": rem, "stress_snitt": stress,
+                   "sovn_score": sovn_score}
             historikk_helse.append(rad)
             if dato == DATO:
                 helsedata_dagens = rad
