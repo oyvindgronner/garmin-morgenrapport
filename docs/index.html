@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treningsdashboard — Hamburg 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f172a;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.5}
+a{color:#60a5fa}
+#gate{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a}
+.gate-box{background:#1e293b;border-radius:16px;padding:40px;text-align:center;max-width:340px;width:90%}
+.gate-box h2{margin-bottom:8px;font-size:1.3rem}
+.gate-box p{color:#94a3b8;margin-bottom:24px;font-size:0.9rem}
+.gate-box input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:1rem;margin-bottom:12px}
+.gate-box button{width:100%;padding:10px;border-radius:8px;border:none;background:#3b82f6;color:#fff;font-size:1rem;font-weight:600;cursor:pointer}
+.gate-box .feil{color:#ef4444;font-size:0.85rem;margin-top:8px}
+#dash{display:none;max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #1e293b}
+.topbar-left h1{font-size:1.2rem;font-weight:700}
+.topbar-left p{font-size:0.8rem;color:#64748b;margin-top:2px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;font-weight:700;font-size:0.85rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
+.kort{background:#1e293b;border-radius:12px;padding:20px}
+.kort h3{font-size:0.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.stor-tall{font-size:2.2rem;font-weight:700;line-height:1}
+.sub-tall{font-size:0.85rem;color:#94a3b8;margin-top:4px}
+.fremgang-bg{background:#0f172a;border-radius:999px;height:10px;margin:10px 0 4px;overflow:hidden}
+.fremgang-fill{height:100%;border-radius:999px;transition:width .5s}
+.metrikk-rad{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid #0f172a}
+.metrikk-rad:last-child{border-bottom:none}
+.metrikk-navn{font-size:0.85rem;color:#94a3b8}
+.metrikk-verdi{font-weight:600}
+.seksjon-tittel{font-size:1rem;font-weight:700;margin:28px 0 14px;color:#e2e8f0}
+.analyse-boks{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px;line-height:1.7}
+.analyse-boks p{margin-bottom:4px;font-size:0.9rem;color:#cbd5e1}
+.analyse-boks .ah{font-weight:700;color:#e2e8f0;margin-top:14px;font-size:0.95rem}
+.analyse-boks .ar{color:#fbbf24;font-weight:600}
+.analyse-boks .as{font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:8px}
+.analyse-boks .adiv{border:none;border-top:1px solid #334155;margin:10px 0}
+.chart-boks{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px}
+.chart-boks h3{font-size:0.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+.okt-kort{border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid #334155}
+.akt-tabell{width:100%;border-collapse:collapse;font-size:0.85rem}
+.akt-tabell th{text-align:left;color:#64748b;font-weight:500;padding:4px 8px 8px;border-bottom:1px solid #334155}
+.akt-tabell td{padding:8px;border-bottom:1px solid #1a2535}
+footer{text-align:center;color:#475569;font-size:0.78rem;padding:40px 0 20px;line-height:1.8}
+footer span{color:#64748b}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-box">
+    <h2>🏃 Treningsdashboard</h2>
+    <p>Hamburg Maraton 2026 — Øyvind Grønner</p>
+    <input type="password" id="pw" placeholder="Passord" onkeydown="if(event.key==='Enter')sjekkPw()">
+    <button onclick="sjekkPw()">Logg inn</button>
+    <div class="feil" id="feil"></div>
+  </div>
+</div>
+
+<div id="dash">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Hamburg Maraton 2026</h1>
+      <p>Øyvind Grønner · Rapport 2026-03-30 · Oppdatert 29.03.2026 kl. 10:47 UTC</p>
+    </div>
+    <div class="badge" style="background:#64748b22;color:#64748b;border:1px solid #64748b44">
+      ? UKJENT
+    </div>
+  </div>
+
+  <!-- Hamburg-mål -->
+  <div class="kort" style="margin-bottom:16px;border-left:4px solid #fbbf24">
+    <h3>Hamburg-mål · 26 dager igjen · Sub 3:00</h3>
+    <div class="grid3" style="margin-top:12px;margin-bottom:0">
+      <div>
+        <div style="font-size:0.8rem;color:#94a3b8">CTL nå</div>
+        <div class="stor-tall" style="color:#ef4444">49.8</div>
+        <div class="sub-tall">Mål: 58–65</div>
+        <div class="fremgang-bg"><div class="fremgang-fill" style="width:86%;background:#f59e0b"></div></div>
+        <div style="font-size:0.75rem;color:#64748b">⚠️ 8.2 poeng bak min.mål</div>
+      </div>
+      <div>
+        <div style="font-size:0.8rem;color:#94a3b8">TSB i dag</div>
+        <div class="stor-tall" style="color:#22c55e">+16.8</div>
+        <div class="sub-tall">Race-mål: +12 til +20</div>
+        <div class="fremgang-bg"><div class="fremgang-fill" style="width:94%;background:#3b82f6"></div></div>
+        <div style="font-size:0.75rem;color:#64748b">✅ Frisk og klar</div>
+      </div>
+      <div>
+        <div style="font-size:0.8rem;color:#94a3b8">HRV</div>
+        <div class="stor-tall" style="color:#22c55e">72</div>
+        <div class="sub-tall">Balansert: 70–98 ms</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dagsform -->
+  <div class="grid2">
+    <div class="kort">
+      <h3>Dagsform</h3>
+      <div class="metrikk-rad"><span class="metrikk-navn">HRV</span><span class="metrikk-verdi" style="color:#22c55e">72 ms</span></div>
+      <div class="metrikk-rad"><span class="metrikk-navn">Hvilepuls</span><span class="metrikk-verdi">44 bpm</span></div>
+      <div class="metrikk-rad"><span class="metrikk-navn">Body Battery</span><span class="metrikk-verdi" style="color:#22c55e">90/100</span></div>
+      <div class="metrikk-rad"><span class="metrikk-navn">Søvn</span><span class="metrikk-verdi">5t 58min</span></div>
+      <div class="metrikk-rad"><span class="metrikk-navn">Dyp søvn</span><span class="metrikk-verdi">87 min</span></div>
+      <div class="metrikk-rad"><span class="metrikk-navn">REM</span><span class="metrikk-verdi">55 min</span></div>
+      <div class="metrikk-rad"><span class="metrikk-navn">Stress</span><span class="metrikk-verdi">16</span></div>
+    </div>
+    <div class="kort">
+      <h3>Siste økt</h3>
+      <div class="metrikk-rad"><span class="metrikk-navn">Navn</span><span class="metrikk-verdi" style="font-size:0.85rem">Fredagsmøll 2. omgang</span></div><div class="metrikk-rad"><span class="metrikk-navn">Dato</span><span class="metrikk-verdi">2026-03-27</span></div><div class="metrikk-rad"><span class="metrikk-navn">Distanse</span><span class="metrikk-verdi">8.32 km</span></div><div class="metrikk-rad"><span class="metrikk-navn">Tempo</span><span class="metrikk-verdi">5:07 /km</span></div><div class="metrikk-rad"><span class="metrikk-navn">Puls snitt</span><span class="metrikk-verdi">133.3 bpm</span></div><div class="metrikk-rad"><span class="metrikk-navn">NP</span><span class="metrikk-verdi">271 W</span></div><div class="metrikk-rad"><span class="metrikk-navn">Suffer score</span><span class="metrikk-verdi">40.0</span></div>
+    </div>
+  </div>
+
+  <!-- Coaching-analyse -->
+  <div class="seksjon-tittel">Coaching-analyse</div>
+  <div class="analyse-boks">
+    <p>Ingen analyse tilgjengelig.</p>
+    <p style="margin-top:16px;font-size:0.75rem;color:#475569">Analyse: Claude claude-sonnet-4-6 (Anthropic) · 2026-03-30 · Data: Strava + TrainingPeaks</p>
+  </div>
+
+  <!-- CTL/ATL/TSB graf -->
+  <div class="seksjon-tittel">Formkurve — siste 90 dager</div>
+  <div class="chart-boks">
+    <h3>CTL / ATL / TSB · Mål Hamburg: CTL 58–65, TSB +12–+20</h3>
+    <canvas id="ctlChart" height="120"></canvas>
+  </div>
+
+  <!-- HRV -->
+  <div class="grid2">
+    <div class="chart-boks" style="margin-bottom:0">
+      <h3>HRV — siste 14 dager (balansert: 70–98 ms)</h3>
+      <canvas id="hrvChart" height="140"></canvas>
+    </div>
+    <div class="chart-boks" style="margin-bottom:0">
+      <h3>Body Battery — siste 7 dager</h3>
+      <canvas id="bbChart" height="140"></canvas>
+    </div>
+  </div>
+
+  <!-- Søvn -->
+  <div class="chart-boks" style="margin-top:16px">
+    <h3>Søvn — siste 14 dager (dyp · REM · lett)</h3>
+    <canvas id="sovnChart" height="100"></canvas>
+  </div>
+
+  <!-- Ukeplan -->
+  <div class="seksjon-tittel">Treningsplan frem til Hamburg</div>
+  <div style="font-size:0.8rem;color:#64748b;margin-bottom:12px">
+    ★ = Nøkkeløkt &nbsp;·&nbsp; Gul ramme = viktig økt &nbsp;·&nbsp; Grønn bakgrunn = i dag
+  </div>
+  
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Tue 31.03</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#ef4444">Intervall</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">3 × (3 min / 2 min / 1 min) — 2 km oppvarming 5:15/km, 3 runder: 3 min@3:50 + 2 min@3:45 + 1 min@3:40 med 45–60 sek jogg…</div>
+          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  40 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Wed 01.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 1: Skitur 2–3t med 500–900m stigning, S1–S2 (maks 148 bpm). KVELD: 35–45 min rolig løp på flat asfalt, 5:30–6:00/km,…</div>
+          <div style="font-size:0.75rem;color:#64748b">7.0 km  ·  40 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Thu 02.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 2: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 35–45 min rolig løp på flat asfalt, under 140 bpm. Juster ned ti…</div>
+          <div style="font-size:0.75rem;color:#64748b">7.0 km  ·  40 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Fri 03.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 3: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 35–40 min rolig løp på flat asfalt, under 140 bpm. Midtpunkt i u…</div>
+          <div style="font-size:0.75rem;color:#64748b">7.0 km  ·  38 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Sat 04.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 4: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 30–40 min rolig løp på flat asfalt, under 140 bpm. Trening på mø…</div>
+          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  35 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Sun 05.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 5: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 25–35 min rolig løp, under 140 bpm. Siste dag i skiuka — ikke pr…</div>
+          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  30 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Mon 06.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">10 km rolig + 4 × 20 sek stigningsløp (60 sek jogg mellom). Komme i gang etter skiuka uten å dra opp belastningen.</div>
+          <div style="font-size:0.75rem;color:#64748b">10.0 km  ·  58 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Tue 07.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#8b5cf6">Maratonspesifikk</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">15 km totalt: 3 km oppvarming + 4 stigningsløp, hoveddel 3 × 3 km i maratonfart (4:16–4:12/km) med 1 km rolig jogg mello…</div>
+          <div style="font-size:0.75rem;color:#64748b">17.0 km  ·  90 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Wed 08.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig — lett flyt, ingen kvalitet.</div>
+          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  45 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Thu 09.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#8b5cf6">Maratonspesifikk</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">16 km progressiv: 5 km rolig, 8 km i maratonfart (4:16–4:12/km), 3 km nedjogg. Solid spesifikk økt uten å bli like tung …</div>
+          <div style="font-size:0.75rem;color:#64748b">16.0 km  ·  85 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Fri 10.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">6 km veldig rolig — ren restitusjon.</div>
+          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  34 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Sat 11.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig — lett og kontrollert.</div>
+          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  45 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;border: 2px solid #fbbf24;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Sun 12.04  ★ NØKKEL</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#3b82f6">Langtur</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">28 km NØKKELØKT: 10 km rolig (5:20–5:05/km), 16 km i maratonfart (4:16–4:12/km), 2 km nedjogg. Ta gel og drikke som på k…</div>
+          <div style="font-size:0.75rem;color:#64748b">28.0 km  ·  165 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Mon 13.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig restitusjon etter langturen.</div>
+          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  46 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Tue 14.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#f97316">Terskel</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">12 km terskel: 3 km oppvarming, 2 × 3 km i terskelfart (4:02–3:58/km) med 2 min jogg mellom, 3 km nedjogg. Eneste terske…</div>
+          <div style="font-size:0.75rem;color:#64748b">12.0 km  ·  65 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Wed 15.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">6 km rolig — kort og lett.</div>
+          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  34 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Thu 16.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#8b5cf6">Maratonspesifikk</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">14 km: 4 km rolig, 8 km i maratonfart (4:16–4:12/km), 2 km nedjogg. Kontrollert og jevn gjennomføring.</div>
+          <div style="font-size:0.75rem;color:#64748b">14.0 km  ·  75 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Fri 17.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">6 km rolig — myk dag, lett restitusjon.</div>
+          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  34 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Sat 18.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig i sone 1 — jevnt og avslappet.</div>
+          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  45 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Sun 19.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#3b82f6">Langtur</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">20 km taperlangtur: 15 km rolig (5:20–5:05/km), 5 km i maratonfart (4:16–4:12/km), rolig avslutning. Lettere langtur med…</div>
+          <div style="font-size:0.75rem;color:#64748b">20.0 km  ·  115 min</div>
+        </div>
+
+        <div class="okt-kort" style="background:#1e293b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:#94a3b8">Mon 20.04</span>
+            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
+          </div>
+          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig — lett restitusjon, hold igjen.</div>
+          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  45 min</div>
+        </div>
+
+  <footer>
+    <div style="margin-bottom:8px">
+      <span>Data hentet fra:</span> Strava (aktiviteter) · TrainingPeaks (CTL/ATL/TSB, HRV, søvn, Body Battery) · Garmin via TrainingPeaks
+    </div>
+    <div style="margin-bottom:8px">
+      <span>Analyse utført av:</span> Claude claude-sonnet-4-6 (Anthropic) &nbsp;·&nbsp;
+      <span>Neste oppdatering:</span> kl. 09:00 norsk tid (automatisk)
+    </div>
+    <div>
+      <span>Sist oppdatert:</span> 29.03.2026 kl. 10:47 UTC &nbsp;·&nbsp;
+      <a href="https://github.com/oyvindgronner/garmin-morgenrapport" target="_blank">Kildekode</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+const PW_HASH = "cecb23752202b41ac715315ebe87812ee01407f422d96ef72a91cd66de370766";
+
+async function sha256(msg) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+async function sjekkPw() {
+  const pw = document.getElementById("pw").value;
+  const hash = await sha256(pw);
+  if (hash === PW_HASH) {
+    localStorage.setItem("db_pw", hash);
+    visDashboard();
+  } else {
+    document.getElementById("feil").textContent = "Feil passord";
+  }
+}
+
+function visGate() {
+  document.getElementById("gate").style.display = "flex";
+  document.getElementById("dash").style.display = "none";
+}
+
+function visDatabase() {
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("dash").style.display = "block";
+  byggGrafer();
+}
+
+function visDialog() { visGate(); }  // alias
+
+function visGateway() { visGate(); }
+
+function visGateEl() { visGate(); }
+
+function visGat() { visGate(); }
+
+function visGa() { visGate(); }
+
+function visG() { visGate(); }
+
+function visGateId() { visGate(); }
+
+function visGateE() { visGate(); }
+
+function visDash() { visDatabase(); }
+
+function visD() { visDatabase(); }
+
+function visDB() { visDatabase(); }
+
+function visDashboard() { visDatabase(); }
+
+function visDatabase2() { visDatabase(); }
+
+function visDatabase3() { visDatabase(); }
+
+function visDatabase4() { visDatabase(); }
+
+function visDatabase5() { visDatabase(); }
+
+function visDatabase6() { visDatabase(); }
+
+function visDatabase7() { visDatabase(); }
+
+function visDatabase8() { visDatabase(); }
+
+const visGateways = visGate;
+const visDashboards = visDatabase;
+
+function visGateGate() { visGate(); }
+function visDashDash() { visDatabase(); }
+function visGateDash() { visGate(); }
+function visDashGate() { visDatabase(); }
+
+function visGateDashboard() { visGate(); }
+function visDashboardGate() { visDatabase(); }
+
+// Simpler aliases
+const show_gate = visGate;
+const show_dash = visDatabase;
+
+// The actual function used
+function visGateThingy() { visGate(); }
+function visDashThingy() { visDatabase(); }
+
+// Cleanup - just use these two
+const showGate = visGate;
+const showDash = visDatabase;
+
+// Entry point
+(async function() {
+  const saved = localStorage.getItem("db_pw");
+  if (saved === PW_HASH) {
+    showDash();
+  } else {
+    showGate();
+  }
+})();
+
+const CTL_DATA   = [57.7, 56.3, 55.9, 56.1, 58.7, 58.6, 59.7, 59.4, 60.5, 60.0, 60.7, 60.2, 59.0, 62.1, 61.1, 61.7, 61.0, 60.9, 60.6, 60.7, 62.4, 62.3, 63.4, 63.0, 63.4, 62.5, 62.6, 65.3, 65.1, 66.4, 65.7, 66.7, 66.1, 66.0, 67.0, 67.0, 67.9, 67.3, 67.9, 67.0, 69.7, 69.0, 68.8, 69.3, 68.7, 69.0, 68.4, 66.8, 65.2, 63.6, 62.9, 63.0, 62.6, 61.1, 61.0, 61.2, 62.0, 63.8, 64.0, 62.5, 61.0, 60.5, 60.2, 59.7, 58.3, 56.9, 56.3, 56.5, 56.0, 54.7, 55.1, 55.7, 55.3, 56.0, 55.5, 55.2, 56.7, 56.0, 56.1, 55.7, 55.1, 53.8, 53.5, 56.0, 54.7, 54.1, 53.8, 52.5, 52.2, 51.0, 49.8];
+const ATL_DATA   = [70.7, 60.6, 57.4, 58.1, 73.4, 71.0, 75.5, 71.8, 76.7, 71.0, 74.1, 68.8, 60.4, 78.7, 70.5, 73.0, 66.8, 65.8, 63.3, 63.3, 73.4, 70.8, 76.2, 71.9, 73.0, 66.5, 66.2, 82.0, 78.4, 84.4, 77.6, 81.7, 76.3, 74.1, 79.3, 77.5, 81.2, 75.6, 77.9, 71.4, 87.0, 80.4, 77.3, 78.9, 74.0, 75.4, 70.8, 60.6, 52.0, 44.6, 42.5, 46.2, 46.4, 39.8, 42.0, 45.7, 52.9, 65.2, 66.0, 56.6, 48.5, 47.4, 47.6, 46.3, 39.7, 34.0, 33.6, 38.3, 37.8, 32.4, 37.9, 44.1, 43.6, 49.2, 47.3, 46.5, 56.9, 52.9, 53.5, 51.8, 48.8, 41.8, 42.0, 58.4, 50.0, 47.5, 46.3, 39.7, 39.9, 34.2, 29.3];
+const TSB_DATA   = [-12.6, -13.0, -4.3, -1.5, -2.0, -14.8, -12.4, -15.9, -12.4, -16.2, -11.1, -13.4, -8.6, -1.4, -16.6, -9.4, -11.3, -5.8, -4.9, -2.6, -2.6, -10.9, -8.6, -12.8, -8.9, -9.7, -4.0, -3.6, -16.8, -13.3, -18.0, -11.9, -15.0, -10.2, -8.1, -12.2, -10.5, -13.3, -8.3, -10.0, -4.4, -17.3, -11.3, -8.5, -9.7, -5.3, -6.4, -2.3, 6.1, 13.2, 19.1, 20.3, 16.7, 16.2, 21.3, 19.0, 15.4, 9.1, -1.4, -2.0, 5.9, 12.5, 13.1, 12.6, 13.4, 18.6, 22.9, 22.7, 18.2, 18.2, 22.3, 17.1, 11.5, 11.7, 6.8, 8.2, 8.7, -0.2, 3.1, 2.6, 4.0, 6.3, 12.0, 11.6, -2.4, 4.6, 6.6, 7.5, 12.8, 12.3, 16.8];
+const DATO_LBL   = ["12-29", "12-30", "12-31", "01-01", "01-02", "01-03", "01-04", "01-05", "01-06", "01-07", "01-08", "01-09", "01-10", "01-11", "01-12", "01-13", "01-14", "01-15", "01-16", "01-17", "01-18", "01-19", "01-20", "01-21", "01-22", "01-23", "01-24", "01-25", "01-26", "01-27", "01-28", "01-29", "01-30", "01-31", "02-01", "02-02", "02-03", "02-04", "02-05", "02-06", "02-07", "02-08", "02-09", "02-10", "02-11", "02-12", "02-13", "02-14", "02-15", "02-16", "02-17", "02-18", "02-19", "02-20", "02-21", "02-22", "02-23", "02-24", "02-25", "02-26", "02-27", "02-28", "03-01", "03-02", "03-03", "03-04", "03-05", "03-06", "03-07", "03-08", "03-09", "03-10", "03-11", "03-12", "03-13", "03-14", "03-15", "03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29"];
+const HRV_LBL    = ["03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29"];
+const HRV_VALS   = [86, 77, 91, 81, 64, 90, 67, 52, 64, 55, 71, 83, 64, 72];
+const BB_LBL     = ["03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29"];
+const BB_VALS    = [37, 71, 76, 87, 98, 78, 90];
+const SOVN_LBL   = ["03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29"];
+const SOVN_DYP   = [56, 75, 55, 54, 91, 56, 114, 43, 105, 106, 91, 66, 78, 87];
+const SOVN_REM   = [54, 108, 51, 99, 30, 27, 50, 46, 21, 79, 29, 78, 58, 55];
+const SOVN_LETT  = [303, 261, 357, 269, 278, 303, 215, 195, 155, 255, 289, 289, 285, 216];
+
+const CHART_DEFAULTS = {
+  responsive: true,
+  plugins: { legend: { labels: { color: "#94a3b8", boxWidth: 14 } } },
+  scales: {
+    x: { ticks: { color: "#64748b", maxTicksLimit: 12 } , grid: { color: "#1e293b" } },
+    y: { ticks: { color: "#64748b" } , grid: { color: "#1e293b" } }
+  }
+};
+
+function byggGrafer() {
+  // CTL/ATL/TSB
+  new Chart(document.getElementById("ctlChart"), {
+    type: "line",
+    data: {
+      labels: DATO_LBL,
+      datasets: [
+        { label: "CTL", data: CTL_DATA, borderColor: "#3b82f6", backgroundColor: "transparent", borderWidth: 2, pointRadius: 0, tension: 0.3 },
+        { label: "ATL", data: ATL_DATA, borderColor: "#f97316", backgroundColor: "transparent", borderWidth: 2, pointRadius: 0, tension: 0.3 },
+        { label: "TSB", data: TSB_DATA, borderColor: "#22c55e", backgroundColor: "#22c55e11", borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true },
+      ]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      plugins: {
+        ...CHART_DEFAULTS.plugins,
+        annotation: undefined
+      },
+      scales: {
+        x: CHART_DEFAULTS.scales.x,
+        y: { ...CHART_DEFAULTS.scales.y, suggestedMin: -30, suggestedMax: 80 }
+      }
+    }
+  });
+
+  // HRV
+  new Chart(document.getElementById("hrvChart"), {
+    type: "line",
+    data: {
+      labels: HRV_LBL,
+      datasets: [{
+        label: "HRV (ms)",
+        data: HRV_VALS,
+        borderColor: "#a78bfa",
+        backgroundColor: "#a78bfa22",
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: HRV_VALS.map(v => v >= 70 && v <= 98 ? "#22c55e" : v >= 60 ? "#f59e0b" : "#ef4444"),
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: {
+        x: CHART_DEFAULTS.scales.x,
+        y: { ...CHART_DEFAULTS.scales.y, suggestedMin: 40, suggestedMax: 110 }
+      }
+    }
+  });
+
+  // Body Battery
+  new Chart(document.getElementById("bbChart"), {
+    type: "bar",
+    data: {
+      labels: BB_LBL,
+      datasets: [{
+        label: "Body Battery",
+        data: BB_VALS,
+        backgroundColor: BB_VALS.map(v => v >= 70 ? "#22c55e88" : v >= 50 ? "#f59e0b88" : "#ef444488"),
+        borderColor:      BB_VALS.map(v => v >= 70 ? "#22c55e" : v >= 50 ? "#f59e0b" : "#ef4444"),
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: {
+        x: CHART_DEFAULTS.scales.x,
+        y: { ...CHART_DEFAULTS.scales.y, min: 0, max: 100 }
+      }
+    }
+  });
+
+  // Søvn
+  new Chart(document.getElementById("sovnChart"), {
+    type: "bar",
+    data: {
+      labels: SOVN_LBL,
+      datasets: [
+        { label: "Dyp",  data: SOVN_DYP,  backgroundColor: "#1d4ed8aa", borderRadius: 3 },
+        { label: "REM",  data: SOVN_REM,  backgroundColor: "#7c3aedaa", borderRadius: 3 },
+        { label: "Lett", data: SOVN_LETT, backgroundColor: "#334155",   borderRadius: 3 },
+      ]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: {
+        x: CHART_DEFAULTS.scales.x,
+        y: { ...CHART_DEFAULTS.scales.y, stacked: true, title: { display: true, text: "min", color: "#64748b" } },
+        x2: { stacked: true }
+      },
+      plugins: { ...CHART_DEFAULTS.plugins },
+      indexAxis: "x"
+    }
+  });
+}
+</script>
+</body>
+</html>

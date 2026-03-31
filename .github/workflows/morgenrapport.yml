@@ -59,3 +59,14 @@ jobs:
           GMAIL_USER:         ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: python send_epost.py
+
+      - name: Generer dashboard
+        run: python generer_dashboard.py
+
+      - name: Commit dashboard
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add docs/index.html
+          git diff --staged --quiet || git commit -m "Dashboard oppdatert $(date +%Y-%m-%d)"
+          git push
