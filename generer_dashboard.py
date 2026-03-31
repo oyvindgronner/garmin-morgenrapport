@@ -234,6 +234,15 @@ def main():
         "ukeplan":      ukeplan.get("okter", []),
     }
 
+    # Les kommentarlogg for visning i dashboardet
+    okt_logg = []
+    if os.path.exists("okt_logg.json"):
+        with open("okt_logg.json", encoding="utf-8") as f:
+            okt_logg = json.load(f)
+
+    payload["okt_logg"] = okt_logg[-10:]  # siste 10 kommentarer
+    payload["github_token"] = os.environ.get("DASHBOARD_GITHUB_TOKEN", "")
+
     passord    = os.environ.get("DASHBOARD_PASSWORD", "hamburg2026")
     kryptert   = krypter_payload(json.dumps(payload, ensure_ascii=False), passord)
 
@@ -292,6 +301,18 @@ a{{color:#60a5fa}}
 .okt-kort{{border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid #334155}}
 footer{{text-align:center;color:#475569;font-size:0.78rem;padding:40px 0 20px;line-height:1.8}}
 footer span{{color:#64748b}}
+.trigger-panel{{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #334155}}
+.trigger-panel h3{{font-size:0.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}}
+.trigger-panel textarea{{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:10px 12px;font-size:0.9rem;font-family:inherit;resize:vertical;min-height:72px;margin-bottom:12px}}
+.trigger-panel textarea:focus{{outline:none;border-color:#3b82f6}}
+.trigger-btn{{padding:10px 24px;border-radius:8px;border:none;background:#3b82f6;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer}}
+.trigger-btn:disabled{{opacity:.5;cursor:not-allowed}}
+.trigger-status{{font-size:0.82rem;margin-top:10px;min-height:1.2em}}
+.logg-rad{{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #0f172a;font-size:0.83rem}}
+.logg-rad:last-child{{border-bottom:none}}
+.logg-dato{{color:#64748b;white-space:nowrap;min-width:60px}}
+.logg-okt{{color:#94a3b8;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}}
+.logg-txt{{color:#cbd5e1;flex:1}}
 </style>
 </head>
 <body>
@@ -316,6 +337,22 @@ footer span{{color:#64748b}}
       <p id="meta">Laster…</p>
     </div>
     <div class="badge" id="badge"></div>
+  </div>
+
+  <!-- Hent ferske data -->
+  <div class="trigger-panel" id="trigger-panel">
+    <h3>Hent ferske data og generer ny analyse</h3>
+    <textarea id="okt-kommentar" placeholder="Kommentar til siste økt — f.eks. 'Følte meg tung, beina tunge etter gårsdagens terskel' (valgfritt)"></textarea>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <button class="trigger-btn" id="trigger-btn" onclick="triggerRapport()">Hent ferske data</button>
+      <div class="trigger-status" id="trigger-status"></div>
+    </div>
+  </div>
+
+  <!-- Kommentarlogg -->
+  <div id="logg-seksjon" style="display:none;margin-bottom:16px">
+    <div class="seksjon-tittel" style="margin-top:0">Øktkommentarer</div>
+    <div class="kort" id="logg-innhold"></div>
   </div>
 
   <!-- Hamburg-mål -->
@@ -375,7 +412,7 @@ footer span{{color:#64748b}}
     </div>
     <div style="margin-bottom:8px">
       <span>Analyse utført av:</span> Claude claude-sonnet-4-6 (Anthropic) &nbsp;·&nbsp;
-      <span>Neste oppdatering:</span> kl. 09:00 norsk tid (automatisk)
+      <span>Oppdatering:</span> manuelt trigget fra dashboardet
     </div>
     <div>
       <span>Sist oppdatert:</span> <span id="footer-dato">–</span> &nbsp;·&nbsp;
@@ -458,6 +495,60 @@ async function loggInn() {{
   }}
 }})();
 
+// ── Lagret dekryptert data (for trigger-funksjon) ────────────────────────────
+let _dekryptertData = null;
+
+// ── Trigger workflow ──────────────────────────────────────────────────────────
+async function triggerRapport() {{
+  const token     = _dekryptertData?.github_token;
+  const kommentar = document.getElementById("okt-kommentar")?.value?.trim() || "";
+  const btn       = document.getElementById("trigger-btn");
+  const statusEl  = document.getElementById("trigger-status");
+
+  if (!token) {{
+    statusEl.textContent = "Ingen GitHub-token konfigurert (DASHBOARD_GITHUB_TOKEN mangler).";
+    statusEl.style.color = "#ef4444";
+    return;
+  }}
+
+  btn.disabled = true;
+  statusEl.style.color = "#94a3b8";
+  statusEl.textContent = "Sender forespørsel til GitHub Actions…";
+
+  try {{
+    const resp = await fetch(
+      "https://api.github.com/repos/oyvindgronner/garmin-morgenrapport/actions/workflows/morgenrapport.yml/dispatches",
+      {{
+        method: "POST",
+        headers: {{
+          "Authorization": `token ${{token}}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        }},
+        body: JSON.stringify({{
+          ref: "main",
+          inputs: {{ okt_kommentar: kommentar }}
+        }})
+      }}
+    );
+
+    if (resp.status === 204) {{
+      statusEl.textContent = "✅ Rapport startet! Oppdatert dashboard er klart om ca. 3–5 minutter. Last inn siden på nytt.";
+      statusEl.style.color = "#22c55e";
+      btn.textContent = "Rapport startet";
+    }} else {{
+      const txt = await resp.text();
+      statusEl.textContent = `Feil ${{resp.status}}: ${{txt}}`;
+      statusEl.style.color = "#ef4444";
+      btn.disabled = false;
+    }}
+  }} catch(e) {{
+    statusEl.textContent = `Nettverksfeil: ${{e.message}}`;
+    statusEl.style.color = "#ef4444";
+    btn.disabled = false;
+  }}
+}}
+
 // ── Dashboard-rendering ───────────────────────────────────────────────────────
 const TYPE_FARGER = {{
   "Rolig":"#22c55e","Terskel":"#f97316","Intervall":"#ef4444",
@@ -487,6 +578,7 @@ function statusFraAnalyse(a) {{
 }}
 
 function visDashboard(d) {{
+  _dekryptertData = d;
   document.getElementById("gate").style.display = "none";
   document.getElementById("dash").style.display = "block";
 
@@ -762,6 +854,24 @@ function visDashboard(d) {{
     }},
     options: {{...DEFAULTS, scales:{{x:DEFAULTS.scales.x, y:{{...DEFAULTS.scales.y, min:0, max:100}}}}}}
   }});
+
+  // Kommentarlogg
+  const logg = d.okt_logg || [];
+  if (logg.length > 0) {{
+    document.getElementById("logg-seksjon").style.display = "block";
+    document.getElementById("logg-innhold").innerHTML = [...logg].reverse().map(p => `
+      <div class="logg-rad">
+        <span class="logg-dato">${{p.dato ? p.dato.slice(5) : "–"}}</span>
+        <span class="logg-okt">${{p.okt_navn || ""}}</span>
+        <span class="logg-txt">${{p.kommentar}}</span>
+      </div>`).join("");
+  }}
+
+  // Trigger-panel: skjul hvis ingen token
+  if (!d.github_token) {{
+    document.getElementById("trigger-panel").innerHTML =
+      `<p style="font-size:.85rem;color:#64748b">Oppdatering trigges via GitHub Actions workflow_dispatch (DASHBOARD_GITHUB_TOKEN ikke konfigurert).</p>`;
+  }}
 
   // Søvn
   new Chart(document.getElementById("sovnChart"), {{

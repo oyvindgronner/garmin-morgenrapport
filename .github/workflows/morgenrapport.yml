@@ -1,26 +1,15 @@
 name: Morgenrapport
 
 on:
-  schedule:
-    - cron: '0 7 * * *'   # 09:00 norsk sommertid (CEST, UTC+2)
-    - cron: '0 8 * * *'   # 09:00 norsk vintertid (CET, UTC+1)
   workflow_dispatch:
+    inputs:
+      okt_kommentar:
+        description: 'Kommentar til siste økt (valgfritt)'
+        required: false
+        default: ''
 
 jobs:
-  tidssjekk:
-    runs-on: ubuntu-latest
-    outputs:
-      riktig_tid: ${{ steps.sjekk.outputs.riktig_tid }}
-    steps:
-      - id: sjekk
-        run: |
-          NORSK_TIME=$(TZ="Europe/Oslo" date +%H)
-          echo "Norsk tid: $NORSK_TIME:00"
-          echo "riktig_tid=$([ "$NORSK_TIME" = "09" ] && echo true || echo false)" >> $GITHUB_OUTPUT
-
   morgenrapport:
-    needs: tidssjekk
-    if: needs.tidssjekk.outputs.riktig_tid == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -61,6 +50,7 @@ jobs:
       - name: Claude coaching-analyse
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OKT_KOMMENTAR:     ${{ github.event.inputs.okt_kommentar }}
         run: python claude_analyse.py
 
       - name: Send e-post
@@ -72,10 +62,10 @@ jobs:
       - name: Generer dashboard
         run: python generer_dashboard.py
 
-      - name: Commit dashboard
+      - name: Commit og push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add docs/index.html
-          git diff --staged --quiet || git commit -m "Dashboard oppdatert $(date +%Y-%m-%d)"
+          git add docs/index.html okt_logg.json
+          git diff --staged --quiet || git commit -m "Rapport og dashboard oppdatert $(date +%Y-%m-%d\ %H:%M)"
           git push

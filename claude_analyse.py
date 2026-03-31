@@ -8,7 +8,8 @@ Genererer coaching-analyse med Claude basert på morgenrapport-data.
 import anthropic
 import os
 import json
-from datetime import date
+from datetime import date, timedelta
+from pathlib import Path
 
 SYSTEM_PROMPT = """Du er en erfaren utholdenhetscoach spesialisert på løping, med dyp kunnskap om Norwegian Singles-metoden og Marius Bakkens norske modell.
 
@@ -77,6 +78,45 @@ REGLER:
 - Hvis CTL er under 55 og det er under 20 dager til Hamburg: alltid anbefal å legge på last med mindre HRV er under 65 ms eller TSB er under -20"""
 
 
+OKT_LOGG_FIL = Path("okt_logg.json")
+
+
+def les_okt_logg() -> list:
+    if OKT_LOGG_FIL.exists():
+        with open(OKT_LOGG_FIL, encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+
+def lagre_okt_kommentar(dato: str, okt_navn: str, kommentar: str):
+    """Legg til kommentar i okt_logg.json. Oppdaterer eksisterende post for samme dato."""
+    logg = les_okt_logg()
+    for post in logg:
+        if post.get("dato") == dato:
+            post["kommentar"] = kommentar
+            post["okt_navn"] = okt_navn
+            break
+    else:
+        logg.append({"dato": dato, "okt_navn": okt_navn, "kommentar": kommentar})
+    # Behold kun siste 60 poster
+    logg = sorted(logg, key=lambda x: x["dato"])[-60:]
+    with open(OKT_LOGG_FIL, "w", encoding="utf-8") as f:
+        json.dump(logg, f, ensure_ascii=False, indent=2)
+
+
+def bygg_kommentar_kontekst() -> str:
+    """Hent kommentarer fra siste 14 dager for kontekst i analysen."""
+    logg = les_okt_logg()
+    if not logg:
+        return ""
+    grense = (date.today() - timedelta(days=14)).isoformat()
+    relevante = [p for p in logg if p.get("dato", "") >= grense and p.get("kommentar")]
+    if not relevante:
+        return ""
+    linjer = [f"- {p['dato'][5:]} ({p.get('okt_navn', '–')}): {p['kommentar']}" for p in relevante[-7:]]
+    return "\n".join(linjer)
+
+
 def bygg_prompt(data: dict) -> str:
     tp = data.get("trainingpeaks", {})
     helse = tp.get("helsedata", {})
@@ -119,6 +159,9 @@ def bygg_prompt(data: dict) -> str:
             )
         ukeplan_linjer = "\n".join(linjer)
 
+    kommentar_kontekst = bygg_kommentar_kontekst()
+    kommentar_seksjon = f"\n\nSUBJEKTIVE TILBAKEMELDINGER SISTE 14 DAGER:\n{kommentar_kontekst}" if kommentar_kontekst else ""
+
     prompt = f"""MORGENDATA {data.get('dato', '')}
 DAGER TIL HAMBURG: {(date(2026, 4, 26) - date.today()).days}
 
@@ -151,7 +194,7 @@ AKTIVITETER SISTE 7 DAGER:
 {akt_linjer}
 
 PLANLAGT UKE (Pacepilot → ukeplan.json):
-{ukeplan_linjer if ukeplan_linjer else "Ingen ukeplan registrert"}"""
+{ukeplan_linjer if ukeplan_linjer else "Ingen ukeplan registrert"}{kommentar_seksjon}"""
 
     return prompt
 
@@ -166,6 +209,15 @@ def main():
 
     with open(json_fil, "r", encoding="utf-8") as f:
         data = json.load(f)
+
+    # Lagre eventuell kommentar fra trigger (knyttet til dagens dato / siste økt)
+    okt_kommentar = os.environ.get("OKT_KOMMENTAR", "").strip()
+    if okt_kommentar:
+        strava = data.get("strava", {})
+        aktiviteter = strava.get("aktiviteter", [])
+        siste_okt_navn = aktiviteter[0].get("navn", "Ukjent økt") if aktiviteter else "Ukjent økt"
+        lagre_okt_kommentar(dato, siste_okt_navn, okt_kommentar)
+        print(f"Kommentar lagret: {okt_kommentar}")
 
     prompt = bygg_prompt(data)
 
