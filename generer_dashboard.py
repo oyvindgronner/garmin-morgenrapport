@@ -695,7 +695,7 @@ function visDashboard(d) {{
     const v = Math.min(40, Math.max(0, (sovnMin - 300) / 180 * 40));
     const dp = helse.dyp_sovn_min ? Math.min(30, (helse.dyp_sovn_min / sovnMin * 100) / 20 * 30) : 0;
     const rm = helse.rem_sovn_min ? Math.min(30, (helse.rem_sovn_min / sovnMin * 100) / 25 * 30) : 0;
-    sovnscore = Math.round(v + dp + rm);
+    sovnscore = Math.min(100, Math.round(v + dp + rm + 10));
   }}
   const sovnscoreFarge = sovnscore >= 75 ? "#22c55e" : sovnscore >= 55 ? "#f59e0b" : "#ef4444";
   const sovnscoreLabel = sovnscore >= 80 ? "Utmerket" : sovnscore >= 65 ? "God" : sovnscore >= 50 ? "Ok" : "Dårlig";
