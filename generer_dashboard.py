@@ -344,6 +344,10 @@ a{{color:var(--blue-light)}}
 .trigger-btn:hover{{background:var(--blue-light)}}
 .trigger-btn:disabled{{opacity:.5;cursor:not-allowed}}
 .trigger-status{{font-size:0.82rem;margin-top:10px;min-height:1.2em}}
+.progress-wrap{{margin-top:14px;display:none}}
+.progress-bar-bg{{background:var(--border);border-radius:4px;height:10px;overflow:hidden;margin-bottom:6px}}
+.progress-bar-fill{{height:100%;background:var(--blue);border-radius:4px;width:0%;transition:width .5s ease}}
+.progress-pct{{font-size:0.82rem;color:var(--muted);font-weight:600}}
 
 /* ── Logg ── */
 .logg-rad{{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--bg);font-size:0.82rem}}
@@ -398,6 +402,10 @@ footer span{{color:var(--muted)}}
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <button class="trigger-btn" id="trigger-btn" onclick="triggerRapport()">Hent ferske data</button>
       <div class="trigger-status" id="trigger-status"></div>
+    </div>
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+      <div class="progress-pct" id="progress-pct"></div>
     </div>
   </div>
 
@@ -554,11 +562,23 @@ async function loggInn() {{
 let _dekryptertData = null;
 
 // ── Trigger workflow ──────────────────────────────────────────────────────────
+const REPO = "oyvindgronner/garmin-morgenrapport";
+const WORKFLOW = "morgenrapport.yml";
+
+function ghFetch(token, path) {{
+  return fetch(`https://api.github.com/repos/${{REPO}}/${{path}}`, {{
+    headers: {{ "Authorization": `token ${{token}}`, "Accept": "application/vnd.github.v3+json" }}
+  }}).then(r => r.json());
+}}
+
 async function triggerRapport() {{
   const token     = _dekryptertData?.github_token;
   const kommentar = document.getElementById("okt-kommentar")?.value?.trim() || "";
   const btn       = document.getElementById("trigger-btn");
   const statusEl  = document.getElementById("trigger-status");
+  const wrapEl    = document.getElementById("progress-wrap");
+  const fillEl    = document.getElementById("progress-fill");
+  const pctEl     = document.getElementById("progress-pct");
 
   if (!token) {{
     statusEl.textContent = "Ingen GitHub-token konfigurert (DASHBOARD_GITHUB_TOKEN mangler).";
@@ -568,40 +588,87 @@ async function triggerRapport() {{
 
   btn.disabled = true;
   statusEl.style.color = "#94a3b8";
-  statusEl.textContent = "Sender forespørsel til GitHub Actions…";
+  statusEl.textContent = "Sender forespørsel…";
 
-  try {{
-    const resp = await fetch(
-      "https://api.github.com/repos/oyvindgronner/garmin-morgenrapport/actions/workflows/morgenrapport.yml/dispatches",
-      {{
-        method: "POST",
-        headers: {{
-          "Authorization": `token ${{token}}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json",
-        }},
-        body: JSON.stringify({{
-          ref: "main",
-          inputs: {{ okt_kommentar: kommentar }}
-        }})
-      }}
-    );
-
-    if (resp.status === 204) {{
-      statusEl.textContent = "✅ Rapport startet! Oppdatert dashboard er klart om ca. 3–5 minutter. Last inn siden på nytt.";
-      statusEl.style.color = "#22c55e";
-      btn.textContent = "Rapport startet";
-    }} else {{
-      const txt = await resp.text();
-      statusEl.textContent = `Feil ${{resp.status}}: ${{txt}}`;
-      statusEl.style.color = "#ef4444";
-      btn.disabled = false;
+  // 1. Dispatch
+  const dispResp = await fetch(
+    `https://api.github.com/repos/${{REPO}}/actions/workflows/${{WORKFLOW}}/dispatches`,
+    {{
+      method: "POST",
+      headers: {{
+        "Authorization": `token ${{token}}`,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+      }},
+      body: JSON.stringify({{ ref: "main", inputs: {{ okt_kommentar: kommentar }} }})
     }}
-  }} catch(e) {{
-    statusEl.textContent = `Nettverksfeil: ${{e.message}}`;
+  );
+
+  if (dispResp.status !== 204) {{
+    const txt = await dispResp.text();
+    statusEl.textContent = `Feil ${{dispResp.status}}: ${{txt}}`;
     statusEl.style.color = "#ef4444";
     btn.disabled = false;
+    return;
   }}
+
+  statusEl.textContent = "Workflow startet…";
+  wrapEl.style.display = "block";
+  setProgress(fillEl, pctEl, 0, "#0075be");
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  // 2. Finn run-ID (venter til den dukker opp, maks 30s)
+  await sleep(4000);
+  let runId = null;
+  const dispatchedAt = Date.now();
+  while (!runId) {{
+    if (Date.now() - dispatchedAt > 30000) {{
+      statusEl.textContent = "Fant ikke kjøring — last inn siden manuelt om noen minutter.";
+      return;
+    }}
+    const data = await ghFetch(token, `actions/workflows/${{WORKFLOW}}/runs?per_page=5`);
+    const run = data.workflow_runs?.find(r => r.status === "in_progress" || r.status === "queued");
+    if (run) runId = run.id;
+    else await sleep(3000);
+  }}
+
+  // 3. Poll steg-fremdrift
+  while (true) {{
+    const data = await ghFetch(token, `actions/runs/${{runId}}/jobs`);
+    const job  = data.jobs?.[0];
+    if (!job) {{ await sleep(4000); continue; }}
+
+    const steps = job.steps || [];
+    const total = steps.length;
+    const done  = steps.filter(s => s.status === "completed").length;
+    const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+    setProgress(fillEl, pctEl, pct, "#0075be");
+
+    if (job.status === "completed") {{
+      if (job.conclusion === "success") {{
+        setProgress(fillEl, pctEl, 100, "#22c55e");
+        pctEl.textContent = "Ferdig — laster inn nytt dashboard…";
+        statusEl.textContent = "";
+        await sleep(2000);
+        window.location.reload();
+      }} else {{
+        setProgress(fillEl, pctEl, pct, "#ef4444");
+        statusEl.textContent = `Workflow feilet (${{job.conclusion}}).`;
+        statusEl.style.color = "#ef4444";
+        btn.disabled = false;
+      }}
+      return;
+    }}
+
+    await sleep(4000);
+  }}
+}}
+
+function setProgress(fillEl, pctEl, pct, color) {{
+  fillEl.style.width   = pct + "%";
+  fillEl.style.background = color;
+  pctEl.textContent    = pct + "%";
 }}
 
 // ── Dashboard-rendering ───────────────────────────────────────────────────────
