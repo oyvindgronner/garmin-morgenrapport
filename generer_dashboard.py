@@ -617,51 +617,70 @@ async function triggerRapport() {{
   setProgress(fillEl, pctEl, 0, "#0075be");
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const EXPECTED_MS = 3.5 * 60 * 1000; // forventet varighet ~3.5 min
+  const KNOWN_STEPS = 13;               // totalt antall steg i workflowen
+  const startedAt   = Date.now();
 
-  // 2. Finn run-ID (venter til den dukker opp, maks 30s)
-  await sleep(4000);
-  let runId = null;
-  const dispatchedAt = Date.now();
-  while (!runId) {{
-    if (Date.now() - dispatchedAt > 30000) {{
-      statusEl.textContent = "Fant ikke kjøring — last inn siden manuelt om noen minutter.";
-      return;
-    }}
-    const data = await ghFetch(token, `actions/workflows/${{WORKFLOW}}/runs?per_page=5`);
-    const run = data.workflow_runs?.find(r => r.status === "in_progress" || r.status === "queued");
-    if (run) runId = run.id;
-    else await sleep(3000);
-  }}
+  // Tidbasert fremgang — løper jevnt 0→85% uavhengig av API
+  let timerId = setInterval(() => {{
+    const elapsed = Date.now() - startedAt;
+    const timePct = Math.min(85, Math.round(elapsed / EXPECTED_MS * 85));
+    const curPct  = parseInt(fillEl.style.width) || 0;
+    if (timePct > curPct) setProgress(fillEl, pctEl, timePct, "#0075be");
+  }}, 1000);
 
-  // 3. Poll steg-fremdrift
-  while (true) {{
-    const data = await ghFetch(token, `actions/runs/${{runId}}/jobs`);
-    const job  = data.jobs?.[0];
-    if (!job) {{ await sleep(4000); continue; }}
-
-    const steps = job.steps || [];
-    const total = steps.length;
-    const done  = steps.filter(s => s.status === "completed").length;
-    const pct   = total > 0 ? Math.round(done / total * 100) : 0;
-    setProgress(fillEl, pctEl, pct, "#0075be");
-
-    if (job.status === "completed") {{
-      if (job.conclusion === "success") {{
-        setProgress(fillEl, pctEl, 100, "#22c55e");
-        pctEl.textContent = "Ferdig — laster inn nytt dashboard…";
-        statusEl.textContent = "";
-        await sleep(2000);
-        window.location.reload();
-      }} else {{
-        setProgress(fillEl, pctEl, pct, "#ef4444");
-        statusEl.textContent = `Workflow feilet (${{job.conclusion}}).`;
-        statusEl.style.color = "#ef4444";
-        btn.disabled = false;
-      }}
-      return;
-    }}
-
+  try {{
+    // 2. Finn run-ID (maks 30s)
     await sleep(4000);
+    let runId = null;
+    const dispatchedAt = Date.now();
+    while (!runId) {{
+      if (Date.now() - dispatchedAt > 30000) {{
+        statusEl.textContent = "Fant ikke kjøring — last inn siden manuelt om noen minutter.";
+        return;
+      }}
+      const data = await ghFetch(token, `actions/workflows/${{WORKFLOW}}/runs?per_page=5`);
+      const run = data.workflow_runs?.find(r => r.status === "in_progress" || r.status === "queued");
+      if (run) runId = run.id;
+      else await sleep(3000);
+    }}
+
+    // 3. Poll faktiske steg — overstyrer tidbasert når høyere
+    while (true) {{
+      const data = await ghFetch(token, `actions/runs/${{runId}}/jobs`);
+      const job  = data.jobs?.[0];
+
+      if (job) {{
+        const steps     = job.steps || [];
+        const total     = Math.max(steps.length, KNOWN_STEPS);
+        const completed = steps.filter(s => s.status === "completed").length;
+        const active    = steps.filter(s => s.status === "in_progress").length;
+        const stepPct   = Math.round((completed + active * 0.5) / total * 100);
+        const curPct    = parseInt(fillEl.style.width) || 0;
+        if (stepPct > curPct) setProgress(fillEl, pctEl, stepPct, "#0075be");
+
+        if (job.status === "completed") {{
+          clearInterval(timerId);
+          if (job.conclusion === "success") {{
+            setProgress(fillEl, pctEl, 100, "#22c55e");
+            pctEl.textContent = "Ferdig — laster inn nytt dashboard…";
+            statusEl.textContent = "";
+            await sleep(2000);
+            window.location.reload();
+          }} else {{
+            setProgress(fillEl, pctEl, parseInt(fillEl.style.width) || 0, "#ef4444");
+            statusEl.textContent = `Workflow feilet (${{job.conclusion}}).`;
+            statusEl.style.color = "#ef4444";
+            btn.disabled = false;
+          }}
+          return;
+        }}
+      }}
+
+      await sleep(4000);
+    }}
+  }} finally {{
+    clearInterval(timerId);
   }}
 }}
 
