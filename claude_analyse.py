@@ -126,7 +126,9 @@ HELSE I DAG:
 HRV: {helse.get('hrv', '–')} ms (balansert sone: 70–98 ms)
 Hvilepuls: {helse.get('hvilepuls', '–')} bpm
 Body Battery: {helse.get('bb_maks', '–')}/100 (min: {helse.get('bb_min', '–')})
-Søvn: {helse.get('sovn_min', '–')} min (dyp: {helse.get('dyp_sovn_min', '–')}min | REM: {helse.get('rem_sovn_min', '–')}min) | Garmin søvnscore: {helse.get('sovn_score', '–')}/100
+Søvn: {helse.get('sovn_min', '–')} min (dyp: {helse.get('dyp_sovn_min', '–')}min | REM: {helse.get('rem_sovn_min', '–')}min)
+Garmin søvnscore: {helse.get('sovn_score', '–')}/100
+HRV natt: {helse.get('hrv_natt', '–')} ms | HRV status: {helse.get('hrv_status', '–')} | Baseline: {helse.get('hrv_baseline', '–')}
 Søvnsnitt siste 7d: {sovn_snitt} min
 Stress: {helse.get('stress_snitt', '–')}
 

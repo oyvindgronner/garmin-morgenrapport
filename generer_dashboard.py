@@ -488,14 +488,32 @@ function visDashboard(d) {{
   const sovnscoreLabel = sovnscore >= 80 ? "Utmerket" : sovnscore >= 65 ? "God" : sovnscore >= 50 ? "Ok" : "Dårlig";
   const sovnscoreKilde = helse.sovn_score != null ? "" : " (beregnet)";
 
+  // HRV-status fra Garmin (BALANCED / UNBALANCED / LOW osv.)
+  const hrvStatusMap = {{
+    "BALANCED":   ["Balansert", "#22c55e"],
+    "UNBALANCED": ["Ubalansert", "#f59e0b"],
+    "LOW":        ["Lav", "#ef4444"],
+    "POOR":       ["Svak", "#ef4444"],
+  }};
+  const [hrvStatusTxt, hrvStatusFarge] = hrvStatusMap[helse.hrv_status] || [null, null];
+  const hrvStr = hrv
+    ? `${{hrv}} ms${{hrvStatusTxt ? ` — ${{hrvStatusTxt}}` : ""}}`
+    : "–";
+
   document.getElementById("dagsform-innhold").innerHTML =
-    metrikk("HRV",          hrv ? `${{hrv}} ms` : "–",       fargeHRV(hrv||0))
+    metrikk("HRV",          hrvStr, hrvStatusFarge || fargeHRV(hrv||0))
+  + (helse.hrv_baseline
+      ? metrikk("HRV baseline", helse.hrv_baseline)
+      : "")
   + metrikk("Hvilepuls",    helse.hvilepuls ? `${{helse.hvilepuls}} bpm` : "–")
   + metrikk("Body Battery", helse.bb_maks ? `${{helse.bb_maks}}/100` : "–",  fargeBB(helse.bb_maks||0))
   + metrikk("Søvnscore",    sovnscore !== null ? `${{sovnscore}}/100 — ${{sovnscoreLabel}}${{sovnscoreKilde}}` : "–", sovnscoreFarge)
   + metrikk("Søvn totalt",  sovnStr)
   + metrikk("Dyp søvn",     helse.dyp_sovn_min ? `${{helse.dyp_sovn_min}} min` : "–")
   + metrikk("REM",          helse.rem_sovn_min ? `${{helse.rem_sovn_min}} min` : "–")
+  + (helse.respirasjonsfrekvens
+      ? metrikk("Respirasjonsfrekvens", `${{helse.respirasjonsfrekvens}} ånd/min`)
+      : "")
   + metrikk("Stress",       helse.stress_snitt ?? "–");
 
   // Siste økt
