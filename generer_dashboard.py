@@ -35,7 +35,7 @@ def krypter_payload(data_json: str, passord: str) -> str:
 
 def formater_analyse(analyse: str) -> str:
     if not analyse:
-        return "<p>Ingen analyse tilgjengelig.</p>"
+        return "<p style='color:#64748b'>Coaching-analyse ikke tilgjengelig for denne datoen. Analysen genereres automatisk av GitHub Actions kl. 09:00 norsk tid og legges til her.</p>"
     lines = []
     for line in analyse.split("\n"):
         line = line.strip()
@@ -255,6 +255,11 @@ footer span{{color:#64748b}}
   <div class="kort" id="maal-kort" style="margin-bottom:16px;border-left:4px solid #fbbf24">
     <h3 id="maal-tittel">Hamburg-mål · Sub 3:00</h3>
     <div class="grid3" style="margin-top:12px;margin-bottom:0" id="maal-grid"></div>
+    <div style="margin-top:12px;font-size:0.75rem;color:#475569">
+      Kondisjon = treningsbase bygd over 42 dager &nbsp;·&nbsp;
+      Belastning = tretthet fra siste 7 dager &nbsp;·&nbsp;
+      Overskudd = kondisjon minus belastning
+    </div>
   </div>
 
   <!-- Dagsform + siste økt -->
@@ -270,7 +275,7 @@ footer span{{color:#64748b}}
   <!-- Formkurve -->
   <div class="seksjon-tittel">Formkurve — siste 90 dager</div>
   <div class="chart-boks">
-    <h3>CTL / ATL / TSB · Mål Hamburg: CTL 58–65, TSB +12–+20</h3>
+    <h3>Kondisjon / Belastning / Overskudd · Mål Hamburg: Kondisjon 58–65, Overskudd +12–+20</h3>
     <canvas id="ctlChart" height="120"></canvas>
   </div>
 
@@ -446,14 +451,14 @@ function visDashboard(d) {{
   const tsbPct = Math.min(100, Math.max(0, Math.round(((tsb + 30) / 50) * 100)));
   document.getElementById("maal-grid").innerHTML = `
     <div>
-      <div style="font-size:.8rem;color:#94a3b8">CTL nå</div>
+      <div style="font-size:.8rem;color:#94a3b8">Kondisjon (CTL)</div>
       <div class="stor-tall" style="color:${{fargeCTL(ctl)}}">${{ctl}}</div>
       <div class="sub-tall">Mål: 58–65</div>
       <div class="fremgang-bg"><div class="fremgang-fill" style="width:${{ctlPct}}%;background:${{fargeCTL(ctl)}}"></div></div>
       <div style="font-size:.75rem;color:#64748b">${{ctl >= 58 ? "✅ I mål" : `⚠️ ${{(58-ctl).toFixed(1)}} bak min.mål`}}</div>
     </div>
     <div>
-      <div style="font-size:.8rem;color:#94a3b8">TSB i dag</div>
+      <div style="font-size:.8rem;color:#94a3b8">Overskudd (TSB)</div>
       <div class="stor-tall" style="color:${{fargeTSB(tsb)}}">${{tsb >= 0 ? "+" : ""}}${{tsb.toFixed(1)}}</div>
       <div class="sub-tall">Race-mål: +12 til +20</div>
       <div class="fremgang-bg"><div class="fremgang-fill" style="width:${{tsbPct}}%;background:#3b82f6"></div></div>
@@ -465,17 +470,36 @@ function visDashboard(d) {{
       <div class="sub-tall">Balansert: 70–98 ms</div>
     </div>`;
 
+  // Søvnscore 0–100
+  function beregnSovnscore(sovnMin, dypMin, remMin) {{
+    if (!sovnMin) return null;
+    // Varighet: 420 min = 40 poeng, 480 min = 40 poeng (maks), <300 = 0
+    let v = Math.min(40, Math.max(0, (sovnMin - 300) / (480 - 300) * 40));
+    // Dyptsøvn: mål ≥15% → 30 poeng
+    const dypPct = dypMin ? (dypMin / sovnMin * 100) : 0;
+    let d = Math.min(30, Math.max(0, dypPct / 20 * 30));
+    // REM: mål ≥20% → 30 poeng
+    const remPct = remMin ? (remMin / sovnMin * 100) : 0;
+    let r = Math.min(30, Math.max(0, remPct / 25 * 30));
+    return Math.round(v + d + r);
+  }}
+
   // Dagsform
   const sovnMin = helse.sovn_min;
   const sovnStr = sovnMin ? `${{Math.floor(sovnMin/60)}}t ${{sovnMin%60}}min` : "–";
+  const sovnscore = beregnSovnscore(sovnMin, helse.dyp_sovn_min, helse.rem_sovn_min);
+  const sovnscoreStr = sovnscore !== null ? `${{sovnscore}}/100` : "–";
+  const sovnscoreFarge = sovnscore >= 75 ? "#22c55e" : sovnscore >= 55 ? "#f59e0b" : "#ef4444";
+  const sovnscoreLabel = sovnscore >= 75 ? "God" : sovnscore >= 55 ? "Ok" : "Dårlig";
   document.getElementById("dagsform-innhold").innerHTML =
-    metrikk("HRV",       hrv ? `${{hrv}} ms` : "–",      fargeHRV(hrv||0))
-  + metrikk("Hvilepuls", helse.hvilepuls ? `${{helse.hvilepuls}} bpm` : "–")
-  + metrikk("Body Battery", helse.bb_maks ? `${{helse.bb_maks}}/100` : "–", fargeBB(helse.bb_maks||0))
-  + metrikk("Søvn",        sovnStr)
-  + metrikk("Dyp søvn",    helse.dyp_sovn_min ? `${{helse.dyp_sovn_min}} min` : "–")
-  + metrikk("REM",         helse.rem_sovn_min ? `${{helse.rem_sovn_min}} min` : "–")
-  + metrikk("Stress",      helse.stress_snitt ?? "–");
+    metrikk("HRV",          hrv ? `${{hrv}} ms` : "–",       fargeHRV(hrv||0))
+  + metrikk("Hvilepuls",    helse.hvilepuls ? `${{helse.hvilepuls}} bpm` : "–")
+  + metrikk("Body Battery", helse.bb_maks ? `${{helse.bb_maks}}/100` : "–",  fargeBB(helse.bb_maks||0))
+  + metrikk("Søvnscore",    sovnscore !== null ? `${{sovnscoreStr}} — ${{sovnscoreLabel}}` : "–", sovnscoreFarge)
+  + metrikk("Søvn totalt",  sovnStr)
+  + metrikk("Dyp søvn",     helse.dyp_sovn_min ? `${{helse.dyp_sovn_min}} min` : "–")
+  + metrikk("REM",          helse.rem_sovn_min ? `${{helse.rem_sovn_min}} min` : "–")
+  + metrikk("Stress",       helse.stress_snitt ?? "–");
 
   // Siste økt
   const siste = (d.aktiviteter || [])[0] || {{}};
@@ -530,15 +554,15 @@ function visDashboard(d) {{
     }}
   }};
 
-  // CTL/ATL/TSB
+  // Kondisjon/Belastning/Overskudd (CTL/ATL/TSB)
   new Chart(document.getElementById("ctlChart"), {{
     type: "line",
     data: {{
       labels: d.trend90.map(x => x.dato),
       datasets: [
-        {{label:"CTL", data:d.trend90.map(x=>x.ctl), borderColor:"#3b82f6", backgroundColor:"transparent", borderWidth:2, pointRadius:0, tension:0.3}},
-        {{label:"ATL", data:d.trend90.map(x=>x.atl), borderColor:"#f97316", backgroundColor:"transparent", borderWidth:2, pointRadius:0, tension:0.3}},
-        {{label:"TSB", data:d.trend90.map(x=>x.tsb), borderColor:"#22c55e", backgroundColor:"#22c55e11", borderWidth:1.5, pointRadius:0, tension:0.3, fill:true}},
+        {{label:"Kondisjon (CTL)", data:d.trend90.map(x=>x.ctl), borderColor:"#3b82f6", backgroundColor:"transparent", borderWidth:2, pointRadius:0, tension:0.3}},
+        {{label:"Belastning (ATL)", data:d.trend90.map(x=>x.atl), borderColor:"#f97316", backgroundColor:"transparent", borderWidth:2, pointRadius:0, tension:0.3}},
+        {{label:"Overskudd (TSB)", data:d.trend90.map(x=>x.tsb), borderColor:"#22c55e", backgroundColor:"#22c55e11", borderWidth:1.5, pointRadius:0, tension:0.3, fill:true}},
       ]
     }},
     options: {{...DEFAULTS, scales:{{x:DEFAULTS.scales.x, y:{{...DEFAULTS.scales.y, suggestedMin:-30, suggestedMax:80}}}}}}
