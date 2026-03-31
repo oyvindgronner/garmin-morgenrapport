@@ -15,8 +15,11 @@ Deretter kjøres dette scriptet automatisk i workflow etter morgen.py.
 import json
 import os
 import sys
+import warnings
 from datetime import date, timedelta
 from pathlib import Path
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def main():
