@@ -36,7 +36,7 @@ def krypter_payload(data_json: str, passord: str) -> str:
 
 def formater_analyse(analyse: str) -> str:
     if not analyse:
-        return "<p style='color:#64748b'>Coaching-analyse ikke tilgjengelig for denne datoen. Analysen genereres automatisk av GitHub Actions kl. 09:00 norsk tid og legges til her.</p>"
+        return "<p style='color:#64748b'>Coaching-analyse ikke tilgjengelig. Bruk knappen øverst for å hente ferske data og generere ny analyse.</p>"
     lines = []
     for line in analyse.split("\n"):
         line = line.strip()
