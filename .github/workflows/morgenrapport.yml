@@ -60,6 +60,9 @@ jobs:
         run: python send_epost.py
 
       - name: Generer dashboard
+        env:
+          DASHBOARD_GITHUB_TOKEN: ${{ secrets.DASHBOARD_GITHUB_TOKEN }}
+          DASHBOARD_PASSWORD:     ${{ secrets.DASHBOARD_PASSWORD }}
         run: python generer_dashboard.py
 
       - name: Commit og push
