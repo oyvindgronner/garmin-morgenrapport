@@ -259,60 +259,103 @@ def main():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Treningsdashboard — Hamburg 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
+:root{{
+  --blue:#0075be;
+  --blue-dark:#005a94;
+  --blue-light:#1a9de0;
+  --gold:#c9a227;
+  --gold-light:#e0b93a;
+  --bg:#07141f;
+  --bg2:#0c1e2e;
+  --bg3:#112536;
+  --border:#1a3348;
+  --text:#e8f2fa;
+  --muted:#7a9bb5;
+  --dimmed:#3d5a72;
+}}
 *{{box-sizing:border-box;margin:0;padding:0}}
-body{{background:#0f172a;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.5}}
-a{{color:#60a5fa}}
-#gate{{display:flex;align-items:center;justify-content:center;min-height:100vh}}
-.gate-box{{background:#1e293b;border-radius:16px;padding:40px;text-align:center;max-width:340px;width:90%}}
-.gate-box h2{{margin-bottom:8px;font-size:1.3rem}}
-.gate-box p{{color:#94a3b8;margin-bottom:24px;font-size:0.9rem}}
-.gate-box input{{width:100%;padding:10px 14px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:1rem;margin-bottom:12px}}
-.gate-box button{{width:100%;padding:10px;border-radius:8px;border:none;background:#3b82f6;color:#fff;font-size:1rem;font-weight:600;cursor:pointer}}
-.gate-box .feil{{color:#ef4444;font-size:0.85rem;margin-top:8px;min-height:1.2em}}
-#dash{{display:none;max-width:1100px;margin:0 auto;padding:20px 16px 60px}}
-.topbar{{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #1e293b}}
-.topbar-left h1{{font-size:1.2rem;font-weight:700}}
-.topbar-left p{{font-size:0.8rem;color:#64748b;margin-top:2px}}
-.badge{{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;font-weight:700;font-size:0.85rem}}
+body{{background:var(--bg);color:var(--text);font-family:'Open Sans',sans-serif;font-size:15px;line-height:1.5}}
+a{{color:var(--blue-light)}}
+
+/* ── Gate ── */
+#gate{{display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:var(--bg) url('https://haspa-marathon-hamburg.de/wp-content/uploads/2024/02/HMHH_Skyline_2024_MHV.jpg') center/cover no-repeat;}}
+#gate::before{{content:'';position:fixed;inset:0;background:rgba(7,20,31,0.82)}}
+.gate-box{{position:relative;background:rgba(12,30,46,0.97);border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:4px;padding:44px 40px;text-align:center;max-width:360px;width:90%;box-shadow:0 24px 60px rgba(0,0,0,.6)}}
+.gate-logo{{width:220px;margin:0 auto 28px;display:block}}
+.gate-box p{{color:var(--muted);margin-bottom:28px;font-size:0.88rem;font-weight:300;letter-spacing:.03em}}
+.gate-box input{{width:100%;padding:11px 14px;border-radius:3px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:1rem;font-family:inherit;margin-bottom:12px}}
+.gate-box input:focus{{outline:none;border-color:var(--blue)}}
+.gate-box button{{width:100%;padding:11px;border-radius:3px;border:none;background:var(--blue);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:background .2s}}
+.gate-box button:hover{{background:var(--blue-light)}}
+.gate-box .feil{{color:#ef4444;font-size:0.83rem;margin-top:10px;min-height:1.2em}}
+
+/* ── Header ── */
+#dash{{display:none;max-width:1140px;margin:0 auto;padding:0 16px 60px}}
+.site-header{{background:var(--blue);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;margin:0 -16px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.4)}}
+.site-header img{{height:36px}}
+.site-header-right{{font-size:0.75rem;color:rgba(255,255,255,.7);text-align:right}}
+.topbar{{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:20px 0 20px;padding-bottom:16px;border-bottom:1px solid var(--border)}}
+.topbar-left h1{{font-size:1.25rem;font-weight:800;letter-spacing:-.01em}}
+.topbar-left p{{font-size:0.78rem;color:var(--muted);margin-top:3px}}
+.badge{{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:3px;font-weight:700;font-size:0.82rem;letter-spacing:.04em;text-transform:uppercase}}
+
+/* ── Layout ── */
 .grid2{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}}
 .grid3{{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}}
 @media(max-width:640px){{.grid2,.grid3{{grid-template-columns:1fr}}}}
-.kort{{background:#1e293b;border-radius:12px;padding:20px}}
-.kort h3{{font-size:0.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}}
-.stor-tall{{font-size:2.2rem;font-weight:700;line-height:1}}
-.sub-tall{{font-size:0.85rem;color:#94a3b8;margin-top:4px}}
-.fremgang-bg{{background:#0f172a;border-radius:999px;height:10px;margin:10px 0 4px;overflow:hidden}}
-.fremgang-fill{{height:100%;border-radius:999px;transition:width .5s}}
-.metrikk-rad{{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid #0f172a}}
+.kort{{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px}}
+.kort h3{{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;font-weight:600}}
+.stor-tall{{font-size:2.4rem;font-weight:800;line-height:1}}
+.sub-tall{{font-size:0.83rem;color:var(--muted);margin-top:5px}}
+.fremgang-bg{{background:var(--bg);border-radius:2px;height:8px;margin:10px 0 4px;overflow:hidden}}
+.fremgang-fill{{height:100%;border-radius:2px;transition:width .6s}}
+.metrikk-rad{{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--bg)}}
 .metrikk-rad:last-child{{border-bottom:none}}
-.metrikk-navn{{font-size:0.85rem;color:#94a3b8}}
-.metrikk-verdi{{font-weight:600}}
-.seksjon-tittel{{font-size:1rem;font-weight:700;margin:28px 0 14px;color:#e2e8f0}}
-.analyse-boks{{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px;line-height:1.7}}
-.analyse-boks p{{margin-bottom:4px;font-size:0.9rem;color:#cbd5e1}}
-.analyse-boks .ah{{font-weight:700;color:#e2e8f0;margin-top:14px;font-size:0.95rem}}
-.analyse-boks .ar{{color:#fbbf24;font-weight:600}}
-.analyse-boks .as{{font-size:1rem;font-weight:700;color:#e2e8f0;margin-bottom:8px}}
-.analyse-boks .adiv{{border:none;border-top:1px solid #334155;margin:10px 0}}
-.chart-boks{{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px}}
-.chart-boks h3{{font-size:0.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}}
-.okt-kort{{border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid #334155}}
-footer{{text-align:center;color:#475569;font-size:0.78rem;padding:40px 0 20px;line-height:1.8}}
-footer span{{color:#64748b}}
-.trigger-panel{{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid #334155}}
-.trigger-panel h3{{font-size:0.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}}
-.trigger-panel textarea{{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:10px 12px;font-size:0.9rem;font-family:inherit;resize:vertical;min-height:72px;margin-bottom:12px}}
-.trigger-panel textarea:focus{{outline:none;border-color:#3b82f6}}
-.trigger-btn{{padding:10px 24px;border-radius:8px;border:none;background:#3b82f6;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer}}
+.metrikk-navn{{font-size:0.83rem;color:var(--muted)}}
+.metrikk-verdi{{font-weight:600;font-size:0.92rem}}
+.seksjon-tittel{{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--blue-light);margin:28px 0 12px;padding-left:10px;border-left:3px solid var(--blue)}}
+
+/* ── Analyse ── */
+.analyse-boks{{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:22px;margin-bottom:16px;line-height:1.75}}
+.analyse-boks p{{margin-bottom:4px;font-size:0.9rem;color:#c5d8e8}}
+.analyse-boks .ah{{font-weight:700;color:var(--text);margin-top:16px;font-size:0.95rem;text-transform:uppercase;letter-spacing:.04em;color:var(--blue-light)}}
+.analyse-boks .ar{{color:var(--gold-light);font-weight:600}}
+.analyse-boks .as{{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:10px}}
+.analyse-boks .adiv{{border:none;border-top:1px solid var(--border);margin:12px 0}}
+
+/* ── Grafer ── */
+.chart-boks{{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;margin-bottom:16px}}
+.chart-boks h3{{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;font-weight:600}}
+
+/* ── Treningsplan ── */
+.okt-kort{{border-radius:3px;padding:13px;margin-bottom:8px;border:1px solid var(--border);background:var(--bg2)}}
+
+/* ── Trigger ── */
+.trigger-panel{{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--blue);border-radius:4px;padding:20px;margin-bottom:16px}}
+.trigger-panel h3{{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;font-weight:600}}
+.trigger-panel textarea{{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--text);padding:10px 12px;font-size:0.9rem;font-family:inherit;resize:vertical;min-height:72px;margin-bottom:12px}}
+.trigger-panel textarea:focus{{outline:none;border-color:var(--blue)}}
+.trigger-btn{{padding:10px 28px;border-radius:3px;border:none;background:var(--blue);color:#fff;font-size:0.88rem;font-weight:700;cursor:pointer;letter-spacing:.05em;text-transform:uppercase;transition:background .2s}}
+.trigger-btn:hover{{background:var(--blue-light)}}
 .trigger-btn:disabled{{opacity:.5;cursor:not-allowed}}
 .trigger-status{{font-size:0.82rem;margin-top:10px;min-height:1.2em}}
-.logg-rad{{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #0f172a;font-size:0.83rem}}
+
+/* ── Logg ── */
+.logg-rad{{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--bg);font-size:0.82rem}}
 .logg-rad:last-child{{border-bottom:none}}
-.logg-dato{{color:#64748b;white-space:nowrap;min-width:60px}}
-.logg-okt{{color:#94a3b8;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}}
-.logg-txt{{color:#cbd5e1;flex:1}}
+.logg-dato{{color:var(--muted);white-space:nowrap;min-width:60px}}
+.logg-okt{{color:var(--muted);white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}}
+.logg-txt{{color:var(--text);flex:1}}
+
+/* ── Footer ── */
+footer{{text-align:center;color:var(--dimmed);font-size:0.76rem;padding:40px 0 20px;line-height:1.9;border-top:1px solid var(--border);margin-top:20px}}
+footer span{{color:var(--muted)}}
+.footer-logo{{opacity:.25;height:28px;margin-bottom:16px}}
 </style>
 </head>
 <body>
@@ -320,8 +363,10 @@ footer span{{color:#64748b}}
 <!-- Passord-gate -->
 <div id="gate">
   <div class="gate-box">
-    <h2>🏃 Treningsdashboard</h2>
-    <p>Hamburg Maraton 2026 — Øyvind Grønner</p>
+    <img class="gate-logo"
+         src="https://haspa-marathon-hamburg.de/wp-content/uploads/2025/04/HMH26_Logo40years_langGold.png"
+         alt="Haspa Marathon Hamburg 2026">
+    <p>Øyvind Grønner · Personlig treningsdashboard</p>
     <input type="password" id="pw" placeholder="Passord"
            onkeydown="if(event.key==='Enter')loggInn()">
     <button onclick="loggInn()" id="logg-inn-knapp">Logg inn</button>
@@ -331,6 +376,13 @@ footer span{{color:#64748b}}
 
 <!-- Dashboard — fylles av JS etter dekryptering -->
 <div id="dash">
+  <div class="site-header">
+    <img src="https://haspa-marathon-hamburg.de/wp-content/uploads/2025/04/HMH26_Logo40years_langGold.png"
+         alt="Haspa Marathon Hamburg 2026">
+    <div class="site-header-right">
+      Øyvind Grønner &nbsp;·&nbsp; Sub 3:00
+    </div>
+  </div>
   <div class="topbar">
     <div class="topbar-left">
       <h1>Hamburg Maraton 2026</h1>
@@ -356,7 +408,7 @@ footer span{{color:#64748b}}
   </div>
 
   <!-- Hamburg-mål -->
-  <div class="kort" id="maal-kort" style="margin-bottom:16px;border-left:4px solid #fbbf24">
+  <div class="kort" id="maal-kort" style="margin-bottom:16px;border-left:4px solid var(--gold);background:linear-gradient(135deg,#0c1e2e 0%,#071420 100%)">
     <h3 id="maal-tittel">Hamburg-mål · Sub 3:00</h3>
     <div class="grid3" style="margin-top:12px;margin-bottom:0" id="maal-grid"></div>
     <div style="margin-top:12px;font-size:0.75rem;color:#475569">
@@ -407,12 +459,15 @@ footer span{{color:#64748b}}
   <div id="plan-innhold"></div>
 
   <footer>
-    <div style="margin-bottom:8px">
-      <span>Data hentet fra:</span> Strava (aktiviteter) · TrainingPeaks (CTL/ATL/TSB, HRV, søvn, Body Battery) · Garmin via TrainingPeaks
+    <img class="footer-logo"
+         src="https://haspa-marathon-hamburg.de/wp-content/uploads/2025/04/HMH26_Logo40years_langGold.png"
+         alt="Haspa Marathon Hamburg 2026"><br>
+    <div style="margin-bottom:4px">
+      <span>Data:</span> Strava · TrainingPeaks · Garmin via TrainingPeaks
     </div>
-    <div style="margin-bottom:8px">
-      <span>Analyse utført av:</span> Claude claude-sonnet-4-6 (Anthropic) &nbsp;·&nbsp;
-      <span>Oppdatering:</span> manuelt trigget fra dashboardet
+    <div style="margin-bottom:4px">
+      <span>Analyse:</span> Claude claude-sonnet-4-6 (Anthropic) &nbsp;·&nbsp;
+      <span>Oppdatering:</span> manuelt fra dashboardet
     </div>
     <div>
       <span>Sist oppdatert:</span> <span id="footer-dato">–</span> &nbsp;·&nbsp;
@@ -720,10 +775,10 @@ function visDashboard(d) {{
   // ── Grafer ────────────────────────────────────────────────
   const DEFAULTS = {{
     responsive: true,
-    plugins: {{ legend: {{ labels: {{ color:"#94a3b8", boxWidth:14 }} }} }},
+    plugins: {{ legend: {{ labels: {{ color:"#7a9bb5", boxWidth:14, font:{{family:"Open Sans"}} }} }} }},
     scales: {{
-      x: {{ ticks:{{ color:"#64748b", maxTicksLimit:12 }}, grid:{{ color:"#1e293b" }} }},
-      y: {{ ticks:{{ color:"#64748b" }},                   grid:{{ color:"#1e293b" }} }}
+      x: {{ ticks:{{ color:"#3d5a72", maxTicksLimit:12 }}, grid:{{ color:"#0c1e2e" }} }},
+      y: {{ ticks:{{ color:"#3d5a72" }},                   grid:{{ color:"#0c1e2e" }} }}
     }}
   }};
 
@@ -760,32 +815,32 @@ function visDashboard(d) {{
           {{
             label: "Kondisjon",
             data: [...histCTL, projCTL[0] ?? null, ...Array(projLen - bridge).fill(null)],
-            borderColor: "#3b82f6", backgroundColor: "transparent",
+            borderColor: "#0075be", backgroundColor: "transparent",
             borderWidth: 2.5, pointRadius: 0, tension: 0.3
           }},
           {{
             label: "Tretthet",
             data: [...histATL, projATL[0] ?? null, ...Array(projLen - bridge).fill(null)],
-            borderColor: "#f97316", backgroundColor: "transparent",
+            borderColor: "#c9a227", backgroundColor: "transparent",
             borderWidth: 2.5, pointRadius: 0, tension: 0.3
           }},
           {{
             label: "Dagsform",
             data: [...histTSB, projTSB[0] ?? null, ...Array(projLen - bridge).fill(null)],
-            borderColor: "#22c55e", backgroundColor: "#22c55e11",
+            borderColor: "#22c55e", backgroundColor: "#22c55e0d",
             borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true
           }},
           // ── Prosjeksjon (stiplet) ──
           {{
             label: "Kondisjon (plan)",
             data: [...Array(histLen).fill(null), ...projCTL],
-            borderColor: "#3b82f6", backgroundColor: "transparent",
+            borderColor: "#0075be", backgroundColor: "transparent",
             borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.3
           }},
           {{
             label: "Tretthet (plan)",
             data: [...Array(histLen).fill(null), ...projATL],
-            borderColor: "#f97316", backgroundColor: "transparent",
+            borderColor: "#c9a227", backgroundColor: "transparent",
             borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.3
           }},
           {{
