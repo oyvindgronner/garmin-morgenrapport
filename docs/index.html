@@ -9,13 +9,13 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0f172a;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.5}
 a{color:#60a5fa}
-#gate{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a}
+#gate{display:flex;align-items:center;justify-content:center;min-height:100vh}
 .gate-box{background:#1e293b;border-radius:16px;padding:40px;text-align:center;max-width:340px;width:90%}
 .gate-box h2{margin-bottom:8px;font-size:1.3rem}
 .gate-box p{color:#94a3b8;margin-bottom:24px;font-size:0.9rem}
 .gate-box input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:1rem;margin-bottom:12px}
 .gate-box button{width:100%;padding:10px;border-radius:8px;border:none;background:#3b82f6;color:#fff;font-size:1rem;font-weight:600;cursor:pointer}
-.gate-box .feil{color:#ef4444;font-size:0.85rem;margin-top:8px}
+.gate-box .feil{color:#ef4444;font-size:0.85rem;margin-top:8px;min-height:1.2em}
 #dash{display:none;max-width:1100px;margin:0 auto;padding:20px 16px 60px}
 .topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #1e293b}
 .topbar-left h1{font-size:1.2rem;font-weight:700}
@@ -44,96 +44,57 @@ a{color:#60a5fa}
 .chart-boks{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px}
 .chart-boks h3{font-size:0.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
 .okt-kort{border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid #334155}
-.akt-tabell{width:100%;border-collapse:collapse;font-size:0.85rem}
-.akt-tabell th{text-align:left;color:#64748b;font-weight:500;padding:4px 8px 8px;border-bottom:1px solid #334155}
-.akt-tabell td{padding:8px;border-bottom:1px solid #1a2535}
 footer{text-align:center;color:#475569;font-size:0.78rem;padding:40px 0 20px;line-height:1.8}
 footer span{color:#64748b}
 </style>
 </head>
 <body>
 
+<!-- Passord-gate -->
 <div id="gate">
   <div class="gate-box">
     <h2>🏃 Treningsdashboard</h2>
     <p>Hamburg Maraton 2026 — Øyvind Grønner</p>
-    <input type="password" id="pw" placeholder="Passord" onkeydown="if(event.key==='Enter')sjekkPw()">
-    <button onclick="sjekkPw()">Logg inn</button>
+    <input type="password" id="pw" placeholder="Passord"
+           onkeydown="if(event.key==='Enter')loggInn()">
+    <button onclick="loggInn()" id="logg-inn-knapp">Logg inn</button>
     <div class="feil" id="feil"></div>
   </div>
 </div>
 
+<!-- Dashboard — fylles av JS etter dekryptering -->
 <div id="dash">
-
   <div class="topbar">
     <div class="topbar-left">
       <h1>Hamburg Maraton 2026</h1>
-      <p>Øyvind Grønner · Rapport 2026-03-30 · Oppdatert 29.03.2026 kl. 10:47 UTC</p>
+      <p id="meta">Laster…</p>
     </div>
-    <div class="badge" style="background:#64748b22;color:#64748b;border:1px solid #64748b44">
-      ? UKJENT
-    </div>
+    <div class="badge" id="badge"></div>
   </div>
 
   <!-- Hamburg-mål -->
-  <div class="kort" style="margin-bottom:16px;border-left:4px solid #fbbf24">
-    <h3>Hamburg-mål · 26 dager igjen · Sub 3:00</h3>
-    <div class="grid3" style="margin-top:12px;margin-bottom:0">
-      <div>
-        <div style="font-size:0.8rem;color:#94a3b8">CTL nå</div>
-        <div class="stor-tall" style="color:#ef4444">49.8</div>
-        <div class="sub-tall">Mål: 58–65</div>
-        <div class="fremgang-bg"><div class="fremgang-fill" style="width:86%;background:#f59e0b"></div></div>
-        <div style="font-size:0.75rem;color:#64748b">⚠️ 8.2 poeng bak min.mål</div>
-      </div>
-      <div>
-        <div style="font-size:0.8rem;color:#94a3b8">TSB i dag</div>
-        <div class="stor-tall" style="color:#22c55e">+16.8</div>
-        <div class="sub-tall">Race-mål: +12 til +20</div>
-        <div class="fremgang-bg"><div class="fremgang-fill" style="width:94%;background:#3b82f6"></div></div>
-        <div style="font-size:0.75rem;color:#64748b">✅ Frisk og klar</div>
-      </div>
-      <div>
-        <div style="font-size:0.8rem;color:#94a3b8">HRV</div>
-        <div class="stor-tall" style="color:#22c55e">72</div>
-        <div class="sub-tall">Balansert: 70–98 ms</div>
-      </div>
-    </div>
+  <div class="kort" id="maal-kort" style="margin-bottom:16px;border-left:4px solid #fbbf24">
+    <h3 id="maal-tittel">Hamburg-mål · Sub 3:00</h3>
+    <div class="grid3" style="margin-top:12px;margin-bottom:0" id="maal-grid"></div>
   </div>
 
-  <!-- Dagsform -->
+  <!-- Dagsform + siste økt -->
   <div class="grid2">
-    <div class="kort">
-      <h3>Dagsform</h3>
-      <div class="metrikk-rad"><span class="metrikk-navn">HRV</span><span class="metrikk-verdi" style="color:#22c55e">72 ms</span></div>
-      <div class="metrikk-rad"><span class="metrikk-navn">Hvilepuls</span><span class="metrikk-verdi">44 bpm</span></div>
-      <div class="metrikk-rad"><span class="metrikk-navn">Body Battery</span><span class="metrikk-verdi" style="color:#22c55e">90/100</span></div>
-      <div class="metrikk-rad"><span class="metrikk-navn">Søvn</span><span class="metrikk-verdi">5t 58min</span></div>
-      <div class="metrikk-rad"><span class="metrikk-navn">Dyp søvn</span><span class="metrikk-verdi">87 min</span></div>
-      <div class="metrikk-rad"><span class="metrikk-navn">REM</span><span class="metrikk-verdi">55 min</span></div>
-      <div class="metrikk-rad"><span class="metrikk-navn">Stress</span><span class="metrikk-verdi">16</span></div>
-    </div>
-    <div class="kort">
-      <h3>Siste økt</h3>
-      <div class="metrikk-rad"><span class="metrikk-navn">Navn</span><span class="metrikk-verdi" style="font-size:0.85rem">Fredagsmøll 2. omgang</span></div><div class="metrikk-rad"><span class="metrikk-navn">Dato</span><span class="metrikk-verdi">2026-03-27</span></div><div class="metrikk-rad"><span class="metrikk-navn">Distanse</span><span class="metrikk-verdi">8.32 km</span></div><div class="metrikk-rad"><span class="metrikk-navn">Tempo</span><span class="metrikk-verdi">5:07 /km</span></div><div class="metrikk-rad"><span class="metrikk-navn">Puls snitt</span><span class="metrikk-verdi">133.3 bpm</span></div><div class="metrikk-rad"><span class="metrikk-navn">NP</span><span class="metrikk-verdi">271 W</span></div><div class="metrikk-rad"><span class="metrikk-navn">Suffer score</span><span class="metrikk-verdi">40.0</span></div>
-    </div>
+    <div class="kort"><h3>Dagsform</h3><div id="dagsform-innhold"></div></div>
+    <div class="kort"><h3>Siste økt</h3><div id="siste-okt-innhold"></div></div>
   </div>
 
   <!-- Coaching-analyse -->
   <div class="seksjon-tittel">Coaching-analyse</div>
-  <div class="analyse-boks">
-    <p>Ingen analyse tilgjengelig.</p>
-    <p style="margin-top:16px;font-size:0.75rem;color:#475569">Analyse: Claude claude-sonnet-4-6 (Anthropic) · 2026-03-30 · Data: Strava + TrainingPeaks</p>
-  </div>
+  <div class="analyse-boks" id="analyse-boks"></div>
 
-  <!-- CTL/ATL/TSB graf -->
+  <!-- Formkurve -->
   <div class="seksjon-tittel">Formkurve — siste 90 dager</div>
   <div class="chart-boks">
     <h3>CTL / ATL / TSB · Mål Hamburg: CTL 58–65, TSB +12–+20</h3>
     <canvas id="ctlChart" height="120"></canvas>
   </div>
 
-  <!-- HRV -->
   <div class="grid2">
     <div class="chart-boks" style="margin-bottom:0">
       <h3>HRV — siste 14 dager (balansert: 70–98 ms)</h3>
@@ -145,206 +106,17 @@ footer span{color:#64748b}
     </div>
   </div>
 
-  <!-- Søvn -->
   <div class="chart-boks" style="margin-top:16px">
     <h3>Søvn — siste 14 dager (dyp · REM · lett)</h3>
     <canvas id="sovnChart" height="100"></canvas>
   </div>
 
-  <!-- Ukeplan -->
+  <!-- Treningsplan -->
   <div class="seksjon-tittel">Treningsplan frem til Hamburg</div>
   <div style="font-size:0.8rem;color:#64748b;margin-bottom:12px">
     ★ = Nøkkeløkt &nbsp;·&nbsp; Gul ramme = viktig økt &nbsp;·&nbsp; Grønn bakgrunn = i dag
   </div>
-  
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Tue 31.03</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#ef4444">Intervall</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">3 × (3 min / 2 min / 1 min) — 2 km oppvarming 5:15/km, 3 runder: 3 min@3:50 + 2 min@3:45 + 1 min@3:40 med 45–60 sek jogg…</div>
-          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  40 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Wed 01.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 1: Skitur 2–3t med 500–900m stigning, S1–S2 (maks 148 bpm). KVELD: 35–45 min rolig løp på flat asfalt, 5:30–6:00/km,…</div>
-          <div style="font-size:0.75rem;color:#64748b">7.0 km  ·  40 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Thu 02.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 2: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 35–45 min rolig løp på flat asfalt, under 140 bpm. Juster ned ti…</div>
-          <div style="font-size:0.75rem;color:#64748b">7.0 km  ·  40 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Fri 03.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 3: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 35–40 min rolig løp på flat asfalt, under 140 bpm. Midtpunkt i u…</div>
-          <div style="font-size:0.75rem;color:#64748b">7.0 km  ·  38 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Sat 04.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 4: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 30–40 min rolig løp på flat asfalt, under 140 bpm. Trening på mø…</div>
-          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  35 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Sun 05.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#06b6d4">Ski+Løp</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">DAG 5: Skitur 2–3t med 500–900m stigning, S1–S2. KVELD: 25–35 min rolig løp, under 140 bpm. Siste dag i skiuka — ikke pr…</div>
-          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  30 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Mon 06.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">10 km rolig + 4 × 20 sek stigningsløp (60 sek jogg mellom). Komme i gang etter skiuka uten å dra opp belastningen.</div>
-          <div style="font-size:0.75rem;color:#64748b">10.0 km  ·  58 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Tue 07.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#8b5cf6">Maratonspesifikk</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">15 km totalt: 3 km oppvarming + 4 stigningsløp, hoveddel 3 × 3 km i maratonfart (4:16–4:12/km) med 1 km rolig jogg mello…</div>
-          <div style="font-size:0.75rem;color:#64748b">17.0 km  ·  90 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Wed 08.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig — lett flyt, ingen kvalitet.</div>
-          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  45 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Thu 09.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#8b5cf6">Maratonspesifikk</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">16 km progressiv: 5 km rolig, 8 km i maratonfart (4:16–4:12/km), 3 km nedjogg. Solid spesifikk økt uten å bli like tung …</div>
-          <div style="font-size:0.75rem;color:#64748b">16.0 km  ·  85 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Fri 10.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">6 km veldig rolig — ren restitusjon.</div>
-          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  34 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Sat 11.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig — lett og kontrollert.</div>
-          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  45 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;border: 2px solid #fbbf24;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Sun 12.04  ★ NØKKEL</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#3b82f6">Langtur</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">28 km NØKKELØKT: 10 km rolig (5:20–5:05/km), 16 km i maratonfart (4:16–4:12/km), 2 km nedjogg. Ta gel og drikke som på k…</div>
-          <div style="font-size:0.75rem;color:#64748b">28.0 km  ·  165 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Mon 13.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig restitusjon etter langturen.</div>
-          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  46 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Tue 14.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#f97316">Terskel</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">12 km terskel: 3 km oppvarming, 2 × 3 km i terskelfart (4:02–3:58/km) med 2 min jogg mellom, 3 km nedjogg. Eneste terske…</div>
-          <div style="font-size:0.75rem;color:#64748b">12.0 km  ·  65 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Wed 15.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">6 km rolig — kort og lett.</div>
-          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  34 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Thu 16.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#8b5cf6">Maratonspesifikk</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">14 km: 4 km rolig, 8 km i maratonfart (4:16–4:12/km), 2 km nedjogg. Kontrollert og jevn gjennomføring.</div>
-          <div style="font-size:0.75rem;color:#64748b">14.0 km  ·  75 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Fri 17.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">6 km rolig — myk dag, lett restitusjon.</div>
-          <div style="font-size:0.75rem;color:#64748b">6.0 km  ·  34 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Sat 18.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig i sone 1 — jevnt og avslappet.</div>
-          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  45 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Sun 19.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#3b82f6">Langtur</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">20 km taperlangtur: 15 km rolig (5:20–5:05/km), 5 km i maratonfart (4:16–4:12/km), rolig avslutning. Lettere langtur med…</div>
-          <div style="font-size:0.75rem;color:#64748b">20.0 km  ·  115 min</div>
-        </div>
-
-        <div class="okt-kort" style="background:#1e293b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:0.75rem;color:#94a3b8">Mon 20.04</span>
-            <span style="font-size:0.75rem;font-weight:600;color:#22c55e">Rolig</span>
-          </div>
-          <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:4px">8 km rolig — lett restitusjon, hold igjen.</div>
-          <div style="font-size:0.75rem;color:#64748b">8.0 km  ·  45 min</div>
-        </div>
+  <div id="plan-innhold"></div>
 
   <footer>
     <div style="margin-bottom:8px">
@@ -355,229 +127,295 @@ footer span{color:#64748b}
       <span>Neste oppdatering:</span> kl. 09:00 norsk tid (automatisk)
     </div>
     <div>
-      <span>Sist oppdatert:</span> 29.03.2026 kl. 10:47 UTC &nbsp;·&nbsp;
+      <span>Sist oppdatert:</span> <span id="footer-dato">–</span> &nbsp;·&nbsp;
       <a href="https://github.com/oyvindgronner/garmin-morgenrapport" target="_blank">Kildekode</a>
     </div>
   </footer>
 </div>
 
 <script>
-const PW_HASH = "cecb23752202b41ac715315ebe87812ee01407f422d96ef72a91cd66de370766";
+// ── Kryptert helsedata ────────────────────────────────────────────────────────
+// Kryptert med AES-256-GCM, nøkkel utledet fra passord via PBKDF2 (100 000 runder).
+// Lesbar i kilden uten passord: ingenting.
+const ENCRYPTED = "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";
+const PW_HASH   = "cecb23752202b41ac715315ebe87812ee01407f422d96ef72a91cd66de370766";  // SHA-256 for rask feilmelding
 
-async function sha256(msg) {
+// ── Krypto-hjelp ─────────────────────────────────────────────────────────────
+async function sha256hex(msg) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
 
-async function sjekkPw() {
-  const pw = document.getElementById("pw").value;
-  const hash = await sha256(pw);
-  if (hash === PW_HASH) {
-    localStorage.setItem("db_pw", hash);
-    visDashboard();
-  } else {
+async function deriverNøkkel(passord, salt) {
+  const mat = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(passord), "PBKDF2", false, ["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2", salt, iterations:100_000, hash:"SHA-256"},
+    mat,
+    {name:"AES-GCM", length:256},
+    false, ["decrypt"]
+  );
+}
+
+async function dekrypter(b64, passord) {
+  const raw  = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const salt = raw.slice(0, 16);
+  const iv   = raw.slice(16, 28);
+  const ct   = raw.slice(28);
+  const key  = await deriverNøkkel(passord, salt);
+  const dec  = await crypto.subtle.decrypt({name:"AES-GCM", iv}, key, ct);
+  return JSON.parse(new TextDecoder().decode(dec));
+}
+
+// ── Innlogging ────────────────────────────────────────────────────────────────
+async function loggInn() {
+  const pw   = document.getElementById("pw").value;
+  const knapp = document.getElementById("logg-inn-knapp");
+  if (!pw) return;
+
+  // Rask feilmelding via SHA-256 (unngår å vente på PBKDF2 ved feil passord)
+  const hash = await sha256hex(pw);
+  if (hash !== PW_HASH) {
     document.getElementById("feil").textContent = "Feil passord";
+    return;
+  }
+
+  knapp.textContent = "Dekrypterer…";
+  knapp.disabled = true;
+  document.getElementById("feil").textContent = "";
+  try {
+    const data = await dekrypter(ENCRYPTED, pw);
+    localStorage.setItem("db_pw", pw);
+    visDashboard(data);
+  } catch(e) {
+    document.getElementById("feil").textContent = "Dekryptering feilet";
+    knapp.textContent = "Logg inn";
+    knapp.disabled = false;
   }
 }
 
-function visGate() {
-  document.getElementById("gate").style.display = "flex";
-  document.getElementById("dash").style.display = "none";
-}
-
-function visDatabase() {
-  document.getElementById("gate").style.display = "none";
-  document.getElementById("dash").style.display = "block";
-  byggGrafer();
-}
-
-function visDialog() { visGate(); }  // alias
-
-function visGateway() { visGate(); }
-
-function visGateEl() { visGate(); }
-
-function visGat() { visGate(); }
-
-function visGa() { visGate(); }
-
-function visG() { visGate(); }
-
-function visGateId() { visGate(); }
-
-function visGateE() { visGate(); }
-
-function visDash() { visDatabase(); }
-
-function visD() { visDatabase(); }
-
-function visDB() { visDatabase(); }
-
-function visDashboard() { visDatabase(); }
-
-function visDatabase2() { visDatabase(); }
-
-function visDatabase3() { visDatabase(); }
-
-function visDatabase4() { visDatabase(); }
-
-function visDatabase5() { visDatabase(); }
-
-function visDatabase6() { visDatabase(); }
-
-function visDatabase7() { visDatabase(); }
-
-function visDatabase8() { visDatabase(); }
-
-const visGateways = visGate;
-const visDashboards = visDatabase;
-
-function visGateGate() { visGate(); }
-function visDashDash() { visDatabase(); }
-function visGateDash() { visGate(); }
-function visDashGate() { visDatabase(); }
-
-function visGateDashboard() { visGate(); }
-function visDashboardGate() { visDatabase(); }
-
-// Simpler aliases
-const show_gate = visGate;
-const show_dash = visDatabase;
-
-// The actual function used
-function visGateThingy() { visGate(); }
-function visDashThingy() { visDatabase(); }
-
-// Cleanup - just use these two
-const showGate = visGate;
-const showDash = visDatabase;
-
-// Entry point
+// ── Automatisk innlogging fra localStorage ────────────────────────────────────
 (async function() {
-  const saved = localStorage.getItem("db_pw");
-  if (saved === PW_HASH) {
-    showDash();
-  } else {
-    showGate();
+  const lagret = localStorage.getItem("db_pw");
+  if (!lagret) return;
+  try {
+    const data = await dekrypter(ENCRYPTED, lagret);
+    visDashboard(data);
+  } catch(e) {
+    localStorage.removeItem("db_pw");
   }
 })();
 
-const CTL_DATA   = [57.7, 56.3, 55.9, 56.1, 58.7, 58.6, 59.7, 59.4, 60.5, 60.0, 60.7, 60.2, 59.0, 62.1, 61.1, 61.7, 61.0, 60.9, 60.6, 60.7, 62.4, 62.3, 63.4, 63.0, 63.4, 62.5, 62.6, 65.3, 65.1, 66.4, 65.7, 66.7, 66.1, 66.0, 67.0, 67.0, 67.9, 67.3, 67.9, 67.0, 69.7, 69.0, 68.8, 69.3, 68.7, 69.0, 68.4, 66.8, 65.2, 63.6, 62.9, 63.0, 62.6, 61.1, 61.0, 61.2, 62.0, 63.8, 64.0, 62.5, 61.0, 60.5, 60.2, 59.7, 58.3, 56.9, 56.3, 56.5, 56.0, 54.7, 55.1, 55.7, 55.3, 56.0, 55.5, 55.2, 56.7, 56.0, 56.1, 55.7, 55.1, 53.8, 53.5, 56.0, 54.7, 54.1, 53.8, 52.5, 52.2, 51.0, 49.8];
-const ATL_DATA   = [70.7, 60.6, 57.4, 58.1, 73.4, 71.0, 75.5, 71.8, 76.7, 71.0, 74.1, 68.8, 60.4, 78.7, 70.5, 73.0, 66.8, 65.8, 63.3, 63.3, 73.4, 70.8, 76.2, 71.9, 73.0, 66.5, 66.2, 82.0, 78.4, 84.4, 77.6, 81.7, 76.3, 74.1, 79.3, 77.5, 81.2, 75.6, 77.9, 71.4, 87.0, 80.4, 77.3, 78.9, 74.0, 75.4, 70.8, 60.6, 52.0, 44.6, 42.5, 46.2, 46.4, 39.8, 42.0, 45.7, 52.9, 65.2, 66.0, 56.6, 48.5, 47.4, 47.6, 46.3, 39.7, 34.0, 33.6, 38.3, 37.8, 32.4, 37.9, 44.1, 43.6, 49.2, 47.3, 46.5, 56.9, 52.9, 53.5, 51.8, 48.8, 41.8, 42.0, 58.4, 50.0, 47.5, 46.3, 39.7, 39.9, 34.2, 29.3];
-const TSB_DATA   = [-12.6, -13.0, -4.3, -1.5, -2.0, -14.8, -12.4, -15.9, -12.4, -16.2, -11.1, -13.4, -8.6, -1.4, -16.6, -9.4, -11.3, -5.8, -4.9, -2.6, -2.6, -10.9, -8.6, -12.8, -8.9, -9.7, -4.0, -3.6, -16.8, -13.3, -18.0, -11.9, -15.0, -10.2, -8.1, -12.2, -10.5, -13.3, -8.3, -10.0, -4.4, -17.3, -11.3, -8.5, -9.7, -5.3, -6.4, -2.3, 6.1, 13.2, 19.1, 20.3, 16.7, 16.2, 21.3, 19.0, 15.4, 9.1, -1.4, -2.0, 5.9, 12.5, 13.1, 12.6, 13.4, 18.6, 22.9, 22.7, 18.2, 18.2, 22.3, 17.1, 11.5, 11.7, 6.8, 8.2, 8.7, -0.2, 3.1, 2.6, 4.0, 6.3, 12.0, 11.6, -2.4, 4.6, 6.6, 7.5, 12.8, 12.3, 16.8];
-const DATO_LBL   = ["12-29", "12-30", "12-31", "01-01", "01-02", "01-03", "01-04", "01-05", "01-06", "01-07", "01-08", "01-09", "01-10", "01-11", "01-12", "01-13", "01-14", "01-15", "01-16", "01-17", "01-18", "01-19", "01-20", "01-21", "01-22", "01-23", "01-24", "01-25", "01-26", "01-27", "01-28", "01-29", "01-30", "01-31", "02-01", "02-02", "02-03", "02-04", "02-05", "02-06", "02-07", "02-08", "02-09", "02-10", "02-11", "02-12", "02-13", "02-14", "02-15", "02-16", "02-17", "02-18", "02-19", "02-20", "02-21", "02-22", "02-23", "02-24", "02-25", "02-26", "02-27", "02-28", "03-01", "03-02", "03-03", "03-04", "03-05", "03-06", "03-07", "03-08", "03-09", "03-10", "03-11", "03-12", "03-13", "03-14", "03-15", "03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29"];
-const HRV_LBL    = ["03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29"];
-const HRV_VALS   = [86, 77, 91, 81, 64, 90, 67, 52, 64, 55, 71, 83, 64, 72];
-const BB_LBL     = ["03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29"];
-const BB_VALS    = [37, 71, 76, 87, 98, 78, 90];
-const SOVN_LBL   = ["03-16", "03-17", "03-18", "03-19", "03-20", "03-21", "03-22", "03-23", "03-24", "03-25", "03-26", "03-27", "03-28", "03-29"];
-const SOVN_DYP   = [56, 75, 55, 54, 91, 56, 114, 43, 105, 106, 91, 66, 78, 87];
-const SOVN_REM   = [54, 108, 51, 99, 30, 27, 50, 46, 21, 79, 29, 78, 58, 55];
-const SOVN_LETT  = [303, 261, 357, 269, 278, 303, 215, 195, 155, 255, 289, 289, 285, 216];
-
-const CHART_DEFAULTS = {
-  responsive: true,
-  plugins: { legend: { labels: { color: "#94a3b8", boxWidth: 14 } } },
-  scales: {
-    x: { ticks: { color: "#64748b", maxTicksLimit: 12 } , grid: { color: "#1e293b" } },
-    y: { ticks: { color: "#64748b" } , grid: { color: "#1e293b" } }
-  }
+// ── Dashboard-rendering ───────────────────────────────────────────────────────
+const TYPE_FARGER = {
+  "Rolig":"#22c55e","Terskel":"#f97316","Intervall":"#ef4444",
+  "Langtur":"#3b82f6","Maratonspesifikk":"#8b5cf6","Ski+Løp":"#06b6d4",
+  "Ski":"#94a3b8","Styrke":"#ec4899","Rase":"#fbbf24","Hvile":"#475569"
 };
 
-function byggGrafer() {
+function metrikk(navn, verdi, farge) {
+  const fargestyle = farge ? `color:${farge}` : "";
+  return `<div class="metrikk-rad">
+    <span class="metrikk-navn">${navn}</span>
+    <span class="metrikk-verdi" style="${fargestyle}">${verdi ?? "–"}</span>
+  </div>`;
+}
+
+function fargeCTL(v)  { return v >= 58 ? "#22c55e" : v >= 52 ? "#f59e0b" : "#ef4444"; }
+function fargeTSB(v)  { return v >= 5 && v <= 25 ? "#22c55e" : v >= -10 ? "#f59e0b" : "#ef4444"; }
+function fargeHRV(v)  { return v >= 70 && v <= 98 ? "#22c55e" : v >= 60 ? "#f59e0b" : "#ef4444"; }
+function fargeBB(v)   { return v >= 70 ? "#22c55e" : v >= 50 ? "#f59e0b" : "#ef4444"; }
+
+function statusFraAnalyse(a) {
+  if (!a) return ["UKJENT","#64748b","?"];
+  if (a.includes("✅")) return ["I RUTE","#22c55e","✅"];
+  if (a.includes("⚠️")) return ["DELVIS I RUTE","#f59e0b","⚠️"];
+  if (a.includes("🔴")) return ["IKKE I RUTE","#ef4444","🔴"];
+  return ["UKJENT","#64748b","?"];
+}
+
+function visDashboard(d) {
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("dash").style.display = "block";
+
+  const today   = new Date().toISOString().slice(0,10);
+  const helse   = d.helse || {};
+  const fitness = d.fitness || {};
+  const ctl = fitness.ctl || 0;
+  const atl = fitness.atl || 0;
+  const tsb = fitness.tsb || 0;
+  const hrv = helse.hrv;
+
+  // Topbar
+  document.getElementById("meta").textContent =
+    `Øyvind Grønner · Rapport ${d.dato} · Oppdatert ${d.oppdatert || "–"}`;
+  document.getElementById("footer-dato").textContent = d.oppdatert || "–";
+
+  const [stxt, sfarge, sikon] = statusFraAnalyse(d.analyse);
+  const badge = document.getElementById("badge");
+  badge.textContent = `${sikon} ${stxt}`;
+  badge.style.cssText = `background:${sfarge}22;color:${sfarge};border:1px solid ${sfarge}44`;
+
+  // Hamburg-mål
+  const raceDay = new Date("2026-04-26");
+  const dager   = Math.round((raceDay - new Date()) / 86400000);
+  document.getElementById("maal-tittel").textContent =
+    `Hamburg-mål · ${dager} dager igjen · Sub 3:00`;
+
+  const ctlPct = Math.min(100, Math.round((ctl / 58) * 100));
+  const tsbPct = Math.min(100, Math.max(0, Math.round(((tsb + 30) / 50) * 100)));
+  document.getElementById("maal-grid").innerHTML = `
+    <div>
+      <div style="font-size:.8rem;color:#94a3b8">CTL nå</div>
+      <div class="stor-tall" style="color:${fargeCTL(ctl)}">${ctl}</div>
+      <div class="sub-tall">Mål: 58–65</div>
+      <div class="fremgang-bg"><div class="fremgang-fill" style="width:${ctlPct}%;background:${fargeCTL(ctl)}"></div></div>
+      <div style="font-size:.75rem;color:#64748b">${ctl >= 58 ? "✅ I mål" : `⚠️ ${(58-ctl).toFixed(1)} bak min.mål`}</div>
+    </div>
+    <div>
+      <div style="font-size:.8rem;color:#94a3b8">TSB i dag</div>
+      <div class="stor-tall" style="color:${fargeTSB(tsb)}">${tsb >= 0 ? "+" : ""}${tsb.toFixed(1)}</div>
+      <div class="sub-tall">Race-mål: +12 til +20</div>
+      <div class="fremgang-bg"><div class="fremgang-fill" style="width:${tsbPct}%;background:#3b82f6"></div></div>
+      <div style="font-size:.75rem;color:#64748b">${tsb >= 5 ? "✅ Frisk og klar" : tsb >= -10 ? "⚠️ Noe akkumulert" : "🔴 Trøtt"}</div>
+    </div>
+    <div>
+      <div style="font-size:.8rem;color:#94a3b8">HRV</div>
+      <div class="stor-tall" style="color:${fargeHRV(hrv || 0)}">${hrv ?? "–"}</div>
+      <div class="sub-tall">Balansert: 70–98 ms</div>
+    </div>`;
+
+  // Dagsform
+  const sovnMin = helse.sovn_min;
+  const sovnStr = sovnMin ? `${Math.floor(sovnMin/60)}t ${sovnMin%60}min` : "–";
+  document.getElementById("dagsform-innhold").innerHTML =
+    metrikk("HRV",       hrv ? `${hrv} ms` : "–",      fargeHRV(hrv||0))
+  + metrikk("Hvilepuls", helse.hvilepuls ? `${helse.hvilepuls} bpm` : "–")
+  + metrikk("Body Battery", helse.bb_maks ? `${helse.bb_maks}/100` : "–", fargeBB(helse.bb_maks||0))
+  + metrikk("Søvn",        sovnStr)
+  + metrikk("Dyp søvn",    helse.dyp_sovn_min ? `${helse.dyp_sovn_min} min` : "–")
+  + metrikk("REM",         helse.rem_sovn_min ? `${helse.rem_sovn_min} min` : "–")
+  + metrikk("Stress",      helse.stress_snitt ?? "–");
+
+  // Siste økt
+  const siste = (d.aktiviteter || [])[0] || {};
+  document.getElementById("siste-okt-innhold").innerHTML = siste.navn
+    ? metrikk("Navn",    `<span style="font-size:.85rem">${siste.navn}</span>`)
+    + metrikk("Dato",    siste.dato)
+    + metrikk("Distanse",siste.dist_km ? `${siste.dist_km} km` : "–")
+    + metrikk("Tempo",   siste.snitt_tempo)
+    + metrikk("Puls",    siste.snitt_puls ? `${siste.snitt_puls} bpm` : "–")
+    + metrikk("NP",      siste.normalisert_watt ? `${siste.normalisert_watt} W` : "–")
+    + metrikk("Suffer",  siste.suffer_score ?? "–")
+    : "<p style='color:#64748b'>Ingen økt registrert</p>";
+
+  // Analyse
+  document.getElementById("analyse-boks").innerHTML =
+    (d.analyse_html || "<p>Ingen analyse tilgjengelig.</p>")
+    + `<p style="margin-top:16px;font-size:.75rem;color:#475569">Analyse: Claude claude-sonnet-4-6 (Anthropic) · ${d.dato} · Data: Strava + TrainingPeaks</p>`;
+
+  // Treningsplan
+  const okter   = d.ukeplan || [];
+  const kommende = okter.filter(o => o.dato >= today).slice(0, 21);
+  document.getElementById("plan-innhold").innerHTML = kommende.map(o => {
+    const erIDag  = o.dato === today;
+    const erNokkel = o.dato === "2026-04-12" || o.type === "Rase"
+                     || (o.beskrivelse || "").includes("28 km");
+    const farge   = TYPE_FARGER[o.type] || "#64748b";
+    const bg      = erIDag ? "background:#1e3a2f;" : "background:#1e293b;";
+    const border  = erNokkel ? "border:2px solid #fbbf24;" : "border:1px solid #334155;";
+    const dagNavn = new Date(o.dato + "T12:00:00")
+                    .toLocaleDateString("no-NO", {weekday:"short",day:"2-digit",month:"2-digit"});
+    const info    = [o.dist_km ? `${o.dist_km} km` : null, o.varighet_min ? `${o.varighet_min} min` : null]
+                    .filter(Boolean).join("  ·  ");
+    const notat   = (o.beskrivelse || "").length > 120
+                    ? o.beskrivelse.slice(0, 120) + "…" : o.beskrivelse;
+    return `<div class="okt-kort" style="${bg}${border}">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:.75rem;color:#94a3b8">${dagNavn}${erIDag ? "  ← I DAG" : ""}${erNokkel && o.type !== "Rase" ? "  ★ NØKKEL" : ""}</span>
+        <span style="font-size:.75rem;font-weight:600;color:${farge}">${o.type || ""}</span>
+      </div>
+      <div style="font-size:.85rem;color:#e2e8f0;margin-bottom:4px">${notat}</div>
+      <div style="font-size:.75rem;color:#64748b">${info}</div>
+    </div>`;
+  }).join("");
+
+  // ── Grafer ────────────────────────────────────────────────
+  const DEFAULTS = {
+    responsive: true,
+    plugins: { legend: { labels: { color:"#94a3b8", boxWidth:14 } } },
+    scales: {
+      x: { ticks:{ color:"#64748b", maxTicksLimit:12 }, grid:{ color:"#1e293b" } },
+      y: { ticks:{ color:"#64748b" },                   grid:{ color:"#1e293b" } }
+    }
+  };
+
   // CTL/ATL/TSB
   new Chart(document.getElementById("ctlChart"), {
     type: "line",
     data: {
-      labels: DATO_LBL,
+      labels: d.trend90.map(x => x.dato),
       datasets: [
-        { label: "CTL", data: CTL_DATA, borderColor: "#3b82f6", backgroundColor: "transparent", borderWidth: 2, pointRadius: 0, tension: 0.3 },
-        { label: "ATL", data: ATL_DATA, borderColor: "#f97316", backgroundColor: "transparent", borderWidth: 2, pointRadius: 0, tension: 0.3 },
-        { label: "TSB", data: TSB_DATA, borderColor: "#22c55e", backgroundColor: "#22c55e11", borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true },
+        {label:"CTL", data:d.trend90.map(x=>x.ctl), borderColor:"#3b82f6", backgroundColor:"transparent", borderWidth:2, pointRadius:0, tension:0.3},
+        {label:"ATL", data:d.trend90.map(x=>x.atl), borderColor:"#f97316", backgroundColor:"transparent", borderWidth:2, pointRadius:0, tension:0.3},
+        {label:"TSB", data:d.trend90.map(x=>x.tsb), borderColor:"#22c55e", backgroundColor:"#22c55e11", borderWidth:1.5, pointRadius:0, tension:0.3, fill:true},
       ]
     },
-    options: {
-      ...CHART_DEFAULTS,
-      plugins: {
-        ...CHART_DEFAULTS.plugins,
-        annotation: undefined
-      },
-      scales: {
-        x: CHART_DEFAULTS.scales.x,
-        y: { ...CHART_DEFAULTS.scales.y, suggestedMin: -30, suggestedMax: 80 }
-      }
-    }
+    options: {...DEFAULTS, scales:{x:DEFAULTS.scales.x, y:{...DEFAULTS.scales.y, suggestedMin:-30, suggestedMax:80}}}
   });
 
   // HRV
+  const hrvVals = d.hrv14.map(x => x.hrv);
   new Chart(document.getElementById("hrvChart"), {
     type: "line",
     data: {
-      labels: HRV_LBL,
+      labels: d.hrv14.map(x => x.dato),
       datasets: [{
-        label: "HRV (ms)",
-        data: HRV_VALS,
-        borderColor: "#a78bfa",
-        backgroundColor: "#a78bfa22",
-        borderWidth: 2,
-        pointRadius: 4,
-        pointBackgroundColor: HRV_VALS.map(v => v >= 70 && v <= 98 ? "#22c55e" : v >= 60 ? "#f59e0b" : "#ef4444"),
-        tension: 0.3,
-        fill: true
+        label: "HRV (ms)", data: hrvVals,
+        borderColor:"#a78bfa", backgroundColor:"#a78bfa22",
+        borderWidth:2, tension:0.3, fill:true,
+        pointRadius:4,
+        pointBackgroundColor: hrvVals.map(v => v>=70&&v<=98?"#22c55e":v>=60?"#f59e0b":"#ef4444")
       }]
     },
-    options: {
-      ...CHART_DEFAULTS,
-      scales: {
-        x: CHART_DEFAULTS.scales.x,
-        y: { ...CHART_DEFAULTS.scales.y, suggestedMin: 40, suggestedMax: 110 }
-      }
-    }
+    options: {...DEFAULTS, scales:{x:DEFAULTS.scales.x, y:{...DEFAULTS.scales.y, suggestedMin:40, suggestedMax:110}}}
   });
 
   // Body Battery
+  const bbVals = d.bb7.map(x => x.bb);
   new Chart(document.getElementById("bbChart"), {
     type: "bar",
     data: {
-      labels: BB_LBL,
+      labels: d.bb7.map(x => x.dato),
       datasets: [{
-        label: "Body Battery",
-        data: BB_VALS,
-        backgroundColor: BB_VALS.map(v => v >= 70 ? "#22c55e88" : v >= 50 ? "#f59e0b88" : "#ef444488"),
-        borderColor:      BB_VALS.map(v => v >= 70 ? "#22c55e" : v >= 50 ? "#f59e0b" : "#ef4444"),
-        borderWidth: 1,
-        borderRadius: 4
+        label:"Body Battery", data:bbVals, borderRadius:4,
+        backgroundColor: bbVals.map(v => v>=70?"#22c55e88":v>=50?"#f59e0b88":"#ef444488"),
+        borderColor:      bbVals.map(v => v>=70?"#22c55e":v>=50?"#f59e0b":"#ef4444"),
+        borderWidth:1
       }]
     },
-    options: {
-      ...CHART_DEFAULTS,
-      scales: {
-        x: CHART_DEFAULTS.scales.x,
-        y: { ...CHART_DEFAULTS.scales.y, min: 0, max: 100 }
-      }
-    }
+    options: {...DEFAULTS, scales:{x:DEFAULTS.scales.x, y:{...DEFAULTS.scales.y, min:0, max:100}}}
   });
 
   // Søvn
   new Chart(document.getElementById("sovnChart"), {
     type: "bar",
     data: {
-      labels: SOVN_LBL,
+      labels: d.sovn14.map(x => x.dato),
       datasets: [
-        { label: "Dyp",  data: SOVN_DYP,  backgroundColor: "#1d4ed8aa", borderRadius: 3 },
-        { label: "REM",  data: SOVN_REM,  backgroundColor: "#7c3aedaa", borderRadius: 3 },
-        { label: "Lett", data: SOVN_LETT, backgroundColor: "#334155",   borderRadius: 3 },
+        {label:"Dyp",  data:d.sovn14.map(x=>x.dyp),  backgroundColor:"#1d4ed8aa", borderRadius:3},
+        {label:"REM",  data:d.sovn14.map(x=>x.rem),  backgroundColor:"#7c3aedaa", borderRadius:3},
+        {label:"Lett", data:d.sovn14.map(x=>x.lett), backgroundColor:"#334155",   borderRadius:3},
       ]
     },
     options: {
-      ...CHART_DEFAULTS,
+      ...DEFAULTS,
       scales: {
-        x: CHART_DEFAULTS.scales.x,
-        y: { ...CHART_DEFAULTS.scales.y, stacked: true, title: { display: true, text: "min", color: "#64748b" } },
-        x2: { stacked: true }
+        x: DEFAULTS.scales.x,
+        y: {...DEFAULTS.scales.y, stacked:true, title:{display:true, text:"min", color:"#64748b"}},
       },
-      plugins: { ...CHART_DEFAULTS.plugins },
-      indexAxis: "x"
+      plugins: DEFAULTS.plugins
     }
   });
 }

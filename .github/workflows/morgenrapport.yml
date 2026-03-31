@@ -32,7 +32,7 @@ jobs:
           python-version: '3.11'
 
       - name: Installer avhengigheter
-        run: pip install requests anthropic
+        run: pip install -r requirements.txt
 
       - name: Sjekk cookie-utløp
         env:
