@@ -14,10 +14,11 @@
     },
     {
       "dato": "2026-04-01",
-      "type": "Ski+Løp",
-      "beskrivelse": "DAG 1: Skitur 2–3t med 500–900m stigning, S1–S2 (maks 148 bpm). KVELD: 35–45 min rolig løp på flat asfalt, 5:30–6:00/km, strengt under 140 bpm. Ingen stigningsløp. Kutt til 25 min hvis puls kryper over 140 bpm i normalt rolig tempo.",
-      "dist_km": 7.0,
-      "varighet_min": 40,
+      "type": "Rolig",
+      "beskrivelse": "10 km lett løpetur sone 1.",
+      "dist_km": 10.0,
+      "tempo_min_km": "5:20–5:40",
+      "varighet_min": 55,
       "puls_sone": "S1, under 140 bpm"
     },
     {
