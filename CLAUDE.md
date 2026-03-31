@@ -1,8 +1,6 @@
 # garmin-morgenrapport
 
-Automatisk daglig treningsrapport for Øyvind Grønner.
-Henter data fra TrainingPeaks og Strava, genererer coaching-analyse med Claude,
-og sender rapport til Gmail kl. 07:00 UTC (09:00 CEST).
+Treningsdashboard og morgenrapport for Øyvind Grønner — Hamburg Maraton 26. april 2026 (mål: sub 3:00).
 
 ---
 
@@ -10,112 +8,126 @@ og sender rapport til Gmail kl. 07:00 UTC (09:00 CEST).
 
 ```
 garmin-morgenrapport/
-├── .github/
-│   └── workflows/
-│       └── morgenrapport.yml   # GitHub Actions — kjører kl. 07:00 UTC daglig
-├── morgen.py                   # Datahenting: Strava + TrainingPeaks → garmin_data_DATO.json
-├── claude_analyse.py           # Coaching-analyse via Claude API, skriver til JSON
-├── send_epost.py               # Rapportbygging og Gmail-levering
-├── sjekk_cookie.py             # Varsler på e-post hvis TP-cookie utløper om ≤7 dager
-├── strava_hent.py              # Eldre standalone Strava-skript (ikke i workflow)
-├── tp_morgen.py                # Eldre standalone TP-skript (ikke i workflow)
+├── .github/workflows/morgenrapport.yml   # Workflow — kun manuell trigger (workflow_dispatch)
+├── morgen.py                             # Datahenting: Strava + TrainingPeaks → garmin_data_DATO.json
+├── claude_analyse.py                     # Coaching-analyse via Claude API + lagrer kommentarer
+├── generer_dashboard.py                  # Genererer docs/index.html (kryptert AES-256-GCM)
+├── send_epost.py                         # Rapportbygging og Gmail-levering
+├── sjekk_cookie.py                       # Varsler på e-post hvis TP-cookie utløper om ≤7 dager
+├── ukeplan.json                          # Treningsprogram frem til Hamburg — redigeres direkte
+├── okt_logg.json                         # Persistent kommentarhistorikk (siste 10 følger med i analyse)
+├── docs/index.html                       # Ferdig kryptert dashboard (GitHub Pages)
 └── requirements.txt
 ```
 
-Output: `garmin_data_DATO.json` — bygges av `morgen.py`, suppleres av `claude_analyse.py`.
+---
+
+## Dataflyt (workflow-rekkefølge)
+
+```
+sjekk_cookie.py
+    ↓
+morgen.py ──► garmin_data_DATO.json
+    ↓
+claude_analyse.py ──► (legger til analyse-felt i JSON, lagrer kommentar til okt_logg.json)
+    ↓
+send_epost.py ──► Gmail
+    ↓
+generer_dashboard.py ──► docs/index.html (kryptert, GitHub Pages)
+    ↓
+git commit + push
+```
+
+**Trigger:** Kun manuell — knapp "Hent ferske data" på dashboardet sender `workflow_dispatch`.
+Ingen cron-schedule.
 
 ---
 
-## Dataflyt
+## Dashboard
 
-```
-morgen.py ──► garmin_data_DATO.json ──► claude_analyse.py ──► send_epost.py ──► Gmail
-               (Strava + TrainingPeaks)    (legger til          (leser JSON,
-                                            claude_analyse-felt)  bygger e-post)
+- **URL:** https://oyvindgronner.github.io/garmin-morgenrapport/
+- **Passord:** hamburg2026
+- **Design:** Blå #0075be, gull #c9a227, Open Sans, Hamburg-skyline
+- **Kryptering:** AES-256-GCM — `generer_dashboard.py` krypterer payload, nøkkel er passordet
+- Knappen "Hent ferske data" sender `workflow_dispatch` + poller GitHub Actions for fremdrift, reloader automatisk når ferdig
+
+---
+
+## Treningsplan — ukeplan.json
+
+**Dette er den eneste filen som redigeres for treningsplanendringer.**
+
+Skjema for én økt:
+```json
+{
+  "dato": "2026-04-07",        // ISO-dato, PÅKREVD
+  "type": "Maratonspesifikk",  // Se gyldige typer under
+  "beskrivelse": "...",        // Fritekst, detaljert
+  "dist_km": 17.0,             // Desimaltall
+  "tempo_min_km": "4:16–4:12", // Streng, valgfri
+  "varighet_min": 90,          // Heltall
+  "puls_sone": "S3–S4"         // Streng, valgfri
+}
 ```
 
-Workflow-rekkefølge:
-1. `sjekk_cookie.py` — varsler hvis TP-cookie utløper snart
-2. `morgen.py` — henter Strava-aktiviteter + TrainingPeaks helse/fitness
-3. `claude_analyse.py` — kaller Claude API og skriver analyse til JSON
-4. `send_epost.py` — sender ferdig rapport
+**Gyldige økt-typer:** Rolig | Terskel | Intervall | Langtur | Maratonspesifikk | Ski+Løp | Ski | Styrke | Rase | Hvile
+
+**Når bruker sier:** "flytt løpet fra tirsdag til onsdag", "endre X til Y", "legg til ny økt", "marker X som gjennomført" → rediger `ukeplan.json` direkte, commit og push.
 
 ---
 
 ## GitHub Secrets
 
-| Secret               | Brukes av                        | Beskrivelse                        |
-|----------------------|----------------------------------|------------------------------------|
-| STRAVA_CLIENT_ID     | morgen.py                        | Strava app client ID (211629)      |
-| STRAVA_CLIENT_SECRET | morgen.py                        | Strava app client secret           |
-| STRAVA_REFRESH_TOKEN | morgen.py                        | Strava refresh token               |
-| TP_AUTH_COOKIE       | morgen.py, sjekk_cookie.py       | TrainingPeaks Production_tpAuth    |
-| ANTHROPIC_API_KEY    | claude_analyse.py                | Claude API-nøkkel                  |
-| GMAIL_USER           | send_epost.py, sjekk_cookie.py   | Gmail-adresse for sending          |
-| GMAIL_APP_PASSWORD   | send_epost.py, sjekk_cookie.py   | Gmail app-passord                  |
+| Secret                 | Brukes av                         |
+|------------------------|-----------------------------------|
+| STRAVA_CLIENT_ID       | morgen.py                         |
+| STRAVA_CLIENT_SECRET   | morgen.py                         |
+| STRAVA_REFRESH_TOKEN   | morgen.py                         |
+| TP_AUTH_COOKIE         | morgen.py, sjekk_cookie.py        |
+| ANTHROPIC_API_KEY      | claude_analyse.py                 |
+| GMAIL_USER             | send_epost.py, sjekk_cookie.py    |
+| GMAIL_APP_PASSWORD     | send_epost.py, sjekk_cookie.py    |
+| DASHBOARD_GITHUB_TOKEN | generer_dashboard.py (krypteres inn i HTML) |
+| DASHBOARD_PASSWORD     | generer_dashboard.py (krypteringsnøkkel)    |
 
-Garmin-data hentes IKKE direkte. HRV, søvn og Body Battery hentes fra
-TrainingPeaks sin helsedata-API (`consolidatedtimedmetrics`), som speiler Garmin-data.
+Garmin-data hentes IKKE direkte — søvn, HRV og Body Battery hentes via TrainingPeaks sin
+helsedata-API (`consolidatedtimedmetrics`) som speiler Garmin-data.
 
-TP-cookie fornyes via Safari → Web Inspector → Nettverk-fane → kopier Cookie-header
-→ `gh secret set TP_AUTH_COOKIE --repo oyvindgronner/garmin-morgenrapport`
-
----
-
-## Kjente problemer / begrensninger
-
-### TrainingPeaks cookie
-- Utløper typisk ~12 måneder etter siste innlogging.
-- `sjekk_cookie.py` sender e-postvarsel når det er ≤7 dager igjen.
-- Fornyes manuelt ved å hente ny `Production_tpAuth`-verdi fra Safari.
-
-### Strava streams
-- Full stream hentes nå (alle datapunkter). Tidligere bug med `[:10]` er fikset.
-
-### Gmail-tidsstempler
-- Rapporter sendes kl. 07:00 UTC = 09:00 norsk tid (CEST).
-
----
-
-## Lokalt oppsett
-
-```bash
-git clone https://github.com/oyvindgronner/garmin-morgenrapport.git
-cd garmin-morgenrapport
-pip install requests anthropic
-
-# Manuell kjøring
-gh workflow run morgenrapport.yml
-gh run watch
-```
+TP-cookie fornyes: Safari → Web Inspector → Nettverk → kopier Cookie-header →
+`gh secret set TP_AUTH_COOKIE --repo oyvindgronner/garmin-morgenrapport`
 
 ---
 
 ## Fysiologiske referanseverdier
 
-Terskelpuls: ~166 bpm | FTP: 327W | VO2max: 56 | Vekt: 73 kg | HRV balansert: 70–98 ms
+| Parameter        | Verdi                          |
+|------------------|-------------------------------|
+| Terskelpuls      | ~166 bpm                      |
+| FTP              | 327W                          |
+| VO2max           | 56                            |
+| Vekt             | 73 kg                         |
+| HRV balansert    | 70–98 ms                      |
 
 Pulssoner: S1 <139 / S2 139–148 / S3 149–158 / S4 159–169 / S5 >169 bpm
 Wattsoner: S1 <196 / S2 196–245 / S3 246–294 / S4 295–344 / S5 345–392 / S6 >392 W
 
-Rasekalender: Madrid HM 22.03.2026 (1:26:59, PR) | Hamburg Maraton 26.04.2026 (mål: sub 3:00)
-Fase: Siste byggeblokk + taper. Metode: Norwegian Singles — 1 terskeløkt (14. april), resten maratonspesifikk volum.
-CTL-mål inn mot Hamburg: 58–65 | TSB race-uka: +12 til +20
-
-## Trenerprogram frem til Hamburg (oppdatert 30. mars 2026)
-
-Nøkkelprioriteringer:
-- Maratonspesifikk CTL via volum og maratontempodrag — ikke terskelvolum
-- Én terskeløkt totalt (14. april)
-- Stor nøkkeløkt: 28 km langtur 12. april (16 km i maratonfart)
-- Påskeuka (1.–5. april): kun skigåing, ingen løping
-- Taper starter 19. april
-
 Dragtempo maratonfart: 4:16–4:12/km
 Terskelfart: 4:02–3:58/km
-Gel-strategi race-dag: hver 30–35 min
 
-Fullt program ligger i ukeplan.json (31. mars – 26. april).
+---
+
+## Treningsstrategi frem til Hamburg
+
+- Metode: Norwegian Singles — minimal terskelvolum, maratonspesifikk belastning
+- Én terskeløkt totalt: 14. april
+- Nøkkeløkt: 28 km langtur 12. april (16 km i maratonfart)
+- Påskeuka 1.–5. april: ski + lett løp, ingen kvalitetsøkter
+- Taper starter 19. april
+- CTL-mål inn mot Hamburg: 58–65
+- TSB race-uka: +12 til +20
+- Gel race-dag: ca. hver 30–35 min
+
+Rasekalender: Madrid HM 22.03.2026 (1:26:59, PR) | Hamburg Maraton 26.04.2026
 
 ---
 
@@ -123,7 +135,7 @@ Fullt program ligger i ukeplan.json (31. mars – 26. april).
 
 1. Aldri hardkode credentials — bruk GitHub Secrets.
 2. Ikke legg til retry-loops mot eksterne API-er.
-3. Ikke endre feltnavn i garmin_data_DATO.json uten å oppdatere alle konsumenter
-   (`claude_analyse.py` og `send_epost.py`).
-4. Rapporten er plain text — ikke HTML, ikke vedlegg.
-5. Test med `gh workflow run` før du regner endringen som ferdig.
+3. Ikke endre feltnavn i `garmin_data_DATO.json` uten å oppdatere alle konsumenter (`claude_analyse.py`, `send_epost.py`).
+4. Rapporten (e-post) er plain text — ikke HTML, ikke vedlegg.
+5. Test med `gh workflow run morgenrapport.yml` + `gh run watch` før endringen regnes som ferdig.
+6. `docs/index.html` skal aldri redigeres direkte — genereres alltid av `generer_dashboard.py`.
