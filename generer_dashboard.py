@@ -43,7 +43,8 @@ def formater_analyse(analyse: str) -> str:
         if not line:
             continue
         if any(line.startswith(h) for h in
-               ["HAMBURG-STATUS", "DAGSFORM", "BELASTNINGSVURDERING", "MØNSTER", "RÅDATA"]):
+               ["HAMBURG-STATUS", "DAGSFORM", "BELASTNINGSVURDERING", "MØNSTER", "RÅDATA",
+                "SISTE ØKT", "BELASTNINGSBILDE"]):
             lines.append(f'<p class="ah">{line}</p>')
         elif line.startswith("→"):
             lines.append(f'<p class="ar">{line}</p>')
@@ -307,7 +308,6 @@ a{{color:var(--blue-light)}}
 /* ── Layout ── */
 .grid2{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}}
 .grid3{{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}}
-@media(max-width:640px){{.grid2,.grid3{{grid-template-columns:1fr}}}}
 .kort{{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px}}
 .kort h3{{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;font-weight:600}}
 .stor-tall{{font-size:2.4rem;font-weight:800;line-height:1}}
@@ -319,6 +319,48 @@ a{{color:var(--blue-light)}}
 .metrikk-navn{{font-size:0.83rem;color:var(--muted)}}
 .metrikk-verdi{{font-weight:600;font-size:0.92rem}}
 .seksjon-tittel{{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--blue-light);margin:28px 0 12px;padding-left:10px;border-left:3px solid var(--blue)}}
+
+/* ── Chart-wrapper (kontrollert høyde, Chart.js fyller den) ── */
+.chart-wrap{{position:relative;height:260px}}
+.chart-wrap-sm{{position:relative;height:200px}}
+
+/* ── Mobiltilpasning ─────────────────────────────────────── */
+@media(max-width:640px){{
+  body{{font-size:14px}}
+  #dash{{padding:0 10px 48px}}
+  .grid2,.grid3{{grid-template-columns:1fr}}
+
+  /* Header */
+  .site-header{{padding:8px 12px;margin:0 -10px 0}}
+  .site-header img{{height:28px}}
+  .site-header-right{{font-size:0.66rem;max-width:120px;line-height:1.3}}
+
+  /* Topbar: tittel over badge */
+  .topbar{{flex-direction:column;align-items:flex-start;gap:6px;margin:14px 0;padding-bottom:12px}}
+  .topbar-left h1{{font-size:1.05rem}}
+  .topbar-left p{{font-size:0.73rem}}
+  .badge{{font-size:0.75rem;padding:5px 10px}}
+
+  /* Kort */
+  .kort{{padding:14px}}
+  .analyse-boks{{padding:14px}}
+  .chart-boks{{padding:12px}}
+  .stor-tall{{font-size:1.9rem}}
+  .seksjon-tittel{{font-size:0.67rem;margin:20px 0 10px}}
+
+  /* Trigger-panel */
+  .trigger-panel{{padding:14px}}
+  .trigger-rowflex{{flex-direction:column !important;align-items:stretch !important;gap:10px !important}}
+  .trigger-btn{{width:100%;padding:12px;font-size:0.9rem}}
+
+  /* Øktlogg */
+  .logg-rad{{flex-wrap:wrap;gap:6px}}
+  .logg-okt{{max-width:none;width:100%}}
+
+  /* Chart-wrappere smalere på mobil */
+  .chart-wrap{{height:200px}}
+  .chart-wrap-sm{{height:170px}}
+}}
 
 /* ── Analyse ── */
 .analyse-boks{{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:22px;margin-bottom:16px;line-height:1.75}}
@@ -399,7 +441,7 @@ footer span{{color:var(--muted)}}
   <div class="trigger-panel" id="trigger-panel">
     <h3>Hent ferske data og generer ny analyse</h3>
     <textarea id="okt-kommentar" placeholder="Kommentar til siste økt — f.eks. 'Følte meg tung, beina tunge etter gårsdagens terskel' (valgfritt)"></textarea>
-    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div class="trigger-rowflex" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <button class="trigger-btn" id="trigger-btn" onclick="triggerRapport()">Hent ferske data</button>
       <div class="trigger-status" id="trigger-status"></div>
     </div>
@@ -440,23 +482,23 @@ footer span{{color:var(--muted)}}
   <div class="seksjon-tittel">Formkurve — siste 90 dager + plan frem til Hamburg</div>
   <div class="chart-boks">
     <h3>Kondisjon / Tretthet / Dagsform &nbsp;·&nbsp; Stiplet = planlagt &nbsp;·&nbsp; Mål: Kondisjon 58–65, Dagsform +12–+20 på løpsdagen</h3>
-    <canvas id="ctlChart" height="130"></canvas>
+    <div class="chart-wrap"><canvas id="ctlChart"></canvas></div>
   </div>
 
   <div class="grid2">
     <div class="chart-boks" style="margin-bottom:0">
       <h3>HRV — siste 14 dager (balansert: 70–98 ms)</h3>
-      <canvas id="hrvChart" height="140"></canvas>
+      <div class="chart-wrap-sm"><canvas id="hrvChart"></canvas></div>
     </div>
     <div class="chart-boks" style="margin-bottom:0">
       <h3>Body Battery — siste 7 dager</h3>
-      <canvas id="bbChart" height="140"></canvas>
+      <div class="chart-wrap-sm"><canvas id="bbChart"></canvas></div>
     </div>
   </div>
 
   <div class="chart-boks" style="margin-top:16px">
     <h3>Søvn — siste 14 dager (dyp · REM · lett)</h3>
-    <canvas id="sovnChart" height="100"></canvas>
+    <div class="chart-wrap-sm"><canvas id="sovnChart"></canvas></div>
   </div>
 
   <!-- Treningsplan -->
@@ -859,12 +901,14 @@ function visDashboard(d) {{
   }}).join("");
 
   // ── Grafer ────────────────────────────────────────────────
+  const isMobile = window.innerWidth < 641;
   const DEFAULTS = {{
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {{ legend: {{ labels: {{ color:"#7a9bb5", boxWidth:14, font:{{family:"Open Sans"}} }} }} }},
     scales: {{
-      x: {{ ticks:{{ color:"#3d5a72", maxTicksLimit:12 }}, grid:{{ color:"#0c1e2e" }} }},
-      y: {{ ticks:{{ color:"#3d5a72" }},                   grid:{{ color:"#0c1e2e" }} }}
+      x: {{ ticks:{{ color:"#3d5a72", maxTicksLimit: isMobile ? 6 : 12 }}, grid:{{ color:"#0c1e2e" }} }},
+      y: {{ ticks:{{ color:"#3d5a72" }},                                    grid:{{ color:"#0c1e2e" }} }}
     }}
   }};
 
