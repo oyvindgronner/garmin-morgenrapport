@@ -46,7 +46,7 @@ Ingen cron-schedule.
 ## Dashboard
 
 - **URL:** https://oyvindgronner.github.io/garmin-morgenrapport/
-- **Passord:** hamburg2026
+- **Passord:** hamburg26
 - **Design:** Blå #0075be, gull #c9a227, Open Sans, Hamburg-skyline
 - **Kryptering:** AES-256-GCM — `generer_dashboard.py` krypterer payload, nøkkel er passordet
 - Knappen "Hent ferske data" sender `workflow_dispatch` + poller GitHub Actions for fremdrift, reloader automatisk når ferdig

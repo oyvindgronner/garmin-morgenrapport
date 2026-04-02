@@ -43,7 +43,9 @@ a{color:var(--blue-light)}
 #dash{display:none;max-width:1140px;margin:0 auto;padding:0 16px 60px}
 .site-header{background:var(--blue);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;margin:0 -16px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.4)}
 .site-header img{height:36px}
-.site-header-right{font-size:0.75rem;color:rgba(255,255,255,.7);text-align:right}
+.site-header-right{font-size:0.75rem;color:rgba(255,255,255,.7);text-align:right;display:flex;align-items:center;gap:12px}
+.logg-ut-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.65);border-radius:3px;padding:4px 10px;font-size:0.7rem;cursor:pointer;font-family:inherit;letter-spacing:.04em;text-transform:uppercase;transition:border-color .2s,color .2s}
+.logg-ut-btn:hover{border-color:rgba(255,255,255,.7);color:#fff}
 .topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:20px 0 20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
 .topbar-left h1{font-size:1.25rem;font-weight:800;letter-spacing:-.01em}
 .topbar-left p{font-size:0.78rem;color:var(--muted);margin-top:3px}
@@ -170,7 +172,8 @@ footer span{color:var(--muted)}
     <img src="https://haspa-marathon-hamburg.de/wp-content/uploads/2025/04/HMH26_Logo40years_langGold.png"
          alt="Haspa Marathon Hamburg 2026">
     <div class="site-header-right">
-      Øyvind Grønner &nbsp;·&nbsp; Sub 3:00
+      <span>Øyvind Grønner &nbsp;·&nbsp; Sub 3:00</span>
+      <button class="logg-ut-btn" onclick="loggUt()">Logg ut</button>
     </div>
   </div>
   <div class="topbar">
@@ -303,6 +306,18 @@ async function dekrypter(b64, passord) {
   const key  = await deriverNøkkel(passord, salt);
   const dec  = await crypto.subtle.decrypt({name:"AES-GCM", iv}, key, ct);
   return JSON.parse(new TextDecoder().decode(dec));
+}
+
+// ── Logg ut ──────────────────────────────────────────────────────────────────
+function loggUt() {
+  localStorage.removeItem("db_pw");
+  document.getElementById("dash").style.display = "none";
+  document.getElementById("gate").style.display = "flex";
+  document.getElementById("pw").value = "";
+  document.getElementById("feil").textContent = "";
+  const knapp = document.getElementById("logg-inn-knapp");
+  knapp.textContent = "Logg inn";
+  knapp.disabled = false;
 }
 
 // ── Innlogging ────────────────────────────────────────────────────────────────
