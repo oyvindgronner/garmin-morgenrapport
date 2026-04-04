@@ -34,8 +34,8 @@ def send_epost(json_fil: str, dato: str):
     atl       = tp_d.get("atl")
     tsb       = tp_d.get("tsb")
 
-    sovn_t = sovn_min // 60
-    sovn_r = sovn_min % 60
+    sovn_t = (sovn_min or 0) // 60
+    sovn_r = (sovn_min or 0) % 60
 
     if hrv is not None:
         hrv_status = "BALANSERT" if hrv >= 70 else "LAV" if hrv >= 60 else "SVÆRT LAV"
