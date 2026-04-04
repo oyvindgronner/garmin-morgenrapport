@@ -22,24 +22,25 @@ garmin-morgenrapport/
 
 ---
 
-## Dataflyt (workflow-rekkefølge)
+## Dataflyt
 
+### 1. GitHub Actions (workflow_dispatch)
 ```
-sjekk_cookie.py
+morgen.py ──► garmin_data_DATO.json ──► git push
+```
+
+### 2. Lokalt i Claude Code
+```
+Les siste garmin_data_DATO.json
     ↓
-morgen.py ──► garmin_data_DATO.json
-    ↓
-claude_analyse.py ──► (legger til analyse-felt i JSON, lagrer kommentar til okt_logg.json)
-    ↓
-send_epost.py ──► Gmail
+Coaching-analyse genereres her i Claude Code
     ↓
 generer_dashboard.py ──► docs/index.html (kryptert, GitHub Pages)
     ↓
 git commit + push
 ```
 
-**Trigger:** Kun manuell — knapp "Hent ferske data" på dashboardet sender `workflow_dispatch`.
-Ingen cron-schedule.
+**Trigger:** Kun manuell — `workflow_dispatch` (knapp "Hent ferske data" på dashboardet, eller `gh workflow run morgenrapport.yml`).
 
 ---
 
@@ -78,17 +79,16 @@ Skjema for én økt:
 
 ## GitHub Secrets
 
-| Secret                 | Brukes av                         |
-|------------------------|-----------------------------------|
-| STRAVA_CLIENT_ID       | morgen.py                         |
-| STRAVA_CLIENT_SECRET   | morgen.py                         |
-| STRAVA_REFRESH_TOKEN   | morgen.py                         |
-| TP_AUTH_COOKIE         | morgen.py, sjekk_cookie.py        |
-| ANTHROPIC_API_KEY      | claude_analyse.py                 |
-| GMAIL_USER             | send_epost.py, sjekk_cookie.py    |
-| GMAIL_APP_PASSWORD     | send_epost.py, sjekk_cookie.py    |
-| DASHBOARD_GITHUB_TOKEN | generer_dashboard.py (krypteres inn i HTML) |
-| DASHBOARD_PASSWORD     | generer_dashboard.py (krypteringsnøkkel)    |
+| Secret                 | Brukes av                                   |
+|------------------------|---------------------------------------------|
+| STRAVA_CLIENT_ID       | morgen.py (workflow)                        |
+| STRAVA_CLIENT_SECRET   | morgen.py (workflow)                        |
+| STRAVA_REFRESH_TOKEN   | morgen.py (workflow)                        |
+| TP_AUTH_COOKIE         | morgen.py (workflow), sjekk_cookie.py       |
+| GMAIL_USER             | send_epost.py, sjekk_cookie.py (manuelt)    |
+| GMAIL_APP_PASSWORD     | send_epost.py, sjekk_cookie.py (manuelt)    |
+| DASHBOARD_GITHUB_TOKEN | generer_dashboard.py (lokalt, inn i HTML)   |
+| DASHBOARD_PASSWORD     | generer_dashboard.py (lokalt, krypteringsnøkkel) |
 
 Garmin-data hentes IKKE direkte — søvn, HRV og Body Battery hentes via TrainingPeaks sin
 helsedata-API (`consolidatedtimedmetrics`) som speiler Garmin-data.
@@ -133,9 +133,8 @@ Rasekalender: Madrid HM 22.03.2026 (1:26:59, PR) | Hamburg Maraton 26.04.2026
 
 ## Regler ved kodeendringer
 
-1. Aldri hardkode credentials — bruk GitHub Secrets.
+1. Aldri hardkode credentials — bruk GitHub Secrets (workflow) eller `.env` (lokalt).
 2. Ikke legg til retry-loops mot eksterne API-er.
-3. Ikke endre feltnavn i `garmin_data_DATO.json` uten å oppdatere alle konsumenter (`claude_analyse.py`, `send_epost.py`).
-4. Rapporten (e-post) er plain text — ikke HTML, ikke vedlegg.
-5. Test med `gh workflow run morgenrapport.yml` + `gh run watch` før endringen regnes som ferdig.
-6. `docs/index.html` skal aldri redigeres direkte — genereres alltid av `generer_dashboard.py`.
+3. Ikke endre feltnavn i `garmin_data_DATO.json` uten å oppdatere alle konsumenter (`generer_dashboard.py`).
+4. Test workflow med `gh workflow run morgenrapport.yml` + `gh run watch` før endringen regnes som ferdig.
+5. `docs/index.html` skal aldri redigeres direkte — genereres alltid av `generer_dashboard.py`.

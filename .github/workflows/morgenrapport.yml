@@ -2,11 +2,6 @@ name: Morgenrapport
 
 on:
   workflow_dispatch:
-    inputs:
-      okt_kommentar:
-        description: 'Kommentar til siste økt (valgfritt)'
-        required: false
-        default: ''
 
 jobs:
   morgenrapport:
@@ -25,13 +20,6 @@ jobs:
       - name: Installer avhengigheter
         run: pip install -r requirements.txt
 
-      - name: Sjekk cookie-utløp
-        env:
-          TP_AUTH_COOKIE:     ${{ secrets.TP_AUTH_COOKIE }}
-          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: python sjekk_cookie.py
-
       - name: Hent data
         env:
           STRAVA_CLIENT_ID:     ${{ secrets.STRAVA_CLIENT_ID }}
@@ -40,36 +28,11 @@ jobs:
           TP_AUTH_COOKIE:       ${{ secrets.TP_AUTH_COOKIE }}
         run: python morgen.py
 
-      # Garmin direkte deaktivert — venter på at rate limit løsner (~1 uke)
-      # Aktiver igjen etter vellykket python garmin_auth.py
-      # - name: Hent Garmin direkte (søvnscore, HRV)
-      #   env:
-      #     GARMIN_TOKENS: ${{ secrets.GARMIN_TOKENS }}
-      #   run: python garmin_direkte.py
-
-      - name: Claude coaching-analyse
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          OKT_KOMMENTAR:     ${{ github.event.inputs.okt_kommentar }}
-        run: python claude_analyse.py
-
-      - name: Send e-post
-        env:
-          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: python send_epost.py
-
-      - name: Generer dashboard
-        env:
-          DASHBOARD_GITHUB_TOKEN: ${{ secrets.DASHBOARD_GITHUB_TOKEN }}
-          DASHBOARD_PASSWORD:     ${{ secrets.DASHBOARD_PASSWORD }}
-        run: python generer_dashboard.py
-
-      - name: Commit og push
+      - name: Commit og push JSON
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add docs/index.html okt_logg.json
-          git diff --staged --quiet || git commit -m "Rapport og dashboard oppdatert $(date +%Y-%m-%d\ %H:%M)"
+          git add garmin_data_*.json
+          git diff --staged --quiet || git commit -m "Data oppdatert $(date +%Y-%m-%d)"
           git pull --rebase
           git push
