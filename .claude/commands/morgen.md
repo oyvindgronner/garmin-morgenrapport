@@ -26,20 +26,58 @@ Finn den nyeste `garmin_data_DATO.json`-filen i repoet (sorter på dato i filnav
 
 ## Steg 3 – Generer coaching-analyse
 
-Analyser dataene som en erfaren løpetrener med fokus på Hamburg Maraton 26. april 2026 (mål: sub 3:00). Inkluder:
-- Dagens form: HRV, søvn, Body Battery, hvilepuls — vurder treningsberedskap
-- Siste aktivitet(er): kvalitet, intensitet, utførelse vs. plan
-- CTL/ATL/TSB: treningsbelastning og recovery-status
-- Anbefaling for dagen: hva bør gjøres i dag basert på data og ukeplan
-- Evt. avvik fra treningsplan og konsekvenser
+Analyser dataene som en erfaren løpetrener med fokus på Hamburg Maraton 26. april 2026 (mål: sub 3:00). Følg **nøyaktig** dette outputformatet (brukes av dashboardet):
 
-Bruk fysiologiske referanseverdier fra CLAUDE.md (terskelpuls ~166 bpm, FTP 327W, HRV-balanse 70–98 ms, maratonfart 4:16–4:12/km, etc.)
+```
+✅/⚠️/🔴 [STATUS] — [Én setning begrunnelse, maks 20 ord]
+
+SISTE ØKT:
+[Vurder siste økt: NP, IF, TSS, EF, puls. Maks 3 setninger med konkrete tall.]
+
+BELASTNINGSBILDE:
+[CTL-utvikling, ATL, TSB-trend, nødvendig daglig TSS. Maks 4 setninger.]
+
+HAMBURG-STATUS:
+[CTL nå vs mål 58–65, TSB race-dag. Maks 3 setninger.]
+
+DAGSFORM:
+[Kun det verdt å nevne: HRV, søvn, Body Battery. Ikke kommenter normalverdier med mer enn ett ord.]
+
+BELASTNINGSVURDERING I DAG:
+→ GJENNOMFØR SOM PLANLAGT / LEGG PÅ: [justering] / REDUSER: [justering]
+[Én setning begrunnelse basert på HRV, TSB og CTL-gap.]
+```
+
+Regler:
+- Maks 320 ord totalt
+- Norsk språk
+- Kvantifiser alltid: bpm, watt, km, TSS, IF
+- Beregn IF = NP/327, TSS = (varighet_sek × NP × IF) / (327 × 3600) × 100, EF = NP/snitt_puls
+- Bruk fysiologiske referanseverdier fra CLAUDE.md
+
+## Steg 3b – Lagre analysen til JSON
+
+Etter at analysen er generert, **lagre den til JSON-filen** slik at dashboardet kan vise den:
+
+```python
+import json
+
+analyse_tekst = """[SETT INN ANALYSEN HER]"""
+
+with open('garmin_data_DATO.json', 'r', encoding='utf-8') as f:
+    data = json.load(f)
+data['claude_analyse'] = analyse_tekst
+with open('garmin_data_DATO.json', 'w', encoding='utf-8') as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+```
+
+Kjør dette som et python3-skript med riktig filnavn og den faktiske analyseteksten.
 
 ## Steg 4 – Generer og push dashboard
 
 ```
-python generer_dashboard.py
-git add docs/index.html
+python3 generer_dashboard.py
+git add docs/index.html garmin_data_DATO.json
 git commit -m "Dashboard oppdatert DATO"
 git push
 ```
