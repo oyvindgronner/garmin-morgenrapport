@@ -2,6 +2,11 @@ name: Morgenrapport
 
 on:
   workflow_dispatch:
+    inputs:
+      okt_kommentar:
+        description: 'Subjektiv opplevelse av siste økt'
+        required: false
+        default: ''
 
 jobs:
   morgenrapport:
@@ -34,5 +39,24 @@ jobs:
           git config user.email "actions@github.com"
           git add -f garmin_data_*.json
           git diff --staged --quiet || git commit -m "Data oppdatert $(date +%Y-%m-%d)"
+          git pull --rebase
+          git push
+
+      - name: Generer Claude-analyse
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OKT_KOMMENTAR:     ${{ github.event.inputs.okt_kommentar }}
+        run: python claude_analyse.py
+
+      - name: Generer dashboard
+        env:
+          DASHBOARD_PASSWORD:     ${{ secrets.DASHBOARD_PASSWORD }}
+          DASHBOARD_GITHUB_TOKEN: ${{ secrets.DASHBOARD_GITHUB_TOKEN }}
+        run: python generer_dashboard.py
+
+      - name: Commit og push dashboard
+        run: |
+          git add docs/index.html okt_logg.json
+          git diff --staged --quiet || git commit -m "Dashboard oppdatert $(date +%Y-%m-%d)"
           git pull --rebase
           git push
