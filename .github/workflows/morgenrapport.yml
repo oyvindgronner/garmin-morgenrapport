@@ -39,7 +39,7 @@ jobs:
           git config user.email "actions@github.com"
           git add -f garmin_data_*.json
           git diff --staged --quiet || git commit -m "Data oppdatert $(date +%Y-%m-%d)"
-          git pull --rebase
+          git pull --rebase --autostash
           git push
 
       - name: Generer Claude-analyse
@@ -58,5 +58,5 @@ jobs:
         run: |
           git add docs/index.html okt_logg.json
           git diff --staged --quiet || git commit -m "Dashboard oppdatert $(date +%Y-%m-%d)"
-          git pull --rebase
+          git pull --rebase --autostash
           git push
