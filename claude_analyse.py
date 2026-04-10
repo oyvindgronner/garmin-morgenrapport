@@ -315,7 +315,7 @@ def main():
 
     prompt = bygg_prompt(data)
 
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"], max_retries=3)
     melding = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=800,
