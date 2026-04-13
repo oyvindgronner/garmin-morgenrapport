@@ -39,12 +39,21 @@ def hent_strava():
     token = strava_refresh_token()
     profil = strava_get("https://www.strava.com/api/v3/athlete", token)
 
-    # Historikk siste 90 dager — kun nøkkeldata
+    # Historikk siste 90 dager — kun nøkkeldata (henter alle sider)
     etter_90d = int(time.time()) - (90 * 86400)
-    alle_raw = strava_get(
-        f"https://www.strava.com/api/v3/athlete/activities?after={etter_90d}&per_page=100",
-        token
-    )
+    alle_raw = []
+    page = 1
+    while True:
+        side = strava_get(
+            f"https://www.strava.com/api/v3/athlete/activities?after={etter_90d}&per_page=100&page={page}",
+            token
+        )
+        if not side:
+            break
+        alle_raw.extend(side)
+        if len(side) < 100:
+            break
+        page += 1
 
     # Siste 3 aktiviteter = de nyeste fra 90-dagershistorikken (unngår tidsbegrenset vindu)
     siste_raw = sorted(alle_raw, key=lambda a: a.get("start_date", ""), reverse=True)[:3]
